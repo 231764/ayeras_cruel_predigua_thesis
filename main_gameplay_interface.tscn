@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://b11qqo1nag86y"]
+
+[ext_resource type="Texture2D" uid="uid://bah3bosvbua5r" path="res://Screenshot 2026-08-23 222652.png" id="1_ajhct"]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Desk" type="TextureRect" parent="."]
+offset_right = 1147.0
+offset_bottom = 641.0
+texture = ExtResource("1_ajhct")
+
+[node name="Planner Button" type="TextureButton" parent="."]
+offset_left = 502.0
+offset_top = 281.0
+offset_right = 705.0
+offset_bottom = 480.0

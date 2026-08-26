@@ -1,6 +1,12 @@
-[gd_scene load_steps=2 format=3 uid="uid://b11qqo1nag86y"]
+[gd_scene load_steps=8 format=3 uid="uid://b11qqo1nag86y"]
 
-[ext_resource type="Texture2D" uid="uid://bah3bosvbua5r" path="res://Screenshot 2026-08-23 222652.png" id="1_ajhct"]
+[ext_resource type="Texture2D" uid="uid://bah3bosvbua5r" path="res://assets/Screenshot 2026-08-23 222652.png" id="1_ajhct"]
+[ext_resource type="Texture2D" uid="uid://dmcuc2nrc3qlv" path="res://assets/planner button.png" id="2_d5uah"]
+[ext_resource type="Texture2D" uid="uid://cbas7q7ys6u7h" path="res://assets/planner button hovered.png" id="3_yler6"]
+[ext_resource type="Texture2D" uid="uid://djc1rcdyfdhjk" path="res://assets/budget button.png" id="4_voptk"]
+[ext_resource type="Texture2D" uid="uid://ciy3ttgsq80ng" path="res://assets/budget button hovered.png" id="5_2v8hh"]
+[ext_resource type="Texture2D" uid="uid://cq4ocr7oo54v2" path="res://assets/phone button.png" id="6_3t3i8"]
+[ext_resource type="Texture2D" uid="uid://dh4miwxybt5lr" path="res://assets/phone button hovered.png" id="7_6m418"]
 
 [node name="Node2D" type="Node2D"]
 
@@ -10,7 +16,28 @@ offset_bottom = 641.0
 texture = ExtResource("1_ajhct")
 
 [node name="Planner Button" type="TextureButton" parent="."]
-offset_left = 502.0
-offset_top = 281.0
-offset_right = 705.0
-offset_bottom = 480.0
+offset_left = 406.0
+offset_top = 235.0
+offset_right = 4657.0
+offset_bottom = 3857.0
+scale = Vector2(0.085, 0.085)
+texture_normal = ExtResource("2_d5uah")
+texture_hover = ExtResource("3_yler6")
+
+[node name="Budget Button" type="TextureButton" parent="."]
+offset_left = 213.0
+offset_top = 258.0
+offset_right = 4464.0
+offset_bottom = 3880.0
+scale = Vector2(0.065, 0.065)
+texture_normal = ExtResource("4_voptk")
+texture_hover = ExtResource("5_2v8hh")
+
+[node name="Phone Button" type="TextureButton" parent="."]
+offset_left = 757.0
+offset_top = 242.0
+offset_right = 5008.0
+offset_bottom = 3864.0
+scale = Vector2(0.06, 0.06)
+texture_normal = ExtResource("6_3t3i8")
+texture_hover = ExtResource("7_6m418")

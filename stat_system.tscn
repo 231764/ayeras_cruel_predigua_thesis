@@ -1,0 +1,71 @@
+[gd_scene load_steps=3 format=3 uid="uid://dy3ox3hkpgguj"]
+
+[ext_resource type="Texture2D" uid="uid://donoud7d68nvw" path="res://assets/stat system icons.png" id="1_jcwx6"]
+[ext_resource type="Script" uid="uid://mji1exoq66b6" path="res://stat_system.gd" id="1_uf86d"]
+
+[node name="Stat System" type="Node2D" node_paths=PackedStringArray("stat_interface", "happy_bar", "social_bar", "current_balance", "savings", "credit_balance", "credit_score", "debt_balance")]
+script = ExtResource("1_uf86d")
+stat_interface = NodePath("")
+happy_bar = NodePath("Happiness Bar")
+social_bar = NodePath("Sociability Bar")
+current_balance = NodePath("CB Label")
+savings = NodePath("Savings Label")
+credit_balance = NodePath("CrB Label")
+credit_score = NodePath("CS Label")
+debt_balance = NodePath("Debt Label")
+
+[node name="Happiness Bar" type="ProgressBar" parent="."]
+offset_left = 708.0
+offset_top = 47.0
+offset_right = 1103.0
+offset_bottom = 74.0
+
+[node name="Sociability Bar" type="ProgressBar" parent="."]
+offset_left = 707.0
+offset_top = 106.0
+offset_right = 1101.0
+offset_bottom = 133.0
+
+[node name="CB Label" type="Label" parent="."]
+offset_left = 751.0
+offset_top = 177.0
+offset_right = 783.0
+offset_bottom = 200.0
+text = "PHP"
+
+[node name="Savings Label" type="Label" parent="."]
+offset_left = 751.0
+offset_top = 263.0
+offset_right = 791.0
+offset_bottom = 286.0
+text = "PHP"
+
+[node name="CrB Label" type="Label" parent="."]
+offset_left = 751.0
+offset_top = 338.0
+offset_right = 791.0
+offset_bottom = 361.0
+text = "PHP"
+
+[node name="CS Label" type="Label" parent="."]
+offset_left = 750.0
+offset_top = 501.0
+offset_right = 790.0
+offset_bottom = 524.0
+text = "PHP"
+
+[node name="Debt Label" type="Label" parent="."]
+offset_left = 751.0
+offset_top = 426.0
+offset_right = 791.0
+offset_bottom = 449.0
+text = "PHP"
+
+[node name="TextureRect" type="TextureRect" parent="."]
+offset_left = 600.0
+offset_top = 11.0
+offset_right = 3012.0
+offset_bottom = 6435.0
+scale = Vector2(0.085, 0.085)
+texture = ExtResource("1_jcwx6")
+stretch_mode = 4

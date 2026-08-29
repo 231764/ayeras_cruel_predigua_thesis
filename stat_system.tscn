@@ -1,11 +1,30 @@
-[gd_scene load_steps=3 format=3 uid="uid://dy3ox3hkpgguj"]
+[gd_scene load_steps=4 format=3 uid="uid://dy3ox3hkpgguj"]
 
 [ext_resource type="Texture2D" uid="uid://donoud7d68nvw" path="res://assets/stat system icons.png" id="1_jcwx6"]
-[ext_resource type="Script" uid="uid://mji1exoq66b6" path="res://stat_system.gd" id="1_uf86d"]
+[ext_resource type="Script" uid="uid://mji1exoq66b6" path="res://scripts/stat_system.gd" id="1_uf86d"]
 
-[node name="Stat System" type="Node2D" node_paths=PackedStringArray("stat_interface", "happy_bar", "social_bar", "current_balance", "savings", "credit_balance", "credit_score", "debt_balance")]
+[sub_resource type="GDScript" id="GDScript_uf86d"]
+script/source = "extends Button
+
+@export var button = Button;
+@export var stat_system = Node2D
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+	
+func _button_pressed() -> void:
+	print(\"You added so much money!\")	
+	stat_system.happy_calc(10)
+	
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+"
+
+[node name="Stat System" type="Node2D" node_paths=PackedStringArray("happy_bar", "social_bar", "current_balance", "savings", "credit_balance", "credit_score", "debt_balance")]
 script = ExtResource("1_uf86d")
-stat_interface = NodePath("")
 happy_bar = NodePath("Happiness Bar")
 social_bar = NodePath("Sociability Bar")
 current_balance = NodePath("CB Label")
@@ -69,3 +88,15 @@ offset_bottom = 6435.0
 scale = Vector2(0.085, 0.085)
 texture = ExtResource("1_jcwx6")
 stretch_mode = 4
+
+[node name="TestButton" type="Button" parent="." node_paths=PackedStringArray("button", "stat_system")]
+offset_left = 269.0
+offset_top = 54.0
+offset_right = 390.0
+offset_bottom = 80.0
+text = "Add Money"
+script = SubResource("GDScript_uf86d")
+button = NodePath(".")
+stat_system = NodePath("..")
+
+[connection signal="pressed" from="TestButton" to="." method="_on_button_pressed"]

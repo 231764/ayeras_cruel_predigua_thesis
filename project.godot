@@ -14,3 +14,7 @@ config/name="Paldo"
 run/main_scene="uid://b11qqo1nag86y"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+StatManager="*res://scripts/stat_manager.gd"

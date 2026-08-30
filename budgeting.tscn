@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3 uid="uid://di8f6k04t6b2s"]
+
+[ext_resource type="Script" uid="uid://c84tj250rbjdt" path="res://budgeting.gd" id="1_a548u"]
+[ext_resource type="PackedScene" uid="uid://h0ak5v2xuij2" path="res://envelope.tscn" id="1_ktd5u"]
+
+[node name="Budgetting Interface" type="Node2D"]
+script = ExtResource("1_a548u")
+
+[node name="LeftButton" type="Button" parent="."]
+offset_left = 38.0
+offset_top = 197.0
+offset_right = 91.0
+offset_bottom = 409.0
+text = "<"
+
+[node name="Envelope" parent="." instance=ExtResource("1_ktd5u")]
+position = Vector2(-20, -39)
+
+[node name="RightButton" type="Button" parent="."]
+offset_left = 1058.55
+offset_top = 197.0
+offset_right = 1111.55
+offset_bottom = 409.0
+text = ">"
+
+[connection signal="pressed" from="LeftButton" to="." method="_on_left_button_pressed"]
+[connection signal="pressed" from="RightButton" to="." method="_on_right_button_pressed"]

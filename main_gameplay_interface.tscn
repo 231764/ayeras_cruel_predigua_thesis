@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://b11qqo1nag86y"]
+[gd_scene load_steps=16 format=3 uid="uid://b11qqo1nag86y"]
 
 [ext_resource type="Texture2D" uid="uid://bah3bosvbua5r" path="res://assets/Screenshot 2026-08-23 222652.png" id="1_ajhct"]
 [ext_resource type="Texture2D" uid="uid://dmcuc2nrc3qlv" path="res://assets/planner button.png" id="2_d5uah"]
@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" uid="uid://dy3ox3hkpgguj" path="res://stat_system.tscn" id="10_dppuc"]
 [ext_resource type="Texture2D" uid="uid://clfesd6qbf84r" path="res://assets/Screenshot 2026-08-27 001036.png" id="10_qxgsa"]
 [ext_resource type="Texture2D" uid="uid://cjad8bkwqi2h1" path="res://assets/Screenshot 2026-08-27 001029.png" id="11_dppuc"]
+[ext_resource type="PackedScene" uid="uid://di8f6k04t6b2s" path="res://budgeting.tscn" id="15_f2wrt"]
 
 [node name="Desk Node" type="Node2D"]
 
@@ -103,5 +104,7 @@ visible = false
 offset_right = 1200.0
 offset_bottom = 654.0
 texture = ExtResource("11_dppuc")
+
+[node name="Node2D" parent="Budget Node" instance=ExtResource("15_f2wrt")]
 
 [editable path="Player Status/Stat System"]

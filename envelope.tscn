@@ -1,0 +1,67 @@
+[gd_scene load_steps=4 format=3 uid="uid://h0ak5v2xuij2"]
+
+[ext_resource type="Texture2D" uid="uid://bk0vjtj8jafi6" path="res://assets/envelope.png" id="1_8o8ra"]
+[ext_resource type="Script" uid="uid://beq5llxrawsny" path="res://envelope.gd" id="1_k4yme"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_8o8ra"]
+font_size = 25
+font_color = Color(0, 0, 0, 1)
+
+[node name="Envelope" type="Node2D" node_paths=PackedStringArray("category_label", "amount_label", "money_edit")]
+script = ExtResource("1_k4yme")
+category_label = NodePath("EnvelopCategory")
+amount_label = NodePath("EnvelopBudget")
+money_edit = NodePath("InsertMoney")
+
+[node name="EnvelopTexture" type="TextureRect" parent="."]
+offset_left = 273.0
+offset_top = 3.0
+offset_right = 4524.0
+offset_bottom = 3625.0
+scale = Vector2(0.16, 0.16)
+texture = ExtResource("1_8o8ra")
+
+[node name="EnvelopCategory" type="Label" parent="."]
+offset_left = 474.0
+offset_top = 241.0
+offset_right = 729.0
+offset_bottom = 317.0
+text = "Label"
+label_settings = SubResource("LabelSettings_8o8ra")
+horizontal_alignment = 1
+autowrap_mode = 1
+
+[node name="EnvelopBudget" type="Label" parent="."]
+offset_left = 473.0
+offset_top = 312.0
+offset_right = 728.0
+offset_bottom = 388.0
+text = "PHP"
+label_settings = SubResource("LabelSettings_8o8ra")
+horizontal_alignment = 1
+autowrap_mode = 1
+
+[node name="InsertMoney" type="TextEdit" parent="."]
+offset_left = 199.0
+offset_top = 589.0
+offset_right = 575.0
+offset_bottom = 630.0
+placeholder_text = "(insert money)"
+drag_and_drop_selection_enabled = false
+
+[node name="SubmitMoney" type="Button" parent="."]
+offset_left = 598.0
+offset_top = 589.0
+offset_right = 753.0
+offset_bottom = 628.0
+text = "Submit"
+
+[node name="WithdrawMoney" type="Button" parent="."]
+offset_left = 767.0
+offset_top = 589.0
+offset_right = 922.0
+offset_bottom = 628.0
+text = "Withdraw"
+
+[connection signal="pressed" from="SubmitMoney" to="." method="_on_submit_money_pressed"]
+[connection signal="pressed" from="WithdrawMoney" to="." method="_on_withdraw_money_pressed"]

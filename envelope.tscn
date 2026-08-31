@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://h0ak5v2xuij2"]
 
 [ext_resource type="Texture2D" uid="uid://bk0vjtj8jafi6" path="res://assets/envelope.png" id="1_8o8ra"]
-[ext_resource type="Script" uid="uid://beq5llxrawsny" path="res://envelope.gd" id="1_k4yme"]
+[ext_resource type="Script" uid="uid://beq5llxrawsny" path="res://scripts/envelope.gd" id="1_k4yme"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_8o8ra"]
 font_size = 25

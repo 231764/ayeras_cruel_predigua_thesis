@@ -1,7 +1,8 @@
 extends TextureButton
 
-@export var button = TextureButton;
+@export var button = TextureButton
 @export var interface = Node2D
+@onready var back_button = $"../Back Button"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -11,6 +12,9 @@ func _ready() -> void:
 func _button_pressed() -> void:
 	print("You pressed " + button.name)	
 	interface.visible = true;
+	back_button.visible = true;
+	back_button.set_interface(interface)
+	
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:

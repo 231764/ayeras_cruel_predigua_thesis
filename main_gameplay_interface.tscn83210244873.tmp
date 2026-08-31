@@ -1,7 +1,7 @@
 [gd_scene load_steps=17 format=3 uid="uid://b11qqo1nag86y"]
 
 [ext_resource type="Texture2D" uid="uid://bah3bosvbua5r" path="res://assets/Screenshot 2026-08-23 222652.png" id="1_ajhct"]
-[ext_resource type="Script" uid="uid://dtj27omj1qyfc" path="res://scripts/close_interface.gd" id="2_4dx5e"]
+[ext_resource type="Script" uid="uid://dtj27omj1qyfc" path="res://close_interface.gd" id="2_4dx5e"]
 [ext_resource type="Texture2D" uid="uid://dmcuc2nrc3qlv" path="res://assets/planner button.png" id="2_d5uah"]
 [ext_resource type="Texture2D" uid="uid://csqs05aobw7vl" path="res://assets/status button.png" id="2_t0r63"]
 [ext_resource type="Texture2D" uid="uid://bxfwqpnu7tjuc" path="res://assets/status button hovered.png" id="3_f2wrt"]
@@ -23,6 +23,15 @@
 offset_right = 1147.0
 offset_bottom = 641.0
 texture = ExtResource("1_ajhct")
+
+[node name="Back Button" type="Button" parent="."]
+visible = false
+offset_left = 152.0
+offset_top = 33.0
+offset_right = 460.0
+offset_bottom = 98.0
+text = "Back to Desk"
+script = ExtResource("2_4dx5e")
 
 [node name="Status Button" type="TextureButton" parent="." node_paths=PackedStringArray("button", "interface")]
 offset_left = 536.0
@@ -107,16 +116,6 @@ offset_bottom = 654.0
 texture = ExtResource("11_dppuc")
 
 [node name="BudgettingInterface" parent="Budget Node" instance=ExtResource("15_f2wrt")]
-
-[node name="Back Button" type="Button" parent="."]
-visible = false
-z_index = 5
-offset_left = 39.0
-offset_top = 26.0
-offset_right = 233.0
-offset_bottom = 68.0
-text = "Back to Desk"
-script = ExtResource("2_4dx5e")
 
 [connection signal="pressed" from="Back Button" to="Back Button" method="_on_pressed"]
 

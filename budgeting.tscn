@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://di8f6k04t6b2s"]
 
-[ext_resource type="Script" uid="uid://c84tj250rbjdt" path="res://budgeting.gd" id="1_a548u"]
+[ext_resource type="Script" uid="uid://c84tj250rbjdt" path="res://scripts/budgeting.gd" id="1_a548u"]
 [ext_resource type="PackedScene" uid="uid://h0ak5v2xuij2" path="res://envelope.tscn" id="1_ktd5u"]
 
 [node name="Budgetting Interface" type="Node2D"]

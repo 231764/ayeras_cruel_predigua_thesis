@@ -10,12 +10,7 @@ extends Node2D
 
 
 func _ready() -> void:
-# stats are to be handled in a seperate GDScript, for now, they are temporary.
-# ex. in stat_manager.gd, the values would be like 
 	update_ui()
-	#powerLabel.text = "%d / %d" % [StatManager.power, maxPower]
-	#allyProgBar.value = StatManager.allies
-	#allyLabel.text = "%d / %d" % [StatManager.allies, maxAllies]
 
 func update_ui() -> void:
 	happy_bar.value = StatManager.happy;
@@ -47,8 +42,19 @@ func credit_score_calc(amount: int) -> void:
 func debt_calc(amount: int) -> void:
 	StatManager.debt += amount
 
+func daily_cycle() -> void:
+	StatManager.current_day += 1
+	if (StatManager.year[StatManager.current_month].days < StatManager.current_day):
+		StatManager.current_day = 1
+		if (StatManager.year[StatManager.current_month].month == "December"):
+			StatManager.current_month = 0
+		else: StatManager.current_month += 1
+		pass
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
+	print(StatManager.year[StatManager.current_month].month + " " + str(StatManager.current_day))
+	daily_cycle()
 	update_ui()
 	pass
 

@@ -15,25 +15,6 @@ var envelopes := [
 	{"category": "Entertainment", "amount": 0}
 ]
 
-# For the CYCLES aspect
-
-var current_day := 1
-var current_month := 0
-var year := [
-	{"month": "January", "days": 31},
-	{"month": "February", "days": 29},
-	{"month": "March", "days": 31},
-	{"month": "April", "days": 30},
-	{"month": "May", "days": 31},
-	{"month": "June", "days": 30},
-	{"month": "July", "days": 31},
-	{"month": "August", "days": 31},
-	{"month": "September", "days": 30},
-	{"month": "October", "days": 31},
-	{"month": "November", "days": 30},
-	{"month": "December", "days": 31},
-]
-
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	pass # Replace with function body.

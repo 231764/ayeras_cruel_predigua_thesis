@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://b11qqo1nag86y"]
+[gd_scene load_steps=18 format=3 uid="uid://b11qqo1nag86y"]
 
 [ext_resource type="Texture2D" uid="uid://bah3bosvbua5r" path="res://assets/Screenshot 2026-08-23 222652.png" id="1_ajhct"]
 [ext_resource type="Script" uid="uid://dtj27omj1qyfc" path="res://scripts/close_interface.gd" id="2_4dx5e"]
@@ -12,10 +12,11 @@
 [ext_resource type="Texture2D" uid="uid://cq4ocr7oo54v2" path="res://assets/phone button.png" id="6_3t3i8"]
 [ext_resource type="Texture2D" uid="uid://dh4miwxybt5lr" path="res://assets/phone button hovered.png" id="7_6m418"]
 [ext_resource type="Texture2D" uid="uid://dsbrn5e41bcfd" path="res://assets/Screenshot 2026-08-27 001019.png" id="9_bn1n3"]
-[ext_resource type="PackedScene" uid="uid://dy3ox3hkpgguj" path="res://stat_system.tscn" id="10_dppuc"]
+[ext_resource type="PackedScene" uid="uid://dy3ox3hkpgguj" path="res://scenes/stat_system.tscn" id="10_dppuc"]
 [ext_resource type="Texture2D" uid="uid://clfesd6qbf84r" path="res://assets/Screenshot 2026-08-27 001036.png" id="10_qxgsa"]
 [ext_resource type="Texture2D" uid="uid://cjad8bkwqi2h1" path="res://assets/Screenshot 2026-08-27 001029.png" id="11_dppuc"]
-[ext_resource type="PackedScene" uid="uid://di8f6k04t6b2s" path="res://budgeting.tscn" id="15_f2wrt"]
+[ext_resource type="PackedScene" uid="uid://di8f6k04t6b2s" path="res://scenes/budgeting.tscn" id="15_f2wrt"]
+[ext_resource type="PackedScene" uid="uid://c8fyenv7dl2wh" path="res://scenes/time_cycle.tscn" id="17_t8wqf"]
 
 [node name="Desk Node" type="Node2D"]
 
@@ -117,6 +118,8 @@ offset_right = 233.0
 offset_bottom = 68.0
 text = "Back to Desk"
 script = ExtResource("2_4dx5e")
+
+[node name="Time Cycle" parent="." instance=ExtResource("17_t8wqf")]
 
 [connection signal="pressed" from="Back Button" to="Back Button" method="_on_pressed"]
 

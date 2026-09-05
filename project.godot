@@ -18,3 +18,4 @@ config/icon="res://icon.svg"
 [autoload]
 
 StatManager="*res://scripts/stat_manager.gd"
+TimeCycle="*res://scripts/time_cycle.gd"

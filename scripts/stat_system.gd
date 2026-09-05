@@ -42,19 +42,9 @@ func credit_score_calc(amount: int) -> void:
 func debt_calc(amount: int) -> void:
 	StatManager.debt += amount
 
-func daily_cycle() -> void:
-	StatManager.current_day += 1
-	if (StatManager.year[StatManager.current_month].days < StatManager.current_day):
-		StatManager.current_day = 1
-		if (StatManager.year[StatManager.current_month].month == "December"):
-			StatManager.current_month = 0
-		else: StatManager.current_month += 1
-		pass
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	print(StatManager.year[StatManager.current_month].month + " " + str(StatManager.current_day))
-	daily_cycle()
 	update_ui()
 	pass
 

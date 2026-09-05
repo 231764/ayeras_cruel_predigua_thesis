@@ -99,6 +99,13 @@ offset_right = 1220.0
 offset_bottom = 656.0
 texture = ExtResource("10_qxgsa")
 
+[node name="End Day" type="Button" parent="Phone Node"]
+offset_left = 712.0
+offset_top = 499.0
+offset_right = 924.0
+offset_bottom = 553.0
+text = "End the day"
+
 [node name="Budget Node" type="Node2D" parent="."]
 visible = false
 
@@ -120,7 +127,9 @@ text = "Back to Desk"
 script = ExtResource("2_4dx5e")
 
 [node name="Time Cycle" parent="." instance=ExtResource("17_t8wqf")]
+visible = false
 
+[connection signal="pressed" from="Phone Node/End Day" to="Time Cycle" method="_on_end_day_pressed"]
 [connection signal="pressed" from="Back Button" to="Back Button" method="_on_pressed"]
 
 [editable path="Player Status/Stat System"]

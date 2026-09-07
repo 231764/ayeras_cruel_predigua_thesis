@@ -3,10 +3,10 @@ extends Node
 var happy := 50 #starting happy value 
 var social := 50 #starting social value
 var current_balance := 5000 #starting current balance value
-var savings := 50 #starting social value
-var credit_score := 50 #starting social value
-var credit_balance := 10 #starting social value
-var debt_balance := 50 #starting social value
+var savings := 50 #starting savings value
+var credit_score := 50 #starting credit score value
+var credit_balance := 10 #starting credit balance value
+var debt_balance := 50 #starting debt value
 
 # For the BUDGETTING aspect
 var envelopes := [
@@ -19,6 +19,7 @@ var envelopes := [
 
 var current_day := 1
 var current_month := 0
+var current_phase := 0 # 0 = Morning, 1 = Afternoon, 2 = Evening
 var year := [
 	{"month": "January", "days": 31},
 	{"month": "February", "days": 29},

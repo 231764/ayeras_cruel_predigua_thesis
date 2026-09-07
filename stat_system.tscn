@@ -6,24 +6,11 @@
 [sub_resource type="GDScript" id="GDScript_uf86d"]
 script/source = "extends Button
 
-@export var button = Button;
-@export var stat_system = Node2D
-
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
-	
-func _button_pressed() -> void:
-	print(\"You added so much money!\")	
-	stat_system.happy_calc(10)
-	
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
 	pass
 "
 
-[node name="Stat System" type="Node2D" node_paths=PackedStringArray("happy_bar", "social_bar", "current_balance", "savings", "credit_balance", "credit_score", "debt_balance")]
+[node name="Stat System" type="Node2D" node_paths=PackedStringArray("happy_bar", "social_bar", "current_balance", "savings", "credit_balance", "credit_score", "debt_balance", "date_label")]
 script = ExtResource("1_uf86d")
 happy_bar = NodePath("Happiness Bar")
 social_bar = NodePath("Sociability Bar")
@@ -32,6 +19,7 @@ savings = NodePath("Savings Label")
 credit_balance = NodePath("CrB Label")
 credit_score = NodePath("CS Label")
 debt_balance = NodePath("Debt Label")
+date_label = NodePath("DateLabel")
 
 [node name="Happiness Bar" type="ProgressBar" parent="."]
 offset_left = 708.0
@@ -89,14 +77,20 @@ scale = Vector2(0.085, 0.085)
 texture = ExtResource("1_jcwx6")
 stretch_mode = 4
 
-[node name="TestButton" type="Button" parent="." node_paths=PackedStringArray("button", "stat_system")]
-offset_left = 269.0
+[node name="NextPhaseButton" type="Button" parent="."]
+offset_left = 250.0
 offset_top = 54.0
 offset_right = 390.0
-offset_bottom = 80.0
-text = "Add Money"
-script = SubResource("GDScript_uf86d")
-button = NodePath(".")
-stat_system = NodePath("..")
+offset_bottom = 85.0
+text = "Next Phase"
 
-[connection signal="pressed" from="TestButton" to="." method="_on_button_pressed"]
+[node name="DateLabel" type="Label" parent="."]
+offset_left = 410.0
+offset_top = 58.0
+offset_right = 650.0
+offset_bottom = 81.0
+theme_override_font_sizes/font_size = 18
+text = "January 1 - Morning"
+
+[connection signal="pressed" from="NextPhaseButton" to="." method="advance_phase"]
+

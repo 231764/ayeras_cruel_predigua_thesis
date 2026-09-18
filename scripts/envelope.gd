@@ -43,19 +43,13 @@ func remove_money(value: int) -> void:
 func _ready() -> void:
 	pass # Replace with function body.
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
-
-
 func _on_submit_money_pressed() -> void:
-	var amount = int(money_edit.text)
-	add_money(amount)
+	var parsed_amount = int(money_edit.text)
+	add_money(parsed_amount)
 	pass # Replace with function body.
 
 
 func _on_withdraw_money_pressed() -> void:
-	var amount = int(money_edit.text)
-	remove_money(amount)
+	var parsed_amount = int(money_edit.text)
+	remove_money(parsed_amount)
 	pass # Replace with function body.

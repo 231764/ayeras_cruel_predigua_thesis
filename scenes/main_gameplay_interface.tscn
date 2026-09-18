@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://b11qqo1nag86y"]
+[gd_scene load_steps=19 format=3 uid="uid://b11qqo1nag86y"]
 
 [ext_resource type="Texture2D" uid="uid://bah3bosvbua5r" path="res://assets/Screenshot 2026-08-23 222652.png" id="1_ajhct"]
 [ext_resource type="Script" uid="uid://dtj27omj1qyfc" path="res://scripts/close_interface.gd" id="2_4dx5e"]
@@ -11,12 +11,13 @@
 [ext_resource type="Texture2D" uid="uid://ciy3ttgsq80ng" path="res://assets/budget button hovered.png" id="5_2v8hh"]
 [ext_resource type="Texture2D" uid="uid://cq4ocr7oo54v2" path="res://assets/phone button.png" id="6_3t3i8"]
 [ext_resource type="Texture2D" uid="uid://dh4miwxybt5lr" path="res://assets/phone button hovered.png" id="7_6m418"]
-[ext_resource type="Texture2D" uid="uid://dsbrn5e41bcfd" path="res://assets/Screenshot 2026-08-27 001019.png" id="9_bn1n3"]
 [ext_resource type="PackedScene" uid="uid://dy3ox3hkpgguj" path="res://scenes/stat_system.tscn" id="10_dppuc"]
 [ext_resource type="Texture2D" uid="uid://clfesd6qbf84r" path="res://assets/Screenshot 2026-08-27 001036.png" id="10_qxgsa"]
 [ext_resource type="Texture2D" uid="uid://cjad8bkwqi2h1" path="res://assets/Screenshot 2026-08-27 001029.png" id="11_dppuc"]
+[ext_resource type="PackedScene" uid="uid://bp0qnom5c0h1s" path="res://planner.tscn" id="11_pfkwn"]
 [ext_resource type="PackedScene" uid="uid://di8f6k04t6b2s" path="res://scenes/budgeting.tscn" id="15_f2wrt"]
 [ext_resource type="PackedScene" uid="uid://c8fyenv7dl2wh" path="res://scenes/time_cycle.tscn" id="17_t8wqf"]
+[ext_resource type="PackedScene" uid="uid://cxrg1cxtd88lx" path="res://event_panel.tscn" id="20_eventpanel"]
 
 [node name="Desk Node" type="Node2D"]
 
@@ -76,10 +77,7 @@ interface = NodePath("../Phone Node")
 [node name="Planner Node" type="Node2D" parent="."]
 visible = false
 
-[node name="TextureRect" type="TextureRect" parent="Planner Node"]
-offset_right = 1154.0
-offset_bottom = 646.0
-texture = ExtResource("9_bn1n3")
+[node name="Planner Interface" parent="Planner Node" instance=ExtResource("11_pfkwn")]
 
 [node name="Player Status" type="Node2D" parent="."]
 visible = false
@@ -98,13 +96,6 @@ visible = false
 offset_right = 1220.0
 offset_bottom = 656.0
 texture = ExtResource("10_qxgsa")
-
-[node name="End Day" type="Button" parent="Phone Node"]
-offset_left = 712.0
-offset_top = 499.0
-offset_right = 924.0
-offset_bottom = 553.0
-text = "End the day"
 
 [node name="Budget Node" type="Node2D" parent="."]
 visible = false
@@ -129,7 +120,8 @@ script = ExtResource("2_4dx5e")
 [node name="Time Cycle" parent="." instance=ExtResource("17_t8wqf")]
 visible = false
 
-[connection signal="pressed" from="Phone Node/End Day" to="Time Cycle" method="_on_end_day_pressed"]
+[node name="EventPanel" parent="." instance=ExtResource("20_eventpanel")]
+
 [connection signal="pressed" from="Back Button" to="Back Button" method="_on_pressed"]
 
 [editable path="Player Status/Stat System"]

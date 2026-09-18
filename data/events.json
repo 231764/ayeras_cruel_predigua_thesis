@@ -1,0 +1,59 @@
+{
+  "events": [
+    {
+      "id": "first_salary",
+      "title": "First Salary Received",
+      "description": "You received your first monthly salary of PHP 25,000! It's time to allocate your budget.",
+      "is_direct": true,
+      "stage": 1,
+      "options": [
+        {
+          "choice_text": "Awesome!",
+          "cost": -25000,
+          "happy_change": 5,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "groceries_vs_eatout",
+      "title": "Groceries vs Eating Out",
+      "description": "After a stressful week, you consider the convenience of eating out compared to cooking meals at home.",
+      "is_direct": true,
+      "stage": 1,
+      "options": [
+        {
+          "choice_text": "Cook meals (PHP 2,500)",
+          "cost": 2500,
+          "happy_change": -1,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Eat out (PHP 4,000)",
+          "cost": 4000,
+          "happy_change": 1,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "electricity_spike",
+      "title": "Electricity Bill Spike",
+      "description": "Increased utility bill payment due to increased usage at home.",
+      "is_direct": false,
+      "stage": 1,
+      "options": [
+        {
+          "choice_text": "Pay extra PHP 1,500",
+          "cost": 1500,
+          "happy_change": -2,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    }
+  ]
+}

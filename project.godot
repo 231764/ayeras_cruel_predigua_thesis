@@ -23,3 +23,5 @@ config/icon="res://icon.svg"
 
 EventManager="*res://scripts/event_manager.gd"
 StatManager="*res://scripts/stat_manager.gd"
+TimeCycle="*res://scripts/time_cycle.gd"
+PlannerManager="*res://scripts/planner_manager.gd"

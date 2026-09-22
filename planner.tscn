@@ -1,0 +1,95 @@
+[gd_scene format=3 uid="uid://bp0qnom5c0h1s"]
+
+[ext_resource type="Texture2D" uid="uid://bmsaxcb8lbchf" path="res://assets/planner face.png" id="1_1jp0f"]
+[ext_resource type="Script" uid="uid://cgleyvve5gm8h" path="res://planner.gd" id="1_nwike"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_xfher"]
+font_size = 30
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_nwike"]
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_khk4l"]
+font_color = Color(0, 0, 0, 1)
+
+[node name="Planner Interface" type="Node2D" unique_id=4427177]
+script = ExtResource("1_nwike")
+
+[node name="Background" type="TextureRect" parent="." unique_id=1218954637]
+offset_right = 1152.0
+offset_bottom = 649.0
+texture = ExtResource("1_1jp0f")
+expand_mode = 2
+
+[node name="Date Label" type="Label" parent="." unique_id=1302440788]
+offset_left = 232.0
+offset_top = 96.0
+offset_right = 533.0
+offset_bottom = 138.0
+text = "Month"
+label_settings = SubResource("LabelSettings_xfher")
+
+[node name="NextMonth" type="Button" parent="Date Label" unique_id=1787308168]
+layout_mode = 0
+offset_left = 269.0
+offset_top = 3.0
+offset_right = 300.0
+offset_bottom = 43.0
+text = ">"
+
+[node name="PreviousMonth" type="Button" parent="Date Label" unique_id=2061339059]
+layout_mode = 0
+offset_left = -47.0
+offset_top = 2.0
+offset_right = -15.0
+offset_bottom = 42.0
+text = "<"
+
+[node name="Events" type="ColorRect" parent="." unique_id=1495749949]
+offset_left = 610.0
+offset_top = 104.0
+offset_right = 982.0
+offset_bottom = 222.0
+color = Color(0.427034, 0.372265, 0.354033, 1)
+
+[node name="Event Label" type="Label" parent="Events" unique_id=536199702]
+layout_mode = 0
+offset_right = 245.0
+offset_bottom = 114.0
+text = "Events"
+label_settings = SubResource("LabelSettings_nwike")
+
+[node name="Day Label" type="Label" parent="." unique_id=2041760759]
+offset_left = 609.0
+offset_top = 80.0
+offset_right = 649.0
+offset_bottom = 103.0
+text = "Day"
+label_settings = SubResource("LabelSettings_khk4l")
+
+[node name="Notes" type="TextEdit" parent="." unique_id=1271568026]
+offset_left = 611.0
+offset_top = 250.0
+offset_right = 982.0
+offset_bottom = 476.0
+placeholder_text = "<insert notes here>"
+
+[node name="Button" type="Button" parent="Notes" unique_id=199547150]
+layout_mode = 0
+offset_left = 317.0
+offset_top = 195.0
+offset_right = 372.0
+offset_bottom = 226.0
+text = "Finish"
+
+[node name="GridContainer" type="GridContainer" parent="." unique_id=2010161032]
+offset_left = 176.0
+offset_top = 163.0
+offset_right = 564.0
+offset_bottom = 484.0
+columns = 7
+
+[connection signal="pressed" from="Date Label/NextMonth" to="." method="_on_next_month_pressed"]
+[connection signal="pressed" from="Date Label/PreviousMonth" to="." method="_on_previous_month_pressed"]
+[connection signal="pressed" from="Notes/Button" to="." method="finish_notes"]

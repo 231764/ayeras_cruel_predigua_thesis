@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://dy3ox3hkpgguj"]
+[gd_scene load_steps=3 format=3 uid="uid://dy3ox3hkpgguj"]
 
 [ext_resource type="Texture2D" uid="uid://donoud7d68nvw" path="res://assets/stat system icons.png" id="1_jcwx6"]
 [ext_resource type="Script" uid="uid://mji1exoq66b6" path="res://scripts/stat_system.gd" id="1_uf86d"]
@@ -93,4 +93,3 @@ theme_override_font_sizes/font_size = 18
 text = "January 1 - Morning"
 
 [connection signal="pressed" from="NextPhaseButton" to="." method="advance_phase"]
-

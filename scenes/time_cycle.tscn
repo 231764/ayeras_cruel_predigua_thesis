@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3 uid="uid://c8fyenv7dl2wh"]
+
+[ext_resource type="Script" uid="uid://dfg3ga747tdrt" path="res://scenes/time_system.gd" id="1_huh13"]
+[ext_resource type="Texture2D" uid="uid://dvk471ekb8cj7" path="res://assets/Screenshot 2026-09-05 184805.png" id="1_jfknn"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_huh13"]
+font_size = 30
+
+[node name="Time Cycle" type="Node2D"]
+script = ExtResource("1_huh13")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+offset_right = 1148.0
+offset_bottom = 646.0
+texture = ExtResource("1_jfknn")
+
+[node name="Label" type="Label" parent="."]
+offset_left = 540.0
+offset_top = 284.0
+offset_right = 611.0
+offset_bottom = 326.0
+text = "Time"
+label_settings = SubResource("LabelSettings_huh13")
+
+[node name="Timer" type="Timer" parent="."]
+process_callback = 0
+wait_time = 0.528
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

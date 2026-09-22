@@ -22,7 +22,7 @@ var current_month := 0
 var current_phase := 0 # 0 = Morning, 1 = Afternoon, 2 = Evening
 var year := [
 	{"month": "January", "days": 31},
-	{"month": "February", "days": 29},
+	{"month": "February", "days": 28},
 	{"month": "March", "days": 31},
 	{"month": "April", "days": 30},
 	{"month": "May", "days": 31},

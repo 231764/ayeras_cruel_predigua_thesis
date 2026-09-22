@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" uid="uid://di8f6k04t6b2s" path="res://scenes/budgeting.tscn" id="15_f2wrt"]
 [ext_resource type="PackedScene" uid="uid://c8fyenv7dl2wh" path="res://scenes/time_cycle.tscn" id="17_t8wqf"]
 [ext_resource type="PackedScene" uid="uid://cxrg1cxtd88lx" path="res://event_panel.tscn" id="20_eventpanel"]
+[ext_resource type="PackedScene" uid="uid://dvxndpnueep6j" path="res://scenes/phone_interface.tscn" id="21_phone"]
 
 [node name="Desk Node" type="Node2D" unique_id=1055119461]
 
@@ -92,10 +93,7 @@ texture = ExtResource("1_ajhct")
 [node name="Phone Node" type="Node2D" parent="." unique_id=1013156869]
 visible = false
 
-[node name="TextureRect" type="TextureRect" parent="Phone Node" unique_id=840529376]
-offset_right = 1220.0
-offset_bottom = 656.0
-texture = ExtResource("10_qxgsa")
+[node name="Phone Interface" parent="Phone Node" instance=ExtResource("21_phone")]
 
 [node name="Budget Node" type="Node2D" parent="." unique_id=2022530459]
 visible = false
@@ -124,6 +122,5 @@ visible = false
 
 [connection signal="pressed" from="Back Button" to="Back Button" method="_on_pressed"]
 
-[node name="EventPanel" parent="." instance=ExtResource("20_eventpanel")]
 
 [editable path="Player Status/Stat System"]

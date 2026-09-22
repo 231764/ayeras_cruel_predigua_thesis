@@ -15,6 +15,9 @@ var envelopes := [
 	{"category": "Entertainment", "amount": 0}
 ]
 
+var daily_food_choice: int = 0 # 0 = Cook (350), 1 = Eat Out (600)
+var daily_commute_choice: int = 0 # 0 = Public (100), 1 = Mototaxi (200)
+
 # For the CYCLES aspect
 
 var current_day := 1
@@ -39,6 +42,22 @@ var year := [
 func _ready() -> void:
 	pass # Replace with function body.
 
+func spend_from_category(category_name: String, amount: int) -> void:
+	# Try to pull from envelope first
+	for envelope in envelopes:
+		if envelope["category"] == category_name:
+			if envelope["amount"] >= amount:
+				envelope["amount"] -= amount
+				return
+			else:
+				# Envelope exists but doesn't have enough, drain it and pull rest from current_balance
+				var remaining = amount - envelope["amount"]
+				envelope["amount"] = 0
+				current_balance -= remaining
+				return
+	
+	# If no envelope found, pull from current_balance
+	current_balance -= amount
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:

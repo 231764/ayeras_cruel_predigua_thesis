@@ -1,3 +1,175 @@
-[gd_scene format=3 uid="uid://dvxndpnueep6j"]
+[gd_scene load_steps=4 format=3 uid="uid://dvxndpnueep6j"]
 
-[node name="Phone Interface" type="Node2D"]
+[ext_resource type="Script" path="res://scripts/phone_interface.gd" id="1_phone_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.1, 0.1, 0.1, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+bg_color = Color(0.2, 0.2, 0.2, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+
+[node name="Phone Interface" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 780.0
+offset_top = 20.0
+offset_right = 1130.0
+offset_bottom = 620.0
+script = ExtResource("1_phone_script")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="Header" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 50.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="Title" type="Label" parent="Header"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Messages"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 60.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="BaldoButton" type="Button" parent="ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "Chat with Baldo (AI)"
+
+[node name="NotificationsContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EventDetailPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="EventDetailPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EventTitle" type="Label" parent="EventDetailPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Event Title"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="EventDescription" type="Label" parent="EventDetailPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Event Description here..."
+autowrap_mode = 3
+
+[node name="OptionsContainer" type="VBoxContainer" parent="EventDetailPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="EventDetailPanel/VBoxContainer"]
+layout_mode = 2
+text = "Back to Messages"
+
+[node name="ChatPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ChatPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ChatTitle" type="Label" parent="ChatPanel/VBoxContainer"]
+layout_mode = 2
+text = "Baldo (Financial Coach)"
+horizontal_alignment = 1
+
+[node name="ChatHistory" type="RichTextLabel" parent="ChatPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+scroll_following = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ChatPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ChatInput" type="LineEdit" parent="ChatPanel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Type message..."
+
+[node name="SendButton" type="Button" parent="ChatPanel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Send"
+
+[node name="CloseChatButton" type="Button" parent="ChatPanel/VBoxContainer"]
+layout_mode = 2
+text = "Back to Messages"
+
+[node name="AIHTTPRequest" type="HTTPRequest" parent="."]
+
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/BaldoButton" to="." method="_on_baldo_button_pressed"]
+[connection signal="pressed" from="EventDetailPanel/VBoxContainer/BackButton" to="." method="_on_event_back_button_pressed"]
+[connection signal="pressed" from="ChatPanel/VBoxContainer/HBoxContainer/SendButton" to="." method="_on_send_chat_button_pressed"]
+[connection signal="pressed" from="ChatPanel/VBoxContainer/CloseChatButton" to="." method="_on_close_chat_button_pressed"]

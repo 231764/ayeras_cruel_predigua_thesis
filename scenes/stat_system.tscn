@@ -1,7 +1,13 @@
 [gd_scene format=3 uid="uid://dy3ox3hkpgguj"]
 
-[ext_resource type="Texture2D" uid="uid://donoud7d68nvw" path="res://assets/stat system icons.png" id="1_jcwx6"]
 [ext_resource type="Script" uid="uid://mji1exoq66b6" path="res://scripts/stat_system.gd" id="1_uf86d"]
+[ext_resource type="Texture2D" uid="uid://b8aee5py4y07c" path="res://assets/happiness icon.png" id="2_equpc"]
+[ext_resource type="Texture2D" uid="uid://cenmloan3aswe" path="res://assets/social icon.png" id="3_g6avb"]
+[ext_resource type="Texture2D" uid="uid://crbsivkqss20a" path="res://assets/current balance icon.png" id="4_fkrf1"]
+[ext_resource type="Texture2D" uid="uid://cle32h2qcbj15" path="res://assets/savings icon.png" id="5_w3f8m"]
+[ext_resource type="Texture2D" uid="uid://ff7vku7yijp0" path="res://assets/credit balance icon.png" id="6_0pe8i"]
+[ext_resource type="Texture2D" uid="uid://66485hc28cl4" path="res://assets/credit score icon.png" id="7_1hu6n"]
+[ext_resource type="Texture2D" uid="uid://df5dtlcwjcf8a" path="res://assets/debt icon.png" id="8_hssa7"]
 
 [node name="Stat System" type="Node2D" unique_id=735355200 node_paths=PackedStringArray("happy_bar", "social_bar", "current_balance", "savings", "credit_balance", "credit_score", "debt_balance", "date_label")]
 script = ExtResource("1_uf86d")
@@ -20,11 +26,29 @@ offset_top = 527.0
 offset_right = 730.0
 offset_bottom = 554.0
 
+[node name="Icon" type="TextureRect" parent="Happiness Bar" unique_id=1157721619]
+layout_mode = 0
+offset_left = -76.0
+offset_top = -35.0
+offset_right = 22.0
+offset_bottom = 43.0
+texture = ExtResource("2_equpc")
+expand_mode = 1
+
 [node name="Sociability Bar" type="ProgressBar" parent="." unique_id=919939996]
 offset_left = 335.0
 offset_top = 585.0
 offset_right = 730.0
 offset_bottom = 612.0
+
+[node name="Icon" type="TextureRect" parent="Sociability Bar" unique_id=516258289]
+layout_mode = 0
+offset_left = -84.0
+offset_top = -27.0
+offset_right = 10.0
+offset_bottom = 51.0
+texture = ExtResource("3_g6avb")
+expand_mode = 1
 
 [node name="CB Label" type="Label" parent="." unique_id=1657778106]
 offset_left = 80.0
@@ -33,12 +57,30 @@ offset_right = 112.0
 offset_bottom = 200.0
 text = "PHP"
 
+[node name="Icon" type="TextureRect" parent="CB Label" unique_id=2014212662]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -34.0
+offset_right = 10.0
+offset_bottom = 44.0
+texture = ExtResource("4_fkrf1")
+expand_mode = 1
+
 [node name="Savings Label" type="Label" parent="." unique_id=62962297]
 offset_left = 80.0
 offset_top = 263.0
 offset_right = 120.0
 offset_bottom = 286.0
 text = "PHP"
+
+[node name="Icon" type="TextureRect" parent="Savings Label" unique_id=253356462]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -34.0
+offset_right = 10.0
+offset_bottom = 44.0
+texture = ExtResource("5_w3f8m")
+expand_mode = 1
 
 [node name="CrB Label" type="Label" parent="." unique_id=262636439]
 offset_left = 80.0
@@ -47,12 +89,30 @@ offset_right = 120.0
 offset_bottom = 361.0
 text = "PHP"
 
+[node name="Icon" type="TextureRect" parent="CrB Label" unique_id=172025542]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -34.0
+offset_right = 10.0
+offset_bottom = 44.0
+texture = ExtResource("6_0pe8i")
+expand_mode = 1
+
 [node name="CS Label" type="Label" parent="." unique_id=1375148180]
 offset_left = 80.0
 offset_top = 501.0
 offset_right = 120.0
 offset_bottom = 524.0
 text = "PHP"
+
+[node name="TextureRect" type="TextureRect" parent="CS Label" unique_id=1653339265]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -34.0
+offset_right = 10.0
+offset_bottom = 44.0
+texture = ExtResource("7_1hu6n")
+expand_mode = 1
 
 [node name="Debt Label" type="Label" parent="." unique_id=1168069134]
 offset_left = 80.0
@@ -61,14 +121,14 @@ offset_right = 120.0
 offset_bottom = 449.0
 text = "PHP"
 
-[node name="TextureRect" type="TextureRect" parent="." unique_id=1900026256]
-offset_left = -75.999985
-offset_top = 9.000001
-offset_right = 2916.0
-offset_bottom = 6433.0
-scale = Vector2(0.085, 0.085)
-texture = ExtResource("1_jcwx6")
-stretch_mode = 4
+[node name="Icon" type="TextureRect" parent="Debt Label" unique_id=1796424826]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -34.0
+offset_right = 10.0
+offset_bottom = 44.0
+texture = ExtResource("8_hssa7")
+expand_mode = 1
 
 [node name="NextPhaseButton" type="Button" parent="." unique_id=1659805020]
 offset_left = 919.0

@@ -47,7 +47,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Messages"
+text = "Mga Text"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -70,7 +70,7 @@ theme_override_constants/separation = 10
 [node name="BaldoButton" type="Button" parent="ScrollContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
-text = "Chat with Baldo (AI)"
+text = "Kausapin si Baldo"
 
 [node name="NotificationsContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -116,7 +116,7 @@ layout_mode = 2
 
 [node name="BackButton" type="Button" parent="EventDetailPanel/VBoxContainer"]
 layout_mode = 2
-text = "Back to Messages"
+text = "Bumalik sa Texts"
 
 [node name="ChatPanel" type="Panel" parent="."]
 visible = false
@@ -157,15 +157,15 @@ layout_mode = 2
 [node name="ChatInput" type="LineEdit" parent="ChatPanel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "Type message..."
+placeholder_text = "Mag-type rito..."
 
 [node name="SendButton" type="Button" parent="ChatPanel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
-text = "Send"
+text = "I-send"
 
 [node name="CloseChatButton" type="Button" parent="ChatPanel/VBoxContainer"]
 layout_mode = 2
-text = "Back to Messages"
+text = "I-close ang Chat"
 
 [node name="AIHTTPRequest" type="HTTPRequest" parent="."]
 

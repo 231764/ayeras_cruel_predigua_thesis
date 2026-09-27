@@ -10,7 +10,13 @@ func set_interface(interface):
 func _on_pressed():
 	if current_interface:
 		current_interface.visible = false	
-	button.visible = false;
+	button.visible = false
+	
+	for child in get_parent().get_children():
+		if child is TextureButton and child.name.ends_with("Button"):
+			child.disabled = false
+		if child is Label and child.name.ends_with("Label"):
+			child.visible = true
 
 		
 # Called when the node enters the scene tree for the first time.

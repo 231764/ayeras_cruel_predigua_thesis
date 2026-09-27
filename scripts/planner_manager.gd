@@ -25,3 +25,19 @@ func get_entry(month: int, day: int) -> String:
 			return entry.get("Text", "")
 	
 	return ""
+
+var recorded_events = []
+
+func record_event(month: int, day: int, text: String) -> void:
+	recorded_events.append({
+		"Month": month,
+		"Day": day,
+		"Text": text
+	})
+
+func get_recorded_events(month: int, day: int) -> String:
+	var result = ""
+	for ev in recorded_events:
+		if ev.get("Month") == month and ev.get("Day") == day:
+			result += "• " + ev.get("Text", "") + "\n"
+	return result

@@ -22,7 +22,8 @@ func update_envelope():
 	var envelope = StatManager.envelopes[current_envelope]
 	var category = envelope["category"]
 	var amount = envelope["amount"]
-	$Envelope.setup(category, amount)	
+	var display_name = envelope["display_name"]
+	$Envelope.setup(category, amount, display_name)	
 	
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:

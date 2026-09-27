@@ -53,12 +53,15 @@ offset_right = 982.0
 offset_bottom = 222.0
 color = Color(0.427034, 0.372265, 0.354033, 1)
 
-[node name="Event Label" type="Label" parent="Events" unique_id=536199702]
+[node name="Event Label" type="RichTextLabel" parent="Events" unique_id=536199702]
 layout_mode = 0
-offset_right = 245.0
-offset_bottom = 114.0
-text = "Events"
-label_settings = SubResource("LabelSettings_nwike")
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 367.0
+offset_bottom = 113.0
+bbcode_enabled = true
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+text = "Mga Ganap"
 
 [node name="Day Label" type="Label" parent="." unique_id=2041760759]
 offset_left = 609.0
@@ -81,7 +84,7 @@ offset_left = 317.0
 offset_top = 195.0
 offset_right = 372.0
 offset_bottom = 226.0
-text = "Finish"
+text = "I-save"
 
 [node name="GridContainer" type="GridContainer" parent="." unique_id=2010161032]
 offset_left = 176.0

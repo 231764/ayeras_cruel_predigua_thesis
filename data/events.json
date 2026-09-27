@@ -2,13 +2,13 @@
   "events": [
     {
       "id": "first_salary",
-      "title": "First Salary Received",
-      "description": "You received your first monthly salary of PHP 25,000! It's time to allocate your budget.",
+      "title": "First Sahod Unlocked!",
+      "description": "Uy nice, pumasok na yung first salary mo na PHP 25,000! Time to budget na.",
       "is_direct": true,
       "stage": 1,
       "options": [
         {
-          "choice_text": "Awesome!",
+          "choice_text": "Paldo!",
           "cost": -25000,
           "happy_change": 5,
           "social_change": 0,
@@ -18,20 +18,20 @@
     },
     {
       "id": "groceries_vs_eatout",
-      "title": "Groceries vs Eating Out",
-      "description": "After a stressful week, you consider the convenience of eating out compared to cooking meals at home.",
+      "title": "Mag-grocery o Magpa-deliver?",
+      "description": "Sobrang nakakapagod tong week na 'to. O-order ba ako o magluluto para makatipid?",
       "is_direct": true,
       "stage": 1,
       "options": [
         {
-          "choice_text": "Cook meals (PHP 2,500)",
+          "choice_text": "Magluto na lang (PHP 2,500)",
           "cost": 2500,
           "happy_change": -1,
           "social_change": 0,
           "next_event_id": ""
         },
         {
-          "choice_text": "Eat out (PHP 4,000)",
+          "choice_text": "Order na lang (PHP 4,000)",
           "cost": 4000,
           "happy_change": 1,
           "social_change": 0,
@@ -41,15 +41,61 @@
     },
     {
       "id": "electricity_spike",
-      "title": "Electricity Bill Spike",
-      "description": "Increased utility bill payment due to increased usage at home.",
+      "title": "Tumaas ang Kuryente",
+      "description": "Naku, lumaki ang bill sa kuryente dahil lagi kang naka-aircon lately.",
       "is_direct": false,
       "stage": 1,
       "options": [
         {
-          "choice_text": "Pay extra PHP 1,500",
+          "choice_text": "Bayaran ang extra PHP 1,500",
           "cost": 1500,
           "happy_change": -2,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "friends_birthday",
+      "title": "Inuman for Bestie's Birthday",
+      "description": "Nag-aya ang barkada mag-inuman para sa birthday ng best friend mo. Ambagan daw, PHP 1,000.",
+      "is_direct": false,
+      "stage": 1,
+      "options": [
+        {
+          "choice_text": "G! (PHP 1,000)",
+          "cost": 1000,
+          "happy_change": 5,
+          "social_change": 10,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Pass muna, petsa de peligro. (-5 Social)",
+          "cost": 0,
+          "happy_change": -2,
+          "social_change": -5,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "sick_day",
+      "title": "Trangkaso Szn",
+      "description": "Naku, masama ang pakiramdam mo. Kailangan mong bumili ng gamot at magpahinga.",
+      "is_direct": true,
+      "stage": 1,
+      "options": [
+        {
+          "choice_text": "Bumili ng gamot (PHP 500)",
+          "cost": 500,
+          "happy_change": -5,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Tiisin na lang. (-15 Happy)",
+          "cost": 0,
+          "happy_change": -15,
           "social_change": 0,
           "next_event_id": ""
         }

@@ -78,6 +78,24 @@ func resolve_event(event_id: String, option_index: int) -> void:
 	emit_signal("on_event_resolved", event_id)
 	print("Event Resolved: ", event_id, " | Option: ", chosen_option["choice_text"])
 	
+	var title = event["title"]
+	var choice_text = chosen_option["choice_text"]
+	var tradeoff_str = ""
+	
+	if chosen_option.has("cost") and chosen_option["cost"] > 0:
+		tradeoff_str += "[color=red]-" + str(chosen_option["cost"]) + " PHP[/color] "
+	if chosen_option.has("happy_change") and chosen_option["happy_change"] != 0:
+		var sign = "+" if chosen_option["happy_change"] > 0 else ""
+		var color = "green" if chosen_option["happy_change"] > 0 else "red"
+		tradeoff_str += "[color=" + color + "]" + sign + str(chosen_option["happy_change"]) + " Happy[/color] "
+	if chosen_option.has("social_change") and chosen_option["social_change"] != 0:
+		var sign = "+" if chosen_option["social_change"] > 0 else ""
+		var color = "green" if chosen_option["social_change"] > 0 else "red"
+		tradeoff_str += "[color=" + color + "]" + sign + str(chosen_option["social_change"]) + " Social[/color] "
+		
+	var log_text = title + " (" + choice_text + ")\n[font_size=12]" + tradeoff_str + "[/font_size]"
+	PlannerManager.record_event(StatManager.current_month, StatManager.current_day, log_text)
+	
 	# If there's a follow-up event
 	if chosen_option.has("next_event_id") and chosen_option["next_event_id"] != "":
 		trigger_event(chosen_option["next_event_id"])
@@ -88,9 +106,13 @@ func evaluate_daily_events() -> void:
 	var phase = StatManager.current_phase
 	
 	if month == "January":
-		if day == 1 and phase == 0:
-			trigger_event("first_salary")
-		elif day == 3 and phase == 2:
+		if day == 3 and phase == 2:
 			trigger_event("groceries_vs_eatout")
 		elif day == 5 and phase == 1:
 			trigger_event("electricity_spike")
+	elif month == "February":
+		if day == 14 and phase == 2:
+			trigger_event("friends_birthday")
+	elif month == "March":
+		if day == 10 and phase == 0:
+			trigger_event("sick_day")

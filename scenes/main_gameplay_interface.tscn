@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://b11qqo1nag86y"]
+[gd_scene format=3 uid="uid://b11qqo1nag86y"]
 
 [ext_resource type="Texture2D" uid="uid://bah3bosvbua5r" path="res://assets/Screenshot 2026-08-23 222652.png" id="1_ajhct"]
 [ext_resource type="Script" uid="uid://dtj27omj1qyfc" path="res://scripts/close_interface.gd" id="2_4dx5e"]
@@ -12,13 +12,16 @@
 [ext_resource type="Texture2D" uid="uid://cq4ocr7oo54v2" path="res://assets/phone button.png" id="6_3t3i8"]
 [ext_resource type="Texture2D" uid="uid://dh4miwxybt5lr" path="res://assets/phone button hovered.png" id="7_6m418"]
 [ext_resource type="PackedScene" uid="uid://dy3ox3hkpgguj" path="res://scenes/stat_system.tscn" id="10_dppuc"]
-[ext_resource type="Texture2D" uid="uid://clfesd6qbf84r" path="res://assets/Screenshot 2026-08-27 001036.png" id="10_qxgsa"]
 [ext_resource type="Texture2D" uid="uid://cjad8bkwqi2h1" path="res://assets/Screenshot 2026-08-27 001029.png" id="11_dppuc"]
 [ext_resource type="PackedScene" uid="uid://bp0qnom5c0h1s" path="res://planner.tscn" id="11_pfkwn"]
 [ext_resource type="PackedScene" uid="uid://di8f6k04t6b2s" path="res://scenes/budgeting.tscn" id="15_f2wrt"]
-[ext_resource type="PackedScene" uid="uid://c8fyenv7dl2wh" path="res://scenes/time_cycle.tscn" id="17_t8wqf"]
 [ext_resource type="PackedScene" uid="uid://cxrg1cxtd88lx" path="res://event_panel.tscn" id="20_eventpanel"]
 [ext_resource type="PackedScene" uid="uid://dvxndpnueep6j" path="res://scenes/phone_interface.tscn" id="21_phone"]
+[ext_resource type="Texture2D" uid="uid://crbsivkqss20a" path="res://assets/current balance icon.png" id="22_fkrf1"]
+[ext_resource type="Texture2D" uid="uid://cle32h2qcbj15" path="res://assets/savings icon.png" id="23_w3f8m"]
+[ext_resource type="Texture2D" uid="uid://ff7vku7yijp0" path="res://assets/credit balance icon.png" id="24_0pe8i"]
+[ext_resource type="Texture2D" uid="uid://66485hc28cl4" path="res://assets/credit score icon.png" id="25_1hu6n"]
+[ext_resource type="Texture2D" uid="uid://df5dtlcwjcf8a" path="res://assets/debt icon.png" id="26_hssa7"]
 
 [node name="Desk Node" type="Node2D" unique_id=1055119461]
 
@@ -26,6 +29,91 @@
 offset_right = 1147.0
 offset_bottom = 641.0
 texture = ExtResource("1_ajhct")
+
+[node name="CB Label" type="Label" parent="." unique_id=1657778106]
+z_index = 2
+offset_left = 80.0
+offset_top = 143.0
+offset_right = 112.0
+offset_bottom = 166.0
+text = "PHP"
+
+[node name="Icon" type="TextureRect" parent="CB Label" unique_id=2014212662]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -34.0
+offset_right = 10.0
+offset_bottom = 44.0
+texture = ExtResource("22_fkrf1")
+expand_mode = 1
+
+[node name="Savings Label" type="Label" parent="." unique_id=62962297]
+z_index = 2
+offset_left = 80.0
+offset_top = 229.0
+offset_right = 120.0
+offset_bottom = 252.0
+text = "PHP"
+
+[node name="Icon" type="TextureRect" parent="Savings Label" unique_id=253356462]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -34.0
+offset_right = 10.0
+offset_bottom = 44.0
+texture = ExtResource("23_w3f8m")
+expand_mode = 1
+
+[node name="CrB Label" type="Label" parent="." unique_id=262636439]
+z_index = 2
+offset_left = 80.0
+offset_top = 304.0
+offset_right = 120.0
+offset_bottom = 327.0
+text = "PHP"
+
+[node name="Icon" type="TextureRect" parent="CrB Label" unique_id=172025542]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -34.0
+offset_right = 10.0
+offset_bottom = 44.0
+texture = ExtResource("24_0pe8i")
+expand_mode = 1
+
+[node name="CS Label" type="Label" parent="." unique_id=1375148180]
+z_index = 2
+offset_left = 80.0
+offset_top = 467.0
+offset_right = 120.0
+offset_bottom = 490.0
+text = "PHP"
+
+[node name="TextureRect" type="TextureRect" parent="CS Label" unique_id=1653339265]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -29.0
+offset_right = 10.0
+offset_bottom = 49.0
+texture = ExtResource("25_1hu6n")
+expand_mode = 1
+
+[node name="Debt Label" type="Label" parent="." unique_id=1168069134]
+z_index = 2
+offset_left = 80.0
+offset_top = 392.0
+offset_right = 120.0
+offset_bottom = 415.0
+text = "PHP"
+
+[node name="Icon" type="TextureRect" parent="Debt Label" unique_id=1796424826]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -34.0
+offset_right = 10.0
+offset_bottom = 44.0
+texture = ExtResource("26_hssa7")
+expand_mode = 1
 
 [node name="Status Button" type="TextureButton" parent="." unique_id=1938895406 node_paths=PackedStringArray("button", "interface")]
 offset_left = 536.0
@@ -78,7 +166,7 @@ interface = NodePath("../Phone Node")
 [node name="Planner Node" type="Node2D" parent="." unique_id=517664976]
 visible = false
 
-[node name="Planner Interface" parent="Planner Node" instance=ExtResource("11_pfkwn")]
+[node name="Planner Interface" parent="Planner Node" unique_id=85062168 instance=ExtResource("11_pfkwn")]
 
 [node name="Player Status" type="Node2D" parent="." unique_id=181458347]
 visible = false
@@ -88,12 +176,17 @@ offset_right = 1154.0
 offset_bottom = 646.0
 texture = ExtResource("1_ajhct")
 
-[node name="Stat System" parent="Player Status" unique_id=93216976 instance=ExtResource("10_dppuc")]
+[node name="Stat System" parent="Player Status" unique_id=93216976 node_paths=PackedStringArray("current_balance", "savings", "credit_balance", "credit_score", "debt_balance") instance=ExtResource("10_dppuc")]
+current_balance = NodePath("../../CB Label")
+savings = NodePath("../../Savings Label")
+credit_balance = NodePath("../../CrB Label")
+credit_score = NodePath("../../CS Label")
+debt_balance = NodePath("../../Debt Label")
 
 [node name="Phone Node" type="Node2D" parent="." unique_id=1013156869]
 visible = false
 
-[node name="Phone Interface" parent="Phone Node" instance=ExtResource("21_phone")]
+[node name="Phone Interface" parent="Phone Node" unique_id=1743309843 instance=ExtResource("21_phone")]
 
 [node name="Budget Node" type="Node2D" parent="." unique_id=2022530459]
 visible = false
@@ -115,12 +208,8 @@ offset_bottom = 68.0
 text = "Back to Desk"
 script = ExtResource("2_4dx5e")
 
-[node name="Time Cycle" parent="." instance=ExtResource("17_t8wqf")]
-visible = false
-
-[node name="EventPanel" parent="." instance=ExtResource("20_eventpanel")]
+[node name="EventPanel" parent="." unique_id=1131891414 instance=ExtResource("20_eventpanel")]
 
 [connection signal="pressed" from="Back Button" to="Back Button" method="_on_pressed"]
-
 
 [editable path="Player Status/Stat System"]

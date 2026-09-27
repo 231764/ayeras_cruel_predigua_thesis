@@ -22,7 +22,7 @@ func _ready() -> void:
 	# Initialize chat prompt
 	chat_messages.append({
 		"role": "system",
-		"content": "You are Baldo, a wise and trustworthy Filipino friend who acts as a financial coach for a young breadwinner working their first job. You provide financial and life advice. You use modern Filipino slang occasionally, like 'paldo' (meaning jackpot or success). Keep responses concise and helpful."
+		"content": "You are Baldo, a wise and trustworthy Filipino friend who acts as a financial coach for a young breadwinner working their first job. You provide financial and life advice. IMPORTANT: You must ALWAYS speak in a casual, relatable Gen-Z Filipino 'Taglish' tone. Use common slang like 'omsim', 'paldo', 'petsa de peligro', 'hustle', and 'dasurv' when appropriate. Keep responses concise and extremely helpful."
 	})
 	
 	refresh_notifications()
@@ -60,8 +60,31 @@ func open_event_detail(event: Dictionary) -> void:
 	var i = 0
 	for option in event["options"]:
 		var btn = Button.new()
-		btn.text = option["choice_text"]
-		btn.custom_minimum_size = Vector2(0, 40)
+		var choice_text = option["choice_text"]
+		btn.custom_minimum_size = Vector2(0, 60)
+		
+		var rtf = RichTextLabel.new()
+		rtf.bbcode_enabled = true
+		rtf.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rtf.set_anchors_preset(Control.PRESET_FULL_RECT)
+		
+		var stats_text = ""
+		
+		if option.has("cost") and option["cost"] > 0:
+			stats_text += "[color=red]-" + str(option["cost"]) + " PHP[/color] "
+		if option.has("happy_change") and option["happy_change"] != 0:
+			var val = option["happy_change"]
+			var sign = "+" if val > 0 else ""
+			var color = "green" if val > 0 else "red"
+			stats_text += "[color=" + color + "]" + sign + str(val) + " Happy[/color] "
+		if option.has("social_change") and option["social_change"] != 0:
+			var val = option["social_change"]
+			var sign = "+" if val > 0 else ""
+			var color = "green" if val > 0 else "red"
+			stats_text += "[color=" + color + "]" + sign + str(val) + " Social[/color] "
+			
+		rtf.text = "[center]" + choice_text + "\n[font_size=14]" + stats_text + "[/font_size][/center]"
+		btn.add_child(rtf)
 		# Bind the index so the lambda captures the correct value
 		btn.pressed.connect(func(idx=i): resolve_current_event(idx))
 		options_container.add_child(btn)
@@ -107,6 +130,10 @@ func add_chat_bubble(sender: String, text: String) -> void:
 	chat_history.text += "\n[color=" + color + "]" + sender + ":[/color] " + text
 
 func send_ai_request() -> void:
+	# Optimization: Keep only the system prompt + last 10 messages to avoid token limit
+	while chat_messages.size() > 11:
+		chat_messages.remove_at(1)
+
 	var api_key = OS.get_environment("OPENAI_API_KEY")
 	if api_key == "":
 		add_chat_bubble("System", "OpenAI API Key not found. Please set the OPENAI_API_KEY environment variable.")
@@ -119,7 +146,7 @@ func send_ai_request() -> void:
 	]
 	
 	var body = {
-		"model": "gpt-4o",
+		"model": "gpt-4o-mini",
 		"messages": chat_messages,
 		"max_tokens": 150
 	}

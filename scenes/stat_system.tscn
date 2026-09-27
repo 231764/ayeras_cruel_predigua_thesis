@@ -3,131 +3,41 @@
 [ext_resource type="Script" uid="uid://mji1exoq66b6" path="res://scripts/stat_system.gd" id="1_uf86d"]
 [ext_resource type="Texture2D" uid="uid://b8aee5py4y07c" path="res://assets/happiness icon.png" id="2_equpc"]
 [ext_resource type="Texture2D" uid="uid://cenmloan3aswe" path="res://assets/social icon.png" id="3_g6avb"]
-[ext_resource type="Texture2D" uid="uid://crbsivkqss20a" path="res://assets/current balance icon.png" id="4_fkrf1"]
-[ext_resource type="Texture2D" uid="uid://cle32h2qcbj15" path="res://assets/savings icon.png" id="5_w3f8m"]
-[ext_resource type="Texture2D" uid="uid://ff7vku7yijp0" path="res://assets/credit balance icon.png" id="6_0pe8i"]
-[ext_resource type="Texture2D" uid="uid://66485hc28cl4" path="res://assets/credit score icon.png" id="7_1hu6n"]
-[ext_resource type="Texture2D" uid="uid://df5dtlcwjcf8a" path="res://assets/debt icon.png" id="8_hssa7"]
 
-[node name="Stat System" type="Node2D" unique_id=735355200 node_paths=PackedStringArray("happy_bar", "social_bar", "current_balance", "savings", "credit_balance", "credit_score", "debt_balance", "date_label")]
+[node name="Stat System" type="Node2D" unique_id=735355200 node_paths=PackedStringArray("happy_bar", "social_bar", "date_label")]
 script = ExtResource("1_uf86d")
 happy_bar = NodePath("Happiness Bar")
 social_bar = NodePath("Sociability Bar")
-current_balance = NodePath("CB Label")
-savings = NodePath("Savings Label")
-credit_balance = NodePath("CrB Label")
-credit_score = NodePath("CS Label")
-debt_balance = NodePath("Debt Label")
 date_label = NodePath("DateLabel")
 
 [node name="Happiness Bar" type="ProgressBar" parent="." unique_id=1868663321]
-offset_left = 335.0
+offset_left = 188.0
 offset_top = 527.0
-offset_right = 730.0
+offset_right = 583.0
 offset_bottom = 554.0
 
 [node name="Icon" type="TextureRect" parent="Happiness Bar" unique_id=1157721619]
 layout_mode = 0
-offset_left = -76.0
+offset_left = -69.0
 offset_top = -35.0
-offset_right = 22.0
+offset_right = 29.0
 offset_bottom = 43.0
 texture = ExtResource("2_equpc")
 expand_mode = 1
 
 [node name="Sociability Bar" type="ProgressBar" parent="." unique_id=919939996]
-offset_left = 335.0
+offset_left = 188.0
 offset_top = 585.0
-offset_right = 730.0
+offset_right = 583.0
 offset_bottom = 612.0
 
 [node name="Icon" type="TextureRect" parent="Sociability Bar" unique_id=516258289]
 layout_mode = 0
-offset_left = -84.0
+offset_left = -81.0
 offset_top = -27.0
-offset_right = 10.0
+offset_right = 13.0
 offset_bottom = 51.0
 texture = ExtResource("3_g6avb")
-expand_mode = 1
-
-[node name="CB Label" type="Label" parent="." unique_id=1657778106]
-offset_left = 80.0
-offset_top = 177.0
-offset_right = 112.0
-offset_bottom = 200.0
-text = "PHP"
-
-[node name="Icon" type="TextureRect" parent="CB Label" unique_id=2014212662]
-layout_mode = 0
-offset_left = -78.0
-offset_top = -34.0
-offset_right = 10.0
-offset_bottom = 44.0
-texture = ExtResource("4_fkrf1")
-expand_mode = 1
-
-[node name="Savings Label" type="Label" parent="." unique_id=62962297]
-offset_left = 80.0
-offset_top = 263.0
-offset_right = 120.0
-offset_bottom = 286.0
-text = "PHP"
-
-[node name="Icon" type="TextureRect" parent="Savings Label" unique_id=253356462]
-layout_mode = 0
-offset_left = -78.0
-offset_top = -34.0
-offset_right = 10.0
-offset_bottom = 44.0
-texture = ExtResource("5_w3f8m")
-expand_mode = 1
-
-[node name="CrB Label" type="Label" parent="." unique_id=262636439]
-offset_left = 80.0
-offset_top = 338.0
-offset_right = 120.0
-offset_bottom = 361.0
-text = "PHP"
-
-[node name="Icon" type="TextureRect" parent="CrB Label" unique_id=172025542]
-layout_mode = 0
-offset_left = -78.0
-offset_top = -34.0
-offset_right = 10.0
-offset_bottom = 44.0
-texture = ExtResource("6_0pe8i")
-expand_mode = 1
-
-[node name="CS Label" type="Label" parent="." unique_id=1375148180]
-offset_left = 80.0
-offset_top = 501.0
-offset_right = 120.0
-offset_bottom = 524.0
-text = "PHP"
-
-[node name="TextureRect" type="TextureRect" parent="CS Label" unique_id=1653339265]
-layout_mode = 0
-offset_left = -78.0
-offset_top = -34.0
-offset_right = 10.0
-offset_bottom = 44.0
-texture = ExtResource("7_1hu6n")
-expand_mode = 1
-
-[node name="Debt Label" type="Label" parent="." unique_id=1168069134]
-offset_left = 80.0
-offset_top = 426.0
-offset_right = 120.0
-offset_bottom = 449.0
-text = "PHP"
-
-[node name="Icon" type="TextureRect" parent="Debt Label" unique_id=1796424826]
-layout_mode = 0
-offset_left = -78.0
-offset_top = -34.0
-offset_right = 10.0
-offset_bottom = 44.0
-texture = ExtResource("8_hssa7")
 expand_mode = 1
 
 [node name="NextPhaseButton" type="Button" parent="." unique_id=1659805020]
@@ -135,7 +45,7 @@ offset_left = 919.0
 offset_top = 26.0
 offset_right = 1113.0
 offset_bottom = 68.0
-text = "Next Phase"
+text = "Next"
 
 [node name="DateLabel" type="Label" parent="." unique_id=1478174443]
 offset_left = 400.0
@@ -147,9 +57,9 @@ text = "January 1 - Morning"
 horizontal_alignment = 1
 
 [node name="DailyRoutinePanel" type="Panel" parent="." unique_id=133159737]
-offset_left = 770.0
+offset_left = 713.0
 offset_top = 508.0
-offset_right = 1130.0
+offset_right = 1073.0
 offset_bottom = 630.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="DailyRoutinePanel" unique_id=2100639042]
@@ -166,7 +76,7 @@ grow_vertical = 2
 
 [node name="Title" type="Label" parent="DailyRoutinePanel/VBoxContainer" unique_id=1135881508]
 layout_mode = 2
-text = "Daily Routine"
+text = "Pang-araw-araw na Gastos"
 horizontal_alignment = 1
 
 [node name="FoodHBox" type="HBoxContainer" parent="DailyRoutinePanel/VBoxContainer" unique_id=1149981849]
@@ -175,16 +85,16 @@ alignment = 1
 
 [node name="Label" type="Label" parent="DailyRoutinePanel/VBoxContainer/FoodHBox" unique_id=69920204]
 layout_mode = 2
-text = "Food:"
+text = "Pagkain:"
 
 [node name="FoodOption" type="OptionButton" parent="DailyRoutinePanel/VBoxContainer/FoodHBox" unique_id=1592662292]
 layout_mode = 2
 size_flags_horizontal = 3
 selected = 0
 item_count = 2
-popup/item_0/text = "Cook (PHP 350)"
+popup/item_0/text = "Magluto (PHP 350)"
 popup/item_0/id = 0
-popup/item_1/text = "Eat Out (PHP 600)"
+popup/item_1/text = "Mag-order (PHP 600)"
 popup/item_1/id = 1
 
 [node name="CommuteHBox" type="HBoxContainer" parent="DailyRoutinePanel/VBoxContainer" unique_id=987697042]
@@ -193,16 +103,16 @@ alignment = 1
 
 [node name="Label" type="Label" parent="DailyRoutinePanel/VBoxContainer/CommuteHBox" unique_id=1604052568]
 layout_mode = 2
-text = "Commute:"
+text = "Byahe:"
 
 [node name="CommuteOption" type="OptionButton" parent="DailyRoutinePanel/VBoxContainer/CommuteHBox" unique_id=1788684461]
 layout_mode = 2
 size_flags_horizontal = 3
 selected = 0
 item_count = 2
-popup/item_0/text = "Public Transit (PHP 100)"
+popup/item_0/text = "Jeep/Bus (PHP 100)"
 popup/item_0/id = 0
-popup/item_1/text = "Mototaxi (PHP 200)"
+popup/item_1/text = "Angkas/Joyride (PHP 200)"
 popup/item_1/id = 1
 
 [connection signal="pressed" from="NextPhaseButton" to="." method="advance_phase"]

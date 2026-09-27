@@ -6,15 +6,16 @@ extends Node2D
 
 var amount
 var category
+var display_name
 
-func setup(new_category: String, new_amount: int) -> void:
+func setup(new_category: String, new_amount: int, new_display_name: String) -> void:
 	category = new_category
 	amount = new_amount
+	display_name = new_display_name
 	update_display()
 
 func update_display() -> void:
-	print(StatManager.current_balance)
-	category_label.text = category
+	category_label.text = display_name
 	amount_label.text = "₱" + str(amount)
 
 func add_money(value: int) -> void:
@@ -27,12 +28,7 @@ func add_money(value: int) -> void:
 				break
 		amount += value
 		update_display()
-		# Update main UI to reflect balance change
-		var main_scene = get_tree().current_scene
-		if main_scene:
-			var stat_sys = main_scene.find_child("Stat System", true, false)
-			if stat_sys and stat_sys.has_method("update_ui"):
-				stat_sys.update_ui()
+		StatManager.on_stats_changed.emit()
 
 func remove_money(value: int) -> void:
 	if(amount >= value and value > 0):
@@ -44,24 +40,20 @@ func remove_money(value: int) -> void:
 				break
 		amount -= value
 		update_display()
-		# Update main UI to reflect balance change
-		var main_scene = get_tree().current_scene
-		if main_scene:
-			var stat_sys = main_scene.find_child("Stat System", true, false)
-			if stat_sys and stat_sys.has_method("update_ui"):
-				stat_sys.update_ui()
+		StatManager.on_stats_changed.emit()
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	pass # Replace with function body.
 
 func _on_submit_money_pressed() -> void:
-	var parsed_amount = int(money_edit.text)
-	add_money(parsed_amount)
-	pass # Replace with function body.
-
+	var parsed_amount = money_edit.text.to_int()
+	if parsed_amount > 0:
+		add_money(parsed_amount)
+		money_edit.text = ""
 
 func _on_withdraw_money_pressed() -> void:
-	var parsed_amount = int(money_edit.text)
-	remove_money(parsed_amount)
-	pass # Replace with function body.
+	var parsed_amount = money_edit.text.to_int()
+	if parsed_amount > 0:
+		remove_money(parsed_amount)
+		money_edit.text = ""

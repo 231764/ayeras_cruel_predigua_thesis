@@ -10,6 +10,20 @@ var credit_score := 70 # starting credit score value (0-100 scale, >=70 is Good)
 var credit_balance := 0 # starting credit card balance (unlocked in Stage 2)
 var debt_balance := 0 # starting unpaid debt value
 
+# Credit Card System (GDD Sections 4.3, 4.4, 8.2)
+var has_credit_card: bool = false
+var credit_limit: int = 0
+var credit_monthly_interest_rate: float = 0.05 # 5% monthly compounding interest on unpaid credit balance
+var total_credit_interest_incurred: int = 0
+
+# Recurring Monthly Installments (GDD Sections 8.1, 8.2)
+var active_installments: Array = [] # Array of {"id": String, "name": String, "monthly_cost": int, "months_left": int}
+
+# Phone Plan Upgrade / Slow Phone Mechanic (GDD Section 8.1.1 Event 3)
+var phone_is_slow: bool = false
+var phone_lag_seconds: float = 2.0
+var phone_upgraded: bool = false
+
 # Life Goal System (GDD Section 2.3)
 var life_goals := [
 	{
@@ -64,6 +78,7 @@ var envelopes := [
 	{"category": "Entertainment", "display_name": "Libangan\n(Entertainment)", "amount": 0},
 	{"category": "Rent", "display_name": "Upa\n(Rent)", "amount": 0},
 	{"category": "Utilities", "display_name": "Kuryente/Tubig\n(Utilities)", "amount": 0},
+	{"category": "Credit Card", "display_name": "Credit Card\n(Pambayad sa Bill)", "amount": 0},
 	{"category": "Savings", "display_name": "Ipon / Bangko\n(Savings +2%/mo)", "amount": 0}
 ]
 
@@ -114,6 +129,87 @@ func get_goal_target() -> int:
 func get_goal_progress_percent() -> int:
 	var target = max(1, get_goal_target())
 	return int(clamp(round(float(savings) / float(target) * 100.0), 0.0, 100.0))
+
+func unlock_credit_card(limit: int = 20000) -> void:
+	has_credit_card = true
+	credit_limit = max(credit_limit, limit)
+	on_stats_changed.emit()
+
+func get_available_credit() -> int:
+	if not has_credit_card:
+		return 0
+	return max(0, credit_limit - credit_balance)
+
+func can_use_credit_card(amount: int) -> bool:
+	return has_credit_card and amount > 0 and (credit_balance + amount) <= credit_limit
+
+func charge_credit_card(amount: int) -> bool:
+	if not can_use_credit_card(amount):
+		return false
+	credit_balance += amount
+	on_stats_changed.emit()
+	return true
+
+func get_credit_minimum_due() -> int:
+	if credit_balance <= 0:
+		return 0
+	return min(credit_balance, max(500, int(round(float(credit_balance) * 0.10))))
+
+func pay_credit_card_balance(amount: int) -> int:
+	if amount <= 0 or credit_balance <= 0:
+		return 0
+	var actual_pay = min(amount, credit_balance)
+	# Pull from Credit Card envelope first, then current_balance
+	spend_from_category("Credit Card", actual_pay)
+	credit_balance -= actual_pay
+	on_stats_changed.emit()
+	return actual_pay
+
+func apply_monthly_credit_card_interest() -> int:
+	if credit_balance <= 0:
+		return 0
+	var interest = max(1, int(round(float(credit_balance) * credit_monthly_interest_rate)))
+	credit_balance += interest
+	total_credit_interest_incurred += interest
+	on_stats_changed.emit()
+	return interest
+
+func add_installment(id: String, inst_name: String, monthly_cost: int, months: int) -> void:
+	for inst in active_installments:
+		if inst.get("id") == id:
+			inst["monthly_cost"] = monthly_cost
+			inst["months_left"] = months
+			on_stats_changed.emit()
+			return
+	active_installments.append({
+		"id": id,
+		"name": inst_name,
+		"monthly_cost": monthly_cost,
+		"months_left": months
+	})
+	on_stats_changed.emit()
+
+func get_total_monthly_installments() -> int:
+	var total := 0
+	for inst in active_installments:
+		if int(inst.get("months_left", 0)) > 0:
+			total += int(inst.get("monthly_cost", 0))
+	return total
+
+func advance_installments_one_month() -> void:
+	for i in range(active_installments.size() - 1, -1, -1):
+		active_installments[i]["months_left"] = int(active_installments[i]["months_left"]) - 1
+		if int(active_installments[i]["months_left"]) <= 0:
+			active_installments.remove_at(i)
+	on_stats_changed.emit()
+
+func get_installments_summary_text() -> String:
+	if active_installments.is_empty():
+		return "None"
+	var parts: Array[String] = []
+	for inst in active_installments:
+		parts.append(str(inst["name"]) + " (PHP " + str(inst["monthly_cost"]) + "/mo, " + str(inst["months_left"]) + " mos left)")
+	return ", ".join(parts)
 
 func sync_savings_envelope() -> void:
 	for env in envelopes:
@@ -294,11 +390,16 @@ func get_live_summary_for_ai() -> String:
 	for env in envelopes:
 		env_lines.append(env["category"] + ": PHP " + str(env["amount"]))
 	
-	var total_utilities_due = monthly_utilities + extra_utilities_this_month
+	var inst_total = get_total_monthly_installments()
+	var total_utilities_due = monthly_utilities + extra_utilities_this_month + inst_total
 	var rent_env = get_envelope_amount("Rent")
 	var util_env = get_envelope_amount("Utilities")
 	var rent_shortfall = max(0, monthly_rent - rent_env)
 	var util_shortfall = max(0, total_utilities_due - util_env)
+	
+	var cc_status = "Not Unlocked / Declined"
+	if has_credit_card:
+		cc_status = "Unlocked (Balance: PHP " + str(credit_balance) + " / Limit: PHP " + str(credit_limit) + ", Available Credit: PHP " + str(get_available_credit()) + ", Min Due: PHP " + str(get_credit_minimum_due()) + ", 5%/mo compounding interest on unpaid balance)"
 	
 	var summary = "=== LIVE PLAYER GAME STATE (StatManager) ===\n"
 	summary += "- Date & Time: " + month_name + " " + str(current_day) + " (" + phase_names[current_phase] + "), " + str(days_in_month - current_day) + " days left in month\n"
@@ -307,7 +408,9 @@ func get_live_summary_for_ai() -> String:
 	summary += "- Available Cash (Current Balance): PHP " + str(current_balance) + "\n"
 	summary += "- Savings (Ipon in Bank, earns 2% monthly compounding interest): PHP " + str(savings) + " (Total Compounding Interest Earned So Far: PHP " + str(total_savings_interest_earned) + ")\n"
 	summary += "- Unpaid Debt Balance: PHP " + str(debt_balance) + " (5% monthly interest penalty if unpaid; >PHP 50,000 = Game Over)\n"
-	summary += "- Credit Card Balance: PHP " + str(credit_balance) + " | Credit Score: " + str(credit_score) + "/100 (Need >=70 for Good standing)\n"
+	summary += "- Credit Card Status: " + cc_status + " | Credit Score: " + str(credit_score) + "/100 (Need >=70 for Good standing)\n"
+	summary += "- Active Monthly Installments: " + get_installments_summary_text() + "\n"
+	summary += "- Phone Status: " + ("Slow Phone (2s lag per tap)" if phone_is_slow else ("Upgraded Plan (PHP 1,200/mo)" if phone_upgraded else "Normal")) + "\n"
 	summary += "- Well-Being Meters: Happiness = " + str(happy) + "/100, Sociability/Relationships = " + str(social) + "/100 (Need >=50 by year-end; 5 consecutive days at 0 = Game Over)\n"
 	if days_at_zero_happiness > 0:
 		summary += "  [URGENT WARNING: Player has been at 0 Happiness for " + str(days_at_zero_happiness) + "/5 days! Burnout imminent!]\n"
@@ -316,5 +419,5 @@ func get_live_summary_for_ai() -> String:
 	summary += "- This Week's Tracker: Income = PHP " + str(weekly_income) + " | Expenses = PHP " + str(weekly_expenses) + "\n"
 	summary += "- Active Daily Routine Settings: Food = " + food_mode + " | Commute = " + commute_mode + " (Total Daily Routine = PHP " + str(get_daily_food_cost() + get_daily_commute_cost()) + "/day)\n"
 	summary += "- Cash Envelopes Allocated: " + ", ".join(env_lines) + "\n"
-	summary += "- End-of-Month Fixed Bills Forecast: Rent Due = PHP " + str(monthly_rent) + " (Shortfall in Rent Envelope: PHP " + str(rent_shortfall) + "), Utilities Due = PHP " + str(total_utilities_due) + " (Shortfall in Utilities Envelope: PHP " + str(util_shortfall) + ")\n"
+	summary += "- End-of-Month Fixed Bills Forecast: Rent Due = PHP " + str(monthly_rent) + " (Shortfall in Rent Envelope: PHP " + str(rent_shortfall) + "), Utilities + Installments Due = PHP " + str(total_utilities_due) + " (Shortfall in Utilities Envelope: PHP " + str(util_shortfall) + ")\n"
 	return summary

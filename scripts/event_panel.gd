@@ -17,8 +17,9 @@ func _on_event_triggered(event_data: Dictionary) -> void:
 	title_label.text = event_data["title"]
 	desc_label.text = event_data["description"]
 	
-	# Clear old buttons
+	# Clear old buttons immediately
 	for child in options_container.get_children():
+		options_container.remove_child(child)
 		child.queue_free()
 		
 	# Create new buttons
@@ -27,32 +28,16 @@ func _on_event_triggered(event_data: Dictionary) -> void:
 		var btn = Button.new()
 		var opt = options[i]
 		var choice_text = opt["choice_text"]
-		btn.custom_minimum_size = Vector2(0, 60)
+		var can_select = EventManager.is_option_selectable(opt)
+		btn.custom_minimum_size = Vector2(0, 62)
+		btn.disabled = not can_select
 		
 		var rtf = RichTextLabel.new()
 		rtf.bbcode_enabled = true
 		rtf.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		rtf.set_anchors_preset(Control.PRESET_FULL_RECT)
 		
-		var stats_text = ""
-		
-		if opt.has("cost") and opt["cost"] > 0:
-			stats_text += "[color=red]-" + str(opt["cost"]) + " PHP[/color] "
-		elif opt.has("cost") and opt["cost"] < 0:
-			stats_text += "[color=green]+" + str(abs(opt["cost"])) + " PHP[/color] "
-		if opt.has("extra_utilities") and int(opt["extra_utilities"]) > 0:
-			stats_text += "[color=orange]+" + str(opt["extra_utilities"]) + " PHP Bill[/color] "
-		if opt.has("happy_change") and opt["happy_change"] != 0:
-			var val = opt["happy_change"]
-			var sign_str = "+" if val > 0 else ""
-			var color = "green" if val > 0 else "red"
-			stats_text += "[color=" + color + "]" + sign_str + str(val) + " Happy[/color] "
-		if opt.has("social_change") and opt["social_change"] != 0:
-			var val = opt["social_change"]
-			var sign_str = "+" if val > 0 else ""
-			var color = "green" if val > 0 else "red"
-			stats_text += "[color=" + color + "]" + sign_str + str(val) + " Social[/color] "
-			
+		var stats_text = EventManager.format_option_Preview_bbcode(opt)
 		rtf.text = "[center]" + choice_text + "\n[font_size=14]" + stats_text + "[/font_size][/center]"
 		btn.add_child(rtf)
 		btn.pressed.connect(_on_option_selected.bind(i))

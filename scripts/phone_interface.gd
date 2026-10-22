@@ -1,5 +1,6 @@
 extends Control
 
+@onready var header_title: Label = $Header/Title
 @onready var notifications_container = $ScrollContainer/VBoxContainer/NotificationsContainer
 @onready var event_detail_panel = $EventDetailPanel
 @onready var event_title = $EventDetailPanel/VBoxContainer/EventTitle
@@ -15,10 +16,12 @@ extends Control
 var current_viewing_event_id: String = ""
 var chat_messages: Array = []
 var is_request_pending: bool = false
+var is_lag_waiting: bool = false
 
 func _ready() -> void:
 	EventManager.on_indirect_event_triggered.connect(_on_event_triggered)
 	EventManager.on_event_resolved.connect(_on_event_resolved)
+	StatManager.on_stats_changed.connect(_update_header_status)
 	ai_http_request.request_completed.connect(_on_ai_request_completed)
 	
 	if chat_input and not chat_input.text_submitted.is_connected(_on_chat_input_submitted):
@@ -31,7 +34,27 @@ func _ready() -> void:
 	})
 	
 	add_chat_bubble("Baldo", "Yow par! Ako si Baldo, ang financial buddy mo. Tanong ka lang kung paano i-budget ang sahod mo, ano gagawin sa bills, o kung may gumugulo sa isip mo!")
+	_update_header_status()
 	refresh_notifications()
+
+func _update_header_status() -> void:
+	if not header_title or is_lag_waiting:
+		return
+	if StatManager.phone_is_slow:
+		header_title.text = "Mga Text (🐢 Slow Phone - 2s Lag)"
+	elif StatManager.phone_upgraded:
+		header_title.text = "Mga Text (⚡ Upgraded 5G)"
+	else:
+		header_title.text = "Mga Text"
+
+func _apply_phone_lag_if_needed() -> void:
+	if StatManager.phone_is_slow and StatManager.phone_lag_seconds > 0.0:
+		is_lag_waiting = true
+		if header_title:
+			header_title.text = "⏳ Loading... (Slow Phone 2s)"
+		await get_tree().create_timer(StatManager.phone_lag_seconds).timeout
+		is_lag_waiting = false
+		_update_header_status()
 
 func _build_system_prompt() -> String:
 	var prompt = "You are Baldo, a wise, supportive, and trustworthy Filipino friend who acts as a personal financial coach for a young breadwinner working their first job in the city.\n"
@@ -70,14 +93,21 @@ func _on_event_resolved(_event_id: String) -> void:
 
 func refresh_notifications() -> void:
 	for child in notifications_container.get_children():
+		notifications_container.remove_child(child)
 		child.queue_free()
 		
 	for event in EventManager.active_events:
 		var btn = Button.new()
 		btn.text = "New Message: " + event["title"]
 		btn.custom_minimum_size = Vector2(0, 50)
-		btn.pressed.connect(func(): open_event_detail(event))
+		btn.pressed.connect(func(): _on_notification_clicked(event))
 		notifications_container.add_child(btn)
+
+func _on_notification_clicked(event: Dictionary) -> void:
+	if is_lag_waiting:
+		return
+	await _apply_phone_lag_if_needed()
+	open_event_detail(event)
 
 func open_event_detail(event: Dictionary) -> void:
 	current_viewing_event_id = event["id"]
@@ -85,38 +115,23 @@ func open_event_detail(event: Dictionary) -> void:
 	event_desc.text = event["description"]
 	
 	for child in options_container.get_children():
+		options_container.remove_child(child)
 		child.queue_free()
 		
 	var i = 0
 	for option in event["options"]:
 		var btn = Button.new()
 		var choice_text = option["choice_text"]
-		btn.custom_minimum_size = Vector2(0, 60)
+		var can_select = EventManager.is_option_selectable(option)
+		btn.custom_minimum_size = Vector2(0, 62)
+		btn.disabled = not can_select
 		
 		var rtf = RichTextLabel.new()
 		rtf.bbcode_enabled = true
 		rtf.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		rtf.set_anchors_preset(Control.PRESET_FULL_RECT)
 		
-		var stats_text = ""
-		
-		if option.has("cost") and option["cost"] > 0:
-			stats_text += "[color=red]-" + str(option["cost"]) + " PHP[/color] "
-		elif option.has("cost") and option["cost"] < 0:
-			stats_text += "[color=green]+" + str(abs(option["cost"])) + " PHP[/color] "
-		if option.has("extra_utilities") and int(option["extra_utilities"]) > 0:
-			stats_text += "[color=orange]+" + str(option["extra_utilities"]) + " PHP Bill[/color] "
-		if option.has("happy_change") and option["happy_change"] != 0:
-			var val = option["happy_change"]
-			var sign_str = "+" if val > 0 else ""
-			var color = "green" if val > 0 else "red"
-			stats_text += "[color=" + color + "]" + sign_str + str(val) + " Happy[/color] "
-		if option.has("social_change") and option["social_change"] != 0:
-			var val = option["social_change"]
-			var sign_str = "+" if val > 0 else ""
-			var color = "green" if val > 0 else "red"
-			stats_text += "[color=" + color + "]" + sign_str + str(val) + " Social[/color] "
-			
+		var stats_text = EventManager.format_option_Preview_bbcode(option)
 		rtf.text = "[center]" + choice_text + "\n[font_size=14]" + stats_text + "[/font_size][/center]"
 		btn.add_child(rtf)
 		btn.pressed.connect(func(idx = i): resolve_current_event(idx))
@@ -133,6 +148,9 @@ func _on_event_back_button_pressed() -> void:
 	event_detail_panel.hide()
 
 func _on_baldo_button_pressed() -> void:
+	if is_lag_waiting:
+		return
+	await _apply_phone_lag_if_needed()
 	chat_panel.show()
 
 func _on_close_chat_button_pressed() -> void:
@@ -244,7 +262,7 @@ func _on_ai_request_completed(_result: int, response_code: int, _headers: Packed
 func _generate_offline_baldo_reply(_user_text: String) -> String:
 	var rent_env = StatManager.get_envelope_amount("Rent")
 	var util_env = StatManager.get_envelope_amount("Utilities")
-	var total_util_due = StatManager.monthly_utilities + StatManager.extra_utilities_this_month
+	var total_util_due = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments()
 	var rent_short = max(0, StatManager.monthly_rent - rent_env)
 	var util_short = max(0, total_util_due - util_env)
 	var tips: Array[String] = []
@@ -259,12 +277,14 @@ func _generate_offline_baldo_reply(_user_text: String) -> String:
 		var last_ev = EventManager.event_history[EventManager.event_history.size() - 1]
 		tips.append("Naalala ko pinili mo yung \"" + str(last_ev["choice_text"]) + "\" sa \"" + str(last_ev["title"]) + "\".")
 		
-	# 3. Check debt, envelopes, and Life Goal savings progress
+	# 3. Check debt, credit card, envelopes, and Life Goal savings progress
 	var goal = StatManager.get_current_goal()
 	if StatManager.debt_balance > 0:
 		tips.append("Naku par, may PHP " + str(StatManager.debt_balance) + " kang utang na may 5% monthly interest at kaltas sa sahod, kaya tipid mode muna tayo!")
+	elif StatManager.credit_balance > 0:
+		tips.append("May PHP " + str(StatManager.credit_balance) + " kang Credit Card balance! Ihanda mo ang pambayad nang buo sa Credit Card envelope para iwas sa 5% compounding interest.")
 	elif rent_short > 0 or util_short > 0:
-		tips.append("Sa PHP " + str(StatManager.current_balance) + " mong hawak ngayon, magtabi ka na sa Cash Envelopes: kulang ka pa ng PHP " + str(rent_short) + " sa Upa at PHP " + str(util_short) + " sa Kuryente/Tubig bago mag-katapusan.")
+		tips.append("Sa PHP " + str(StatManager.current_balance) + " mong hawak ngayon, magtabi ka na sa Cash Envelopes: kulang ka pa ng PHP " + str(rent_short) + " sa Upa at PHP " + str(util_short) + " sa Kuryente/Tubig/Installments bago mag-katapusan.")
 	else:
 		tips.append("Solid par, kumpleto na ang pambayad mo sa Upa at Utilities envelopes! Maghulog ka na sa Ipon / Savings (nasa PHP " + str(StatManager.savings) + " / PHP " + str(goal["cost"]) + " ka na para sa \"" + str(goal["title"]) + "\") para kumita ng 2% monthly compounding interest!")
 		

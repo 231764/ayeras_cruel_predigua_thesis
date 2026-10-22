@@ -3,12 +3,12 @@
     {
       "id": "first_salary",
       "title": "First Sahod Unlocked!",
-      "description": "Uy nice, pumasok na yung first salary mo! Time to budget na gamit ang Cash Envelopes para hindi magastos lahat.",
+      "description": "Uy nice, pumasok na yung first salary mo! Bilang breadwinner, mag-allocate ka na ng budget sa iyong Cash Envelopes (Upa, Kuryente/Tubig, Pagkain, Pamasahe, at Ipon) para protektado ang pera mo.",
       "is_direct": true,
       "stage": 1,
       "options": [
         {
-          "choice_text": "Paldo! Mag-budget na tayo",
+          "choice_text": "Paldo! Mag-budget na tayo sa Cash Envelopes",
           "cost": 0,
           "happy_change": 5,
           "social_change": 0,
@@ -24,7 +24,7 @@
       "stage": 1,
       "options": [
         {
-          "choice_text": "Magluto sa bahay (PHP 200/araw)",
+          "choice_text": "Magluto sa bahay (PHP 200/araw — Tipid)",
           "cost": 0,
           "happy_change": -1,
           "social_change": 0,
@@ -32,7 +32,7 @@
           "next_event_id": ""
         },
         {
-          "choice_text": "Mag-order na lang (PHP 450/araw)",
+          "choice_text": "Mag-order na lang (PHP 450/araw — Convenient)",
           "cost": 0,
           "happy_change": 2,
           "social_change": 0,
@@ -42,9 +42,40 @@
       ]
     },
     {
+      "id": "phone_plan_upgrade",
+      "title": "Phone Plan Upgrade Offer",
+      "description": "Sobrang bagal na ng lumang phone mo—umaabot ng 2 seconds bago mag-register ang bawat pindot sa Phone! May offer na bagong phone plan na PHP 1,200/buwan sa loob ng 12 months. Mag-uupgrade ka ba?",
+      "is_direct": true,
+      "stage": 1,
+      "options": [
+        {
+          "choice_text": "Tiisin ang lumang phone (PHP 0 — May 2s lag sa Phone)",
+          "cost": 0,
+          "happy_change": -3,
+          "social_change": 0,
+          "set_phone_slow": true,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Mag-upgrade sa Plan (PHP 1,200/buwan for 12 mos — Mabilis!)",
+          "cost": 0,
+          "happy_change": 5,
+          "social_change": 0,
+          "set_phone_upgraded": true,
+          "installment": {
+            "id": "phone_plan",
+            "name": "Phone Plan Upgrade",
+            "monthly_cost": 1200,
+            "months_left": 12
+          },
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
       "id": "electricity_spike",
       "title": "Tumaas ang Kuryente",
-      "description": "Naku, lumaki ang konsumo sa kuryente sa bahay! May dagdag na PHP 1,500 sa kuryente ngayong buwan.",
+      "description": "Naku, lumaki ang konsumo sa kuryente sa bahay! May dagdag na PHP 1,500 sa kuryente ngayong buwan. Kailangan mong mag-adjust sa budget.",
       "is_direct": false,
       "stage": 1,
       "options": [
@@ -67,48 +98,227 @@
       ]
     },
     {
-      "id": "friends_birthday",
-      "title": "Inuman for Bestie's Birthday",
-      "description": "Nag-aya ang barkada mag-celebrate para sa birthday ng best friend mo. Ambagan daw, PHP 1,000.",
+      "id": "sibling_school_payment",
+      "title": "Kailangan ng Pang-Tuition ni Bunso",
+      "description": "Nag-text ang nanay mo: kailangan na raw bayaran ang PHP 3,000 na school fees ng nakababata mong kapatid. Bilang breadwinner, magkano ang maipapadala mo?",
       "is_direct": false,
       "stage": 1,
       "options": [
         {
-          "choice_text": "G! Sama ako (PHP 1,000)",
-          "cost": 1000,
-          "category": "Entertainment",
-          "happy_change": 5,
-          "social_change": 10,
+          "choice_text": "Bayaran nang buo (PHP 3,000)",
+          "cost": 3000,
+          "happy_change": 2,
+          "social_change": 5,
           "next_event_id": ""
         },
         {
-          "choice_text": "Pass muna, tipid mode.",
-          "cost": 0,
+          "choice_text": "Magpadala ng kalahati (PHP 1,500)",
+          "cost": 1500,
           "happy_change": -2,
           "social_change": -5,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Pass muna, kapos na kapos (PHP 0)",
+          "cost": 0,
+          "happy_change": -5,
+          "social_change": -10,
           "next_event_id": ""
         }
       ]
     },
     {
-      "id": "sick_day",
-      "title": "Trangkaso Szn",
-      "description": "Naku, masama ang pakiramdam mo dahil sa pagod at byahe. Kailangan mong bumili ng gamot at magpahinga.",
-      "is_direct": true,
+      "id": "commute_cost_increase",
+      "title": "Taas-Presyo sa Langis at Pamasahe",
+      "description": "Nagmahal na naman ang presyo ng krudo! Dahil dito, tumaas ng +PHP 20 kada araw ang gastos mo sa byahe/transportasyon.",
+      "is_direct": false,
       "stage": 1,
       "options": [
         {
-          "choice_text": "Bumili ng gamot at magpacheck (PHP 500)",
-          "cost": 500,
-          "happy_change": -3,
+          "choice_text": "Tanggapin at i-adjust ang budget (+PHP 20/araw sa Pamasahe)",
+          "cost": 0,
+          "daily_commute_mod": 20,
+          "happy_change": -2,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "credit_card_offer",
+      "title": "Starter Credit Card Offer",
+      "description": "Nag-alok ang bangko ng Starter Credit Card na may PHP 20,000 credit limit! Makakatulong ito sa emergencies, pero may 5% monthly compounding interest kapag hindi nabayaran nang buo. Tatanggapin mo ba?",
+      "is_direct": true,
+      "stage": 2,
+      "options": [
+        {
+          "choice_text": "Tanggapin ang Credit Card (PHP 20,000 Limit)",
+          "cost": 0,
+          "unlock_credit_card": true,
+          "credit_limit": 20000,
+          "happy_change": 3,
           "social_change": 0,
           "next_event_id": ""
         },
         {
-          "choice_text": "Tiisin na lang para tipid.",
+          "choice_text": "Tanggihan — Cash at Ipon lang muna (+2 Credit Score)",
           "cost": 0,
-          "happy_change": -15,
+          "unlock_credit_card": false,
+          "credit_score_change": 2,
+          "happy_change": 0,
           "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "refrigerator_breakdown",
+      "title": "Nasira ang Refrigerator sa Bahay!",
+      "description": "Tumirik ang refrigerator ng pamilya mo at nasisira na ang mga pagkain! Kailangan ng PHP 12,000 para mapalitan ito agad. Paano mo ito babayaran?",
+      "is_direct": true,
+      "stage": 2,
+      "options": [
+        {
+          "choice_text": "Bayaran nang buo sa Cash (PHP 12,000)",
+          "cost": 12000,
+          "happy_change": 2,
+          "social_change": 5,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-swipe sa Credit Card (+PHP 12,000 Credit Balance)",
+          "cost": 0,
+          "credit_cost": 12000,
+          "happy_change": 2,
+          "social_change": 5,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Installment Plan (PHP 2,200/buwan for 6 mos — Total PHP 13,200)",
+          "cost": 0,
+          "installment": {
+            "id": "fridge_installment",
+            "name": "Ref Installment",
+            "monthly_cost": 2200,
+            "months_left": 6
+          },
+          "happy_change": 0,
+          "social_change": 5,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "online_shopping_temptation",
+      "title": "Online Mega Sale Temptation!",
+      "description": "May malaking online sale ng pangarap mong damit at gadgets sa halagang PHP 3,000! Deserve mo ba mag-checkout o magpipigil ka muna?",
+      "is_direct": true,
+      "stage": 2,
+      "options": [
+        {
+          "choice_text": "Bilhin gamit ang Credit Card (+PHP 3,000 Credit)",
+          "cost": 0,
+          "credit_cost": 3000,
+          "happy_change": 12,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Bilhin gamit ang Cash (PHP 3,000)",
+          "cost": 3000,
+          "category": "Entertainment",
+          "happy_change": 8,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-ignore ang sale — Self-control muna! (+1 Credit Score)",
+          "cost": 0,
+          "happy_change": -5,
+          "social_change": 0,
+          "credit_score_change": 1,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "credit_card_statement",
+      "title": "Dumating na ang Credit Card Statement",
+      "description": "Narito na ang iyong monthly Credit Card Statement! Kung Minimum Due lang ang babayaran mo, papatungan ng 5% compounding interest ang natitirang balanse sa katapusan.",
+      "is_direct": false,
+      "stage": 2,
+      "options": [
+        {
+          "choice_text": "Bayaran nang Buo ang Credit Balance (0 Interest, +3 Credit Score)",
+          "cost": 0,
+          "pay_credit_full": true,
+          "credit_score_change": 3,
+          "happy_change": 2,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Bayaran lang ang Minimum Due (10% — May compounding interest pa rin, -2 Credit Score)",
+          "cost": 0,
+          "pay_credit_minimum": true,
+          "credit_score_change": -2,
+          "happy_change": 0,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Ipagpaliban muna ang bayad (-8 Credit Score, +5% Interest)",
+          "cost": 0,
+          "credit_score_change": -8,
+          "happy_change": -3,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "coworker_debt_story",
+      "title": "Kwento ni Officemate Tungkol sa Utang",
+      "description": "Nag-chat ang katrabaho mo: \"Par, wag mo akong gayahin! Minimum due lang lagi binabayaran ko sa credit card... ngayon yung PHP 10,000 ko naging PHP 18,000 na dahil sa compounding interest!\"",
+      "is_direct": false,
+      "stage": 2,
+      "options": [
+        {
+          "choice_text": "Salamat sa paalala! Iiwasan ko ang minimum payment trap.",
+          "cost": 0,
+          "happy_change": 1,
+          "social_change": 2,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "family_medical_checkup",
+      "title": "Medical Checkup para sa Pamilya",
+      "description": "Kailangan ng magulang mo sa probinsya na magpa-medical checkup at bumili ng maintenance na gamot na nagkakahalagang PHP 4,000.",
+      "is_direct": false,
+      "stage": 2,
+      "options": [
+        {
+          "choice_text": "Bayaran gamit ang Cash (PHP 4,000)",
+          "cost": 4000,
+          "happy_change": 5,
+          "social_change": 5,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Bayaran gamit ang Credit Card (+PHP 4,000 Credit)",
+          "cost": 0,
+          "credit_cost": 4000,
+          "happy_change": 5,
+          "social_change": 5,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-delay muna ang checkup (PHP 0)",
+          "cost": 0,
+          "happy_change": -5,
+          "social_change": -5,
           "next_event_id": ""
         }
       ]

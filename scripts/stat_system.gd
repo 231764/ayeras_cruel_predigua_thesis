@@ -187,9 +187,10 @@ func _update_status_report() -> void:
 	var g = StatManager.get_current_goal()
 	var target = StatManager.get_goal_target()
 	var pct = StatManager.get_goal_progress_percent()
-	var total_util = StatManager.monthly_utilities + StatManager.extra_utilities_this_month
+	var total_util = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments()
 	var rent_env = StatManager.get_envelope_amount("Rent")
 	var util_env = StatManager.get_envelope_amount("Utilities")
+	var cc_env = StatManager.get_envelope_amount("Credit Card")
 	var food_env = StatManager.get_envelope_amount("Food")
 	var trans_env = StatManager.get_envelope_amount("Transportation")
 	var ent_env = StatManager.get_envelope_amount("Entertainment")
@@ -198,7 +199,7 @@ func _update_status_report() -> void:
 	var happy_ok = "[color=green]GOOD (" + str(StatManager.happy) + "/100)[/color]" if StatManager.happy >= 50 else "[color=red]LOW (" + str(StatManager.happy) + "/100 - Need >=50)[/color]"
 	var social_ok = "[color=green]GOOD (" + str(StatManager.social) + "/100)[/color]" if StatManager.social >= 50 else "[color=red]LOW (" + str(StatManager.social) + "/100 - Need >=50)[/color]"
 	var credit_ok = "[color=green]GOOD (" + str(StatManager.credit_score) + "/100)[/color]" if StatManager.credit_score >= 70 else "[color=red]POOR (" + str(StatManager.credit_score) + "/100 - Need >=70)[/color]"
-	var debt_ok = "[color=green]DEBT-FREE (PHP 0)[/color]" if StatManager.debt_balance == 0 else "[color=red]HAS DEBT (PHP " + str(StatManager.debt_balance) + ")[/color]"
+	var debt_ok = "[color=green]DEBT-FREE (PHP 0)[/color]" if StatManager.debt_balance == 0 and StatManager.credit_balance == 0 else "[color=red]HAS OBLIGATIONS (Debt: PHP " + str(StatManager.debt_balance) + ", Credit: PHP " + str(StatManager.credit_balance) + ")[/color]"
 	
 	var txt = "[b][font_size=22]" + stage_info["name"] + "[/font_size][/b]\n"
 	txt += "[i]\"" + stage_info["theme"] + "\"[/i]\n\n"
@@ -207,11 +208,12 @@ func _update_status_report() -> void:
 	txt += "• Well-Being (Happiness): " + happy_ok + "\n"
 	txt += "• Relationships (Sociability): " + social_ok + "\n"
 	txt += "• Credit Standing: " + credit_ok + "\n"
-	txt += "• Debt Status: " + debt_ok + "\n"
+	txt += "• Debt & Credit Status: " + debt_ok + "\n"
 	txt += "• Compounding Interest Earned on Savings: [color=lightblue]PHP " + str(StatManager.total_savings_interest_earned) + "[/color]\n\n"
-	txt += "[b]2. Monthly Bills vs. Allocated Envelopes:[/b]\n"
+	txt += "[b]2. Monthly Bills, Installments & Allocated Envelopes:[/b]\n"
 	txt += "• Upa (Rent): PHP " + str(rent_env) + " / PHP " + str(StatManager.monthly_rent) + "\n"
-	txt += "• Kuryente/Tubig (Utilities): PHP " + str(util_env) + " / PHP " + str(total_util) + "\n"
+	txt += "• Utilities + Installments: PHP " + str(util_env) + " / PHP " + str(total_util) + " (" + StatManager.get_installments_summary_text() + ")\n"
+	txt += "• Credit Card Envelope: PHP " + str(cc_env) + " (Card Balance: PHP " + str(StatManager.credit_balance) + " / Limit: PHP " + str(StatManager.credit_limit) + ")\n"
 	txt += "• Pagkain (Food): PHP " + str(food_env) + " | Pamasahe: PHP " + str(trans_env) + " | Libangan: PHP " + str(ent_env) + "\n"
 	status_report_label.text = txt
 
@@ -372,14 +374,19 @@ func trigger_monthly_bills() -> void:
 	# 1. Apply 2% compounding monthly interest to Bank Savings (GDD Section 4.4)
 	var savings_interest = StatManager.apply_monthly_savings_interest()
 	
-	# 2. Apply 5% compounding monthly interest to existing Debt
+	# 2. Apply 5% compounding monthly interest to unpaid Credit Card balance (GDD Section 4.4)
+	var cc_interest = StatManager.apply_monthly_credit_card_interest()
+	
+	# 3. Apply 5% compounding monthly interest to existing Debt
 	var debt_interest = int(StatManager.debt_balance * 0.05)
 	if debt_interest > 0:
 		StatManager.debt_balance += debt_interest
 		
+	var installments_due = StatManager.get_total_monthly_installments()
 	var rent_amount = StatManager.monthly_rent
-	var utilities_amount = StatManager.monthly_utilities + StatManager.extra_utilities_this_month
+	var utilities_amount = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + installments_due
 	StatManager.extra_utilities_this_month = 0
+	StatManager.advance_installments_one_month()
 	var total_bills = rent_amount + utilities_amount
 	
 	var rent_env = StatManager.get_envelope_amount("Rent")
@@ -393,11 +400,14 @@ func trigger_monthly_bills() -> void:
 		
 		var dialog = AcceptDialog.new()
 		dialog.title = "Auto-Paid na ang Monthly Bills!"
-		var text = "Dahil kumpleto ang naka-budget mo sa Cash Envelopes, automatic nang nabayaran ang bills nang hindi nabawasan ang hawak mong cash!\n\n• Upa: PHP " + str(rent_amount) + "\n• Kuryente/Tubig: PHP " + str(utilities_amount) + "\n• +2 Credit Score!"
+		var text = "Dahil kumpleto ang naka-budget mo sa Cash Envelopes, automatic nang nabayaran ang bills nang hindi nabawasan ang hawak mong cash!\n\n• Upa: PHP " + str(rent_amount) + "\n• Kuryente/Tubig + Installments: PHP " + str(utilities_amount) + "\n• +2 Credit Score!"
 		var log_text = "Monthly Bills Auto-Paid via Envelopes! [- PHP " + str(total_bills) + "] (+2 Credit Score)"
 		if savings_interest > 0:
 			text += "\n\nKumita rin ang Ipon mo sa bangko ng +PHP " + str(savings_interest) + " (2% Compounding Interest)!"
 			log_text += "\n[font_size=12][color=green]Savings Compounding Interest +" + str(savings_interest) + " PHP[/color][/font_size]"
+		if cc_interest > 0:
+			text += "\n\n⚠ Pumatong ang +PHP " + str(cc_interest) + " (5% Compounding Interest) sa hindi nabayarang Credit Card balance!"
+			log_text += "\n[font_size=12][color=orange]Credit Card Interest +" + str(cc_interest) + " PHP[/color][/font_size]"
 		if debt_interest > 0:
 			text += "\n\nPero nadagdagan ng PHP " + str(debt_interest) + " (5% Interest) ang dati mong utang."
 			log_text += "\n[font_size=12][color=red]Debt Interest Penalty -" + str(debt_interest) + " PHP[/color][/font_size]"
@@ -410,7 +420,7 @@ func trigger_monthly_bills() -> void:
 			var mbs_scene = preload("res://scenes/monthly_bill_settlement.tscn")
 			var mbs_instance = mbs_scene.instantiate()
 			add_child(mbs_instance)
-			mbs_instance.setup_settlement(bill_month, bill_day, rent_amount, utilities_amount, savings_interest, debt_interest)
+			mbs_instance.setup_settlement(bill_month, bill_day, rent_amount, utilities_amount, savings_interest, debt_interest + cc_interest)
 			mbs_instance.settlement_completed.connect(func():
 				mbs_instance.queue_free()
 				update_ui()

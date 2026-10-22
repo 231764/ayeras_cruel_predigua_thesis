@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://cenmloan3aswe" path="res://assets/social icon.png" id="3_g6avb"]
 
 [node name="Stat System" type="Node2D" unique_id=735355200 node_paths=PackedStringArray("happy_bar", "social_bar", "date_label")]
+z_index = 3
 script = ExtResource("1_uf86d")
 happy_bar = NodePath("Happiness Bar")
 social_bar = NodePath("Sociability Bar")
@@ -45,13 +46,14 @@ offset_left = 919.0
 offset_top = 26.0
 offset_right = 1113.0
 offset_bottom = 68.0
-text = "Next"
+text = "Next Phase ->"
 
 [node name="DateLabel" type="Label" parent="." unique_id=1478174443]
-offset_left = 400.0
+offset_left = 290.0
 offset_top = 20.0
-offset_right = 750.0
-offset_bottom = 50.0
+offset_right = 860.0
+offset_bottom = 56.0
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
 theme_override_font_sizes/font_size = 24
 text = "January 1 - Morning"
 horizontal_alignment = 1
@@ -92,9 +94,9 @@ layout_mode = 2
 size_flags_horizontal = 3
 selected = 0
 item_count = 2
-popup/item_0/text = "Magluto (PHP 350)"
+popup/item_0/text = "Magluto (PHP 200)"
 popup/item_0/id = 0
-popup/item_1/text = "Mag-order (PHP 600)"
+popup/item_1/text = "Mag-order (PHP 450)"
 popup/item_1/id = 1
 
 [node name="CommuteHBox" type="HBoxContainer" parent="DailyRoutinePanel/VBoxContainer" unique_id=987697042]
@@ -110,9 +112,9 @@ layout_mode = 2
 size_flags_horizontal = 3
 selected = 0
 item_count = 2
-popup/item_0/text = "Jeep/Bus (PHP 100)"
+popup/item_0/text = "Jeep/Bus (PHP 80)"
 popup/item_0/id = 0
-popup/item_1/text = "Angkas/Joyride (PHP 200)"
+popup/item_1/text = "Angkas/Joyride (PHP 180)"
 popup/item_1/id = 1
 
 [connection signal="pressed" from="NextPhaseButton" to="." method="advance_phase"]

@@ -2,15 +2,31 @@ extends Node
 
 signal on_stats_changed
 
-var happy := 50 #starting happy value 
-var social := 50 #starting social value
-var current_balance := 5000 #starting current balance value
-var savings := 50 #starting savings value
-var credit_score := 50 #starting credit score value
-var credit_balance := 10 #starting credit balance value
-var debt_balance := 0 #starting debt value
+var happy := 70 # starting happiness value (0-100 scale, >=50 is Normal)
+var social := 70 # starting sociability/relationship value (0-100 scale, >=50 is Normal)
+var current_balance := 5000 # starting pocket money before first salary
+var savings := 0 # starting savings value
+var credit_score := 70 # starting credit score value (0-100 scale, >=70 is Good)
+var credit_balance := 0 # starting credit card balance (unlocked in Stage 2)
+var debt_balance := 0 # starting unpaid debt value
 
-# For the BUDGETTING aspect
+# Base Economy Parameters (Rebalanced so entry-level breadwinner can save & survive)
+var base_biweekly_salary: int = 12500 # PHP 25,000 / month
+var monthly_rent: int = 6000
+var monthly_utilities: int = 2000
+var extra_utilities_this_month: int = 0
+
+# Daily Routine Options & Modifiers
+var daily_food_choice: int = 0 # 0 = Cook (200/day, 0 Happy), 1 = Eat Out (450/day, +1 Happy)
+var daily_commute_choice: int = 0 # 0 = Public (80/day, -1 Happy), 1 = Mototaxi (180/day, +1 Happy)
+var food_costs := [200, 450]
+var food_happy_deltas := [0, 1]
+var commute_costs := [80, 180]
+var commute_happy_deltas := [-1, 1]
+var daily_food_modifier: int = 0
+var daily_commute_modifier: int = 0
+
+# For the BUDGETING aspect
 var envelopes := [
 	{"category": "Food", "display_name": "Pagkain\n(Food)", "amount": 0},
 	{"category": "Transportation", "display_name": "Pamasahe\n(Transportation)", "amount": 0},
@@ -19,14 +35,10 @@ var envelopes := [
 	{"category": "Utilities", "display_name": "Kuryente/Tubig\n(Utilities)", "amount": 0}
 ]
 
-var daily_food_choice: int = 0 # 0 = Cook (350), 1 = Eat Out (600)
-var daily_commute_choice: int = 0 # 0 = Public (100), 1 = Mototaxi (200)
-
 var days_at_zero_happiness: int = 0
 var days_at_zero_social: int = 0
 
 # For the CYCLES aspect
-
 var current_day := 1
 var current_month := 0
 var current_phase := 0 # 0 = Morning, 1 = Afternoon, 2 = Evening
@@ -48,20 +60,60 @@ var year := [
 var weekly_income: int = 0
 var weekly_expenses: int = 0
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
+	pass
+
+func modify_happy(amount: int) -> void:
+	happy = clamp(happy + amount, 0, 100)
+	on_stats_changed.emit()
+
+func modify_social(amount: int) -> void:
+	social = clamp(social + amount, 0, 100)
+	on_stats_changed.emit()
+
+func get_daily_food_cost() -> int:
+	var idx = clamp(daily_food_choice, 0, food_costs.size() - 1)
+	return max(0, food_costs[idx] + daily_food_modifier)
+
+func get_daily_commute_cost() -> int:
+	var idx = clamp(daily_commute_choice, 0, commute_costs.size() - 1)
+	return max(0, commute_costs[idx] + daily_commute_modifier)
+
+func get_envelope_amount(category_name: String) -> int:
+	for envelope in envelopes:
+		if envelope["category"] == category_name:
+			return envelope["amount"]
+	return 0
+
+func spend_direct(amount: int) -> void:
+	if amount > 0:
+		weekly_expenses += amount
+		current_balance -= amount
+		if current_balance < 0:
+			debt_balance += abs(current_balance)
+			current_balance = 0
+	elif amount < 0:
+		var gain = abs(amount)
+		current_balance += gain
+		weekly_income += gain
+	on_stats_changed.emit()
 
 func spend_from_category(category_name: String, amount: int) -> void:
+	if amount <= 0:
+		if amount < 0:
+			spend_direct(amount)
+		return
+		
 	weekly_expenses += amount
 	# Try to pull from envelope first
 	for envelope in envelopes:
 		if envelope["category"] == category_name:
 			if envelope["amount"] >= amount:
 				envelope["amount"] -= amount
+				on_stats_changed.emit()
 				return
 			else:
-				# Envelope exists but doesn't have enough, drain it and pull rest from current_balance
+				# Envelope exists but doesn't have enough; drain it and pull rest from current_balance
 				var remaining = amount - envelope["amount"]
 				envelope["amount"] = 0
 				current_balance -= remaining
@@ -70,6 +122,7 @@ func spend_from_category(category_name: String, amount: int) -> void:
 				if current_balance < 0:
 					debt_balance += abs(current_balance)
 					current_balance = 0
+				on_stats_changed.emit()
 				return
 	
 	# If no envelope found, pull from current_balance
@@ -81,6 +134,51 @@ func spend_from_category(category_name: String, amount: int) -> void:
 		
 	on_stats_changed.emit()
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func get_stage_info() -> Dictionary:
+	match current_month:
+		0, 1:
+			return {"stage": 1, "name": "Foundational Stage 1: Budgeting", "theme": "I finally have income, but is it enough?"}
+		2, 3:
+			return {"stage": 2, "name": "Foundational Stage 2: Credit and Debt", "theme": "I don't have enough money, I need to borrow"}
+		4, 5:
+			return {"stage": 3, "name": "Foundational Stage 3: Interest and Financial Risk", "theme": "My past decisions start catching up"}
+		6, 7:
+			return {"stage": 4, "name": "Foundational Stage 4: Investments and Long-Term Planning", "theme": "I should think about the future despite chaos"}
+		_:
+			return {"stage": 5, "name": "Mastery Stage", "theme": "Situations keep getting worse. Can I manage until the end?"}
+
+func get_live_summary_for_ai() -> String:
+	var phase_names = ["Morning", "Afternoon", "Evening"]
+	var month_name = year[current_month].month
+	var days_in_month = year[current_month].days
+	var stage_info = get_stage_info()
+	var food_mode = "Magluto sa bahay (PHP " + str(get_daily_food_cost()) + "/day)" if daily_food_choice == 0 else "Mag-order / Eat Out (PHP " + str(get_daily_food_cost()) + "/day)"
+	var commute_mode = "Jeep/Bus Public Commute (PHP " + str(get_daily_commute_cost()) + "/day)" if daily_commute_choice == 0 else "Angkas/Joyride Mototaxi (PHP " + str(get_daily_commute_cost()) + "/day)"
+	
+	var env_lines: Array[String] = []
+	for env in envelopes:
+		env_lines.append(env["category"] + ": PHP " + str(env["amount"]))
+	
+	var total_utilities_due = monthly_utilities + extra_utilities_this_month
+	var rent_env = get_envelope_amount("Rent")
+	var util_env = get_envelope_amount("Utilities")
+	var rent_shortfall = max(0, monthly_rent - rent_env)
+	var util_shortfall = max(0, total_utilities_due - util_env)
+	
+	var summary = "=== LIVE PLAYER GAME STATE (StatManager) ===\n"
+	summary += "- Date & Time: " + month_name + " " + str(current_day) + " (" + phase_names[current_phase] + "), " + str(days_in_month - current_day) + " days left in month\n"
+	summary += "- Current Stage: " + stage_info["name"] + " (\"" + stage_info["theme"] + "\")\n"
+	summary += "- Available Cash (Current Balance): PHP " + str(current_balance) + "\n"
+	summary += "- Savings (Ipon): PHP " + str(savings) + "\n"
+	summary += "- Unpaid Debt Balance: PHP " + str(debt_balance) + " (5% monthly interest penalty if unpaid; >PHP 50,000 = Game Over)\n"
+	summary += "- Credit Card Balance: PHP " + str(credit_balance) + " | Credit Score: " + str(credit_score) + "/100 (Need >=70 for Good standing)\n"
+	summary += "- Well-Being Meters: Happiness = " + str(happy) + "/100, Sociability/Relationships = " + str(social) + "/100 (Need >=50 by year-end; 5 consecutive days at 0 = Game Over)\n"
+	if days_at_zero_happiness > 0:
+		summary += "  [URGENT WARNING: Player has been at 0 Happiness for " + str(days_at_zero_happiness) + "/5 days! Burnout imminent!]\n"
+	if days_at_zero_social > 0:
+		summary += "  [URGENT WARNING: Player has been at 0 Social for " + str(days_at_zero_social) + "/5 days! Isolation imminent!]\n"
+	summary += "- This Week's Tracker: Income = PHP " + str(weekly_income) + " | Expenses = PHP " + str(weekly_expenses) + "\n"
+	summary += "- Active Daily Routine Settings: Food = " + food_mode + " | Commute = " + commute_mode + " (Total Daily Routine = PHP " + str(get_daily_food_cost() + get_daily_commute_cost()) + "/day)\n"
+	summary += "- Cash Envelopes Allocated: " + ", ".join(env_lines) + "\n"
+	summary += "- End-of-Month Fixed Bills Forecast: Rent Due = PHP " + str(monthly_rent) + " (Shortfall in Rent Envelope: PHP " + str(rent_shortfall) + "), Utilities Due = PHP " + str(total_utilities_due) + " (Shortfall in Utilities Envelope: PHP " + str(util_shortfall) + ")\n"
+	return summary

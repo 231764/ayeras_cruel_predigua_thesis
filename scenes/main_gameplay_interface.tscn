@@ -34,9 +34,10 @@ texture = ExtResource("1_ajhct")
 z_index = 2
 offset_left = 80.0
 offset_top = 143.0
-offset_right = 112.0
+offset_right = 180.0
 offset_bottom = 166.0
-text = "PHP"
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+text = "PHP 5000"
 
 [node name="Icon" type="TextureRect" parent="CB Label" unique_id=2014212662]
 layout_mode = 0
@@ -51,9 +52,10 @@ expand_mode = 1
 z_index = 2
 offset_left = 80.0
 offset_top = 229.0
-offset_right = 120.0
+offset_right = 180.0
 offset_bottom = 252.0
-text = "PHP"
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+text = "PHP 0"
 
 [node name="Icon" type="TextureRect" parent="Savings Label" unique_id=253356462]
 layout_mode = 0
@@ -68,9 +70,10 @@ expand_mode = 1
 z_index = 2
 offset_left = 80.0
 offset_top = 304.0
-offset_right = 120.0
+offset_right = 180.0
 offset_bottom = 327.0
-text = "PHP"
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+text = "PHP 0"
 
 [node name="Icon" type="TextureRect" parent="CrB Label" unique_id=172025542]
 layout_mode = 0
@@ -85,9 +88,10 @@ expand_mode = 1
 z_index = 2
 offset_left = 80.0
 offset_top = 467.0
-offset_right = 120.0
+offset_right = 180.0
 offset_bottom = 490.0
-text = "PHP"
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+text = "70"
 
 [node name="TextureRect" type="TextureRect" parent="CS Label" unique_id=1653339265]
 layout_mode = 0
@@ -102,9 +106,10 @@ expand_mode = 1
 z_index = 2
 offset_left = 80.0
 offset_top = 392.0
-offset_right = 120.0
+offset_right = 180.0
 offset_bottom = 415.0
-text = "PHP"
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+text = "PHP 0"
 
 [node name="Icon" type="TextureRect" parent="Debt Label" unique_id=1796424826]
 layout_mode = 0
@@ -163,6 +168,14 @@ script = ExtResource("4_2v8hh")
 button = NodePath(".")
 interface = NodePath("../Phone Node")
 
+[node name="Stat System" parent="." unique_id=93216976 node_paths=PackedStringArray("current_balance", "savings", "credit_balance", "credit_score", "debt_balance", "status_report_label") instance=ExtResource("10_dppuc")]
+current_balance = NodePath("../CB Label")
+savings = NodePath("../Savings Label")
+credit_balance = NodePath("../CrB Label")
+credit_score = NodePath("../CS Label")
+debt_balance = NodePath("../Debt Label")
+status_report_label = NodePath("../Player Status/StatusPanel/StatusReportLabel")
+
 [node name="Planner Node" type="Node2D" parent="." unique_id=517664976]
 visible = false
 
@@ -170,26 +183,37 @@ visible = false
 
 [node name="Player Status" type="Node2D" parent="." unique_id=181458347]
 visible = false
+z_index = 4
 
 [node name="TextureRect" type="TextureRect" parent="Player Status" unique_id=487821765]
 offset_right = 1154.0
 offset_bottom = 646.0
 texture = ExtResource("1_ajhct")
 
-[node name="Stat System" parent="Player Status" unique_id=93216976 node_paths=PackedStringArray("current_balance", "savings", "credit_balance", "credit_score", "debt_balance") instance=ExtResource("10_dppuc")]
-current_balance = NodePath("../../CB Label")
-savings = NodePath("../../Savings Label")
-credit_balance = NodePath("../../CrB Label")
-credit_score = NodePath("../../CS Label")
-debt_balance = NodePath("../../Debt Label")
+[node name="StatusPanel" type="Panel" parent="Player Status" unique_id=77889911]
+offset_left = 220.0
+offset_top = 85.0
+offset_right = 935.0
+offset_bottom = 560.0
+
+[node name="StatusReportLabel" type="RichTextLabel" parent="Player Status/StatusPanel" unique_id=77889912]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 20.0
+offset_right = 690.0
+offset_bottom = 455.0
+bbcode_enabled = true
+text = "Player Status Report"
 
 [node name="Phone Node" type="Node2D" parent="." unique_id=1013156869]
 visible = false
+z_index = 4
 
 [node name="Phone Interface" parent="Phone Node" unique_id=1743309843 instance=ExtResource("21_phone")]
 
 [node name="Budget Node" type="Node2D" parent="." unique_id=2022530459]
 visible = false
+z_index = 4
 
 [node name="TextureRect" type="TextureRect" parent="Budget Node" unique_id=112308524]
 offset_right = 1200.0
@@ -212,4 +236,4 @@ script = ExtResource("2_4dx5e")
 
 [connection signal="pressed" from="Back Button" to="Back Button" method="_on_pressed"]
 
-[editable path="Player Status/Stat System"]
+[editable path="Stat System"]

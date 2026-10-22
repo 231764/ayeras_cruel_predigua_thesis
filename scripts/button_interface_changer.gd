@@ -1,19 +1,18 @@
 extends TextureButton
 
-@export var button = TextureButton
-@export var interface = Node2D
+@export var button: TextureButton
+@export var interface: Node2D
 @onready var back_button = $"../Back Button"
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	button.pressed.connect(_button_pressed)
-	pass # Replace with function body.
+	if button and not button.pressed.is_connected(_button_pressed):
+		button.pressed.connect(_button_pressed)
 
 func _button_pressed() -> void:
 	if back_button.visible:
 		return
 		
-	print("You pressed " + button.name)	
+	print("You pressed " + button.name)
 	interface.visible = true
 	back_button.visible = true
 	back_button.set_interface(interface)
@@ -23,8 +22,8 @@ func _button_pressed() -> void:
 			child.disabled = true
 		if child is Label and child.name.ends_with("Label"):
 			child.visible = false
-	
+		if child.name == "Stat System":
+			child.visible = false
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	pass

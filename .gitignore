@@ -2,3 +2,8 @@
 .godot/
 *.tmp
 /android/
+
+# Local environment and secret configuration files
+.env
+*.cfg
+

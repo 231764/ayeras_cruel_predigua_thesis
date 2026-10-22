@@ -3,13 +3,13 @@
     {
       "id": "first_salary",
       "title": "First Sahod Unlocked!",
-      "description": "Uy nice, pumasok na yung first salary mo na PHP 25,000! Time to budget na.",
+      "description": "Uy nice, pumasok na yung first salary mo! Time to budget na gamit ang Cash Envelopes para hindi magastos lahat.",
       "is_direct": true,
       "stage": 1,
       "options": [
         {
-          "choice_text": "Paldo!",
-          "cost": -25000,
+          "choice_text": "Paldo! Mag-budget na tayo",
+          "cost": 0,
           "happy_change": 5,
           "social_change": 0,
           "next_event_id": ""
@@ -19,22 +19,24 @@
     {
       "id": "groceries_vs_eatout",
       "title": "Mag-grocery o Magpa-deliver?",
-      "description": "Sobrang nakakapagod tong week na 'to. O-order ba ako o magluluto para makatipid?",
+      "description": "Sobrang nakakapagod 'tong unang linggo sa trabaho. Pipiliin mo bang magluto araw-araw para makatipid (~PHP 200/araw) o mag-order/kumain sa labas para convenient (~PHP 450/araw)? Pwede mo rin itong baguhin anumang oras sa Pang-araw-araw na Gastos menu.",
       "is_direct": true,
       "stage": 1,
       "options": [
         {
-          "choice_text": "Magluto na lang (PHP 2,500)",
-          "cost": 2500,
+          "choice_text": "Magluto sa bahay (PHP 200/araw)",
+          "cost": 0,
           "happy_change": -1,
           "social_change": 0,
+          "set_daily_food": 0,
           "next_event_id": ""
         },
         {
-          "choice_text": "Order na lang (PHP 4,000)",
-          "cost": 4000,
-          "happy_change": 1,
+          "choice_text": "Mag-order na lang (PHP 450/araw)",
+          "cost": 0,
+          "happy_change": 2,
           "social_change": 0,
+          "set_daily_food": 1,
           "next_event_id": ""
         }
       ]
@@ -42,14 +44,23 @@
     {
       "id": "electricity_spike",
       "title": "Tumaas ang Kuryente",
-      "description": "Naku, lumaki ang bill sa kuryente dahil lagi kang naka-aircon lately.",
+      "description": "Naku, lumaki ang konsumo sa kuryente sa bahay! May dagdag na PHP 1,500 sa kuryente ngayong buwan.",
       "is_direct": false,
       "stage": 1,
       "options": [
         {
-          "choice_text": "Bayaran ang extra PHP 1,500",
+          "choice_text": "Bayaran agad ngayon (PHP 1,500)",
           "cost": 1500,
+          "category": "Utilities",
           "happy_change": -2,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Isama sa Utilities bill sa katapusan (+PHP 1,500 Due)",
+          "cost": 0,
+          "extra_utilities": 1500,
+          "happy_change": -1,
           "social_change": 0,
           "next_event_id": ""
         }
@@ -58,19 +69,20 @@
     {
       "id": "friends_birthday",
       "title": "Inuman for Bestie's Birthday",
-      "description": "Nag-aya ang barkada mag-inuman para sa birthday ng best friend mo. Ambagan daw, PHP 1,000.",
+      "description": "Nag-aya ang barkada mag-celebrate para sa birthday ng best friend mo. Ambagan daw, PHP 1,000.",
       "is_direct": false,
       "stage": 1,
       "options": [
         {
-          "choice_text": "G! (PHP 1,000)",
+          "choice_text": "G! Sama ako (PHP 1,000)",
           "cost": 1000,
+          "category": "Entertainment",
           "happy_change": 5,
           "social_change": 10,
           "next_event_id": ""
         },
         {
-          "choice_text": "Pass muna, petsa de peligro. (-5 Social)",
+          "choice_text": "Pass muna, tipid mode.",
           "cost": 0,
           "happy_change": -2,
           "social_change": -5,
@@ -81,19 +93,19 @@
     {
       "id": "sick_day",
       "title": "Trangkaso Szn",
-      "description": "Naku, masama ang pakiramdam mo. Kailangan mong bumili ng gamot at magpahinga.",
+      "description": "Naku, masama ang pakiramdam mo dahil sa pagod at byahe. Kailangan mong bumili ng gamot at magpahinga.",
       "is_direct": true,
       "stage": 1,
       "options": [
         {
-          "choice_text": "Bumili ng gamot (PHP 500)",
+          "choice_text": "Bumili ng gamot at magpacheck (PHP 500)",
           "cost": 500,
-          "happy_change": -5,
+          "happy_change": -3,
           "social_change": 0,
           "next_event_id": ""
         },
         {
-          "choice_text": "Tiisin na lang. (-15 Happy)",
+          "choice_text": "Tiisin na lang para tipid.",
           "cost": 0,
           "happy_change": -15,
           "social_change": 0,

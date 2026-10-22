@@ -4,9 +4,9 @@ extends Node2D
 @export var amount_label: Label
 @export var money_edit: TextEdit
 
-var amount
-var category
-var display_name
+var amount: int = 0
+var category: String = ""
+var display_name: String = ""
 
 func setup(new_category: String, new_amount: int, new_display_name: String) -> void:
 	category = new_category
@@ -19,9 +19,14 @@ func update_display() -> void:
 	amount_label.text = "₱" + str(amount)
 
 func add_money(value: int) -> void:
-	if(StatManager.current_balance >= value and value > 0):
+	if StatManager.current_balance >= value and value > 0:
+		if category == "Savings":
+			StatManager.deposit_savings(value)
+			amount = StatManager.savings
+			update_display()
+			return
+			
 		StatManager.current_balance -= value
-		
 		for envelope in StatManager.envelopes:
 			if envelope["category"] == category:
 				envelope["amount"] += value
@@ -31,9 +36,14 @@ func add_money(value: int) -> void:
 		StatManager.on_stats_changed.emit()
 
 func remove_money(value: int) -> void:
-	if(amount >= value and value > 0):
+	if amount >= value and value > 0:
+		if category == "Savings":
+			StatManager.withdraw_savings(value)
+			amount = StatManager.savings
+			update_display()
+			return
+			
 		StatManager.current_balance += value
-		
 		for envelope in StatManager.envelopes:
 			if envelope["category"] == category:
 				envelope["amount"] -= value
@@ -42,9 +52,8 @@ func remove_money(value: int) -> void:
 		update_display()
 		StatManager.on_stats_changed.emit()
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
+	pass
 
 func _on_submit_money_pressed() -> void:
 	var parsed_amount = money_edit.text.to_int()

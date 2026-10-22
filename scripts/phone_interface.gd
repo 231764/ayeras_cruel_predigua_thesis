@@ -259,13 +259,14 @@ func _generate_offline_baldo_reply(_user_text: String) -> String:
 		var last_ev = EventManager.event_history[EventManager.event_history.size() - 1]
 		tips.append("Naalala ko pinili mo yung \"" + str(last_ev["choice_text"]) + "\" sa \"" + str(last_ev["title"]) + "\".")
 		
-	# 3. Check debt & envelopes
+	# 3. Check debt, envelopes, and Life Goal savings progress
+	var goal = StatManager.get_current_goal()
 	if StatManager.debt_balance > 0:
 		tips.append("Naku par, may PHP " + str(StatManager.debt_balance) + " kang utang na may 5% monthly interest at kaltas sa sahod, kaya tipid mode muna tayo!")
 	elif rent_short > 0 or util_short > 0:
 		tips.append("Sa PHP " + str(StatManager.current_balance) + " mong hawak ngayon, magtabi ka na sa Cash Envelopes: kulang ka pa ng PHP " + str(rent_short) + " sa Upa at PHP " + str(util_short) + " sa Kuryente/Tubig bago mag-katapusan.")
 	else:
-		tips.append("Solid par, kumpleto na ang pambayad mo sa Upa at Utilities envelopes! Pwede ka nang maglagay sa Pagkain/Pamasahe o mag-ipon.")
+		tips.append("Solid par, kumpleto na ang pambayad mo sa Upa at Utilities envelopes! Maghulog ka na sa Ipon / Savings (nasa PHP " + str(StatManager.savings) + " / PHP " + str(goal["cost"]) + " ka na para sa \"" + str(goal["title"]) + "\") para kumita ng 2% monthly compounding interest!")
 		
 	# 4. Check well-being meters
 	if StatManager.happy < 40 or StatManager.social < 40:

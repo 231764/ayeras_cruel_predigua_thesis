@@ -6,16 +6,24 @@
 layer = 100
 script = ExtResource("1_wkly")
 
+[node name="Backdrop" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
 [node name="Panel" type="Panel" parent="."]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -150.0
-offset_right = 200.0
-offset_bottom = 150.0
+offset_left = -310.0
+offset_top = -235.0
+offset_right = 310.0
+offset_bottom = 235.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -24,20 +32,20 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_left = 22.0
+offset_top = 18.0
+offset_right = -22.0
+offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 10
 alignment = 1
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 22
 text = "Katapusan ng Week"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 20
 
 [node name="IncomeLabel" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
@@ -51,15 +59,44 @@ horizontal_alignment = 1
 
 [node name="NetLabel" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 18
 text = "Natira sa Pera: PHP 0"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 18
 
 [node name="HSeparator" type="HSeparator" parent="Panel/VBoxContainer"]
 layout_mode = 2
 
-[node name="ContinueButton" type="Button" parent="Panel/VBoxContainer"]
+[node name="DetailsRTF" type="RichTextLabel" parent="Panel/VBoxContainer"]
 layout_mode = 2
-text = "Sige"
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Weekly savings, debt, and stat deltas..."
 
+[node name="HSeparator2" type="HSeparator" parent="Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ActionRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="BudgetPlanButton" type="Button" parent="Panel/VBoxContainer/ActionRow"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Mag-Budget (Envelopes)"
+
+[node name="PlannerPlanButton" type="Button" parent="Panel/VBoxContainer/ActionRow"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Mag-Plano (Planner)"
+
+[node name="ContinueButton" type="Button" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Tuloy sa Susunod na Linggo"
+
+[connection signal="pressed" from="Panel/VBoxContainer/ActionRow/BudgetPlanButton" to="." method="_on_budget_plan_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/ActionRow/PlannerPlanButton" to="." method="_on_planner_plan_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/ContinueButton" to="." method="_on_continue_pressed"]

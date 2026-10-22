@@ -11,12 +11,15 @@ extends Node2D
 @export var status_report_label: RichTextLabel
 
 @onready var next_phase_button: Button = $NextPhaseButton
+@onready var goal_button: Button = $GoalButton
+@onready var savings_jar_button: Button = $SavingsJarButton
 @onready var food_option: OptionButton = $DailyRoutinePanel/VBoxContainer/FoodHBox/FoodOption
 @onready var commute_option: OptionButton = $DailyRoutinePanel/VBoxContainer/CommuteHBox/CommuteOption
 
 var modal_queue: Array[Callable] = []
 var is_modal_open: bool = false
 var is_game_over: bool = false
+var pending_desk_tool_to_open: String = ""
 
 func _ready() -> void:
 	update_ui()
@@ -35,13 +38,15 @@ func _ready() -> void:
 		_update_next_button_visibility()
 	)
 	
-	# Initial salary and event check for the very first day
+	# Initial goal selection, salary, and event check for the very first day
 	if StatManager.current_day == 1 and StatManager.current_month == 0 and StatManager.current_phase == 0:
 		call_deferred("_start_initial_day")
 	else:
 		EventManager.call_deferred("evaluate_daily_events")
 
 func _start_initial_day() -> void:
+	if not StatManager.has_selected_goal:
+		trigger_goal_selection()
 	receive_salary()
 
 func _update_next_button_visibility() -> void:
@@ -59,12 +64,29 @@ func _run_next_modal() -> void:
 		_update_next_button_visibility()
 		if not is_game_over:
 			EventManager.evaluate_daily_events()
+			if pending_desk_tool_to_open != "" and not EventManager.is_direct_event_active:
+				var tool_to_open = pending_desk_tool_to_open
+				pending_desk_tool_to_open = ""
+				_open_desk_tool_by_name(tool_to_open)
 		return
 		
 	is_modal_open = true
 	_update_next_button_visibility()
 	var next_task: Callable = modal_queue.pop_front()
 	next_task.call()
+
+func _open_desk_tool_by_name(tool_name: String) -> void:
+	var parent_desk = get_parent()
+	if not parent_desk:
+		return
+	if tool_name == "budget":
+		var b_btn = parent_desk.get_node_or_null("Budget Button")
+		if b_btn and b_btn.has_method("_button_pressed"):
+			b_btn._button_pressed()
+	elif tool_name == "planner":
+		var p_btn = parent_desk.get_node_or_null("Planner Button")
+		if p_btn and p_btn.has_method("_button_pressed"):
+			p_btn._button_pressed()
 
 func spawn_dialog(dialog: AcceptDialog) -> void:
 	enqueue_modal(func():
@@ -79,6 +101,34 @@ func spawn_dialog(dialog: AcceptDialog) -> void:
 			_run_next_modal()
 		dialog.confirmed.connect(on_close)
 		dialog.canceled.connect(on_close)
+	)
+
+func trigger_goal_selection() -> void:
+	enqueue_modal(func():
+		var goal_scene = preload("res://scenes/goal_selection.tscn")
+		var goal_instance = goal_scene.instantiate()
+		add_child(goal_instance)
+		goal_instance.show_goal_selection()
+		goal_instance.goal_modal_closed.connect(func():
+			goal_instance.queue_free()
+			update_ui()
+			_run_next_modal()
+		)
+	)
+
+func open_savings_and_goal_inspector() -> void:
+	if is_modal_open or EventManager.is_direct_event_active or is_game_over:
+		return
+	enqueue_modal(func():
+		var goal_scene = preload("res://scenes/goal_selection.tscn")
+		var goal_instance = goal_scene.instantiate()
+		add_child(goal_instance)
+		goal_instance.show_savings_and_goal_inspector()
+		goal_instance.goal_modal_closed.connect(func():
+			goal_instance.queue_free()
+			update_ui()
+			_run_next_modal()
+		)
 	)
 
 func update_ui() -> void:
@@ -104,6 +154,14 @@ func update_ui() -> void:
 			notif_badge = "  [📱 " + str(EventManager.active_events.size()) + " Unread]"
 		date_label.text = StatManager.year[StatManager.current_month].month + " " + str(StatManager.current_day) + " - " + phase_names[StatManager.current_phase] + notif_badge
 		
+	if goal_button:
+		var g = StatManager.get_current_goal()
+		var pct = StatManager.get_goal_progress_percent()
+		goal_button.text = "🎯 " + str(g["title"]) + ": PHP " + str(StatManager.savings) + " / " + str(g["cost"]) + " (" + str(pct) + "%)"
+		
+	if savings_jar_button:
+		savings_jar_button.text = "🏺 Ipon: PHP " + str(StatManager.savings) + " (+2%/mo)\n[Maghulog / Kumuha]"
+		
 	if food_option:
 		var cook_cost = max(0, StatManager.food_costs[0] + StatManager.daily_food_modifier)
 		var eatout_cost = max(0, StatManager.food_costs[1] + StatManager.daily_food_modifier)
@@ -126,6 +184,9 @@ func _update_status_report() -> void:
 	if not status_report_label:
 		return
 	var stage_info = StatManager.get_stage_info()
+	var g = StatManager.get_current_goal()
+	var target = StatManager.get_goal_target()
+	var pct = StatManager.get_goal_progress_percent()
 	var total_util = StatManager.monthly_utilities + StatManager.extra_utilities_this_month
 	var rent_env = StatManager.get_envelope_amount("Rent")
 	var util_env = StatManager.get_envelope_amount("Utilities")
@@ -133,6 +194,7 @@ func _update_status_report() -> void:
 	var trans_env = StatManager.get_envelope_amount("Transportation")
 	var ent_env = StatManager.get_envelope_amount("Entertainment")
 	
+	var goal_ok = "[color=green]REACHED (PHP " + str(StatManager.savings) + " / PHP " + str(target) + ")[/color]" if StatManager.savings >= target else "[color=yellow]PHP " + str(StatManager.savings) + " / PHP " + str(target) + " (" + str(pct) + "%)[/color]"
 	var happy_ok = "[color=green]GOOD (" + str(StatManager.happy) + "/100)[/color]" if StatManager.happy >= 50 else "[color=red]LOW (" + str(StatManager.happy) + "/100 - Need >=50)[/color]"
 	var social_ok = "[color=green]GOOD (" + str(StatManager.social) + "/100)[/color]" if StatManager.social >= 50 else "[color=red]LOW (" + str(StatManager.social) + "/100 - Need >=50)[/color]"
 	var credit_ok = "[color=green]GOOD (" + str(StatManager.credit_score) + "/100)[/color]" if StatManager.credit_score >= 70 else "[color=red]POOR (" + str(StatManager.credit_score) + "/100 - Need >=70)[/color]"
@@ -141,11 +203,12 @@ func _update_status_report() -> void:
 	var txt = "[b][font_size=22]" + stage_info["name"] + "[/font_size][/b]\n"
 	txt += "[i]\"" + stage_info["theme"] + "\"[/i]\n\n"
 	txt += "[b]1. Year-End Victory Conditions Status:[/b]\n"
+	txt += "• Life Goal (" + str(g["title"]) + "): " + goal_ok + "\n"
 	txt += "• Well-Being (Happiness): " + happy_ok + "\n"
 	txt += "• Relationships (Sociability): " + social_ok + "\n"
 	txt += "• Credit Standing: " + credit_ok + "\n"
 	txt += "• Debt Status: " + debt_ok + "\n"
-	txt += "• Total Savings (Ipon): [color=yellow]PHP " + str(StatManager.savings) + "[/color]\n\n"
+	txt += "• Compounding Interest Earned on Savings: [color=lightblue]PHP " + str(StatManager.total_savings_interest_earned) + "[/color]\n\n"
 	txt += "[b]2. Monthly Bills vs. Allocated Envelopes:[/b]\n"
 	txt += "• Upa (Rent): PHP " + str(rent_env) + " / PHP " + str(StatManager.monthly_rent) + "\n"
 	txt += "• Kuryente/Tubig (Utilities): PHP " + str(util_env) + " / PHP " + str(total_util) + "\n"
@@ -163,6 +226,7 @@ func current_balance_calc(amount: int) -> void:
 	
 func savings_calc(amount: int) -> void:
 	StatManager.savings = max(0, StatManager.savings + amount)
+	StatManager.sync_savings_envelope()
 	StatManager.on_stats_changed.emit()
 	
 func credit_balance_calc(amount: int) -> void:
@@ -170,8 +234,7 @@ func credit_balance_calc(amount: int) -> void:
 	StatManager.on_stats_changed.emit()
 	
 func credit_score_calc(amount: int) -> void:
-	StatManager.credit_score = clamp(StatManager.credit_score + amount, 0, 100)
-	StatManager.on_stats_changed.emit()
+	StatManager.modify_credit_score(amount)
 
 func debt_calc(amount: int) -> void:
 	StatManager.debt_balance = max(0, StatManager.debt_balance + amount)
@@ -285,17 +348,17 @@ func receive_salary() -> void:
 	spawn_dialog(dialog)
 	
 func trigger_weekly_summary(week_num: int) -> void:
-	# Snapshot the weekly numbers at the moment the week ends
-	var snap_income = StatManager.weekly_income
-	var snap_expenses = StatManager.weekly_expenses
-	StatManager.weekly_income = 0
-	StatManager.weekly_expenses = 0
+	# Snapshot the weekly numbers and stat deltas at the moment the week ends
+	var snap = StatManager.snapshot_weekly_summary(week_num)
 	
 	enqueue_modal(func():
 		var weekly_summary_scene = preload("res://scenes/weekly_summary.tscn")
 		var summary_instance = weekly_summary_scene.instantiate()
 		add_child(summary_instance)
-		summary_instance.show_summary_with_values(week_num, snap_income, snap_expenses)
+		summary_instance.show_summary_from_snapshot(snap)
+		summary_instance.summary_action_requested.connect(func(action_name: String):
+			pending_desk_tool_to_open = action_name
+		)
 		summary_instance.summary_closed.connect(func():
 			summary_instance.queue_free()
 			_run_next_modal()
@@ -306,48 +369,54 @@ func trigger_monthly_bills() -> void:
 	var bill_month = StatManager.current_month
 	var bill_day = StatManager.current_day
 	
-	# Apply 5% interest to existing debt
-	var interest = int(StatManager.debt_balance * 0.05)
-	if interest > 0:
-		StatManager.debt_balance += interest
+	# 1. Apply 2% compounding monthly interest to Bank Savings (GDD Section 4.4)
+	var savings_interest = StatManager.apply_monthly_savings_interest()
+	
+	# 2. Apply 5% compounding monthly interest to existing Debt
+	var debt_interest = int(StatManager.debt_balance * 0.05)
+	if debt_interest > 0:
+		StatManager.debt_balance += debt_interest
 		
 	var rent_amount = StatManager.monthly_rent
 	var utilities_amount = StatManager.monthly_utilities + StatManager.extra_utilities_this_month
 	StatManager.extra_utilities_this_month = 0
 	var total_bills = rent_amount + utilities_amount
 	
-	var initial_debt = StatManager.debt_balance
+	var rent_env = StatManager.get_envelope_amount("Rent")
+	var util_env = StatManager.get_envelope_amount("Utilities")
 	
-	StatManager.spend_from_category("Rent", rent_amount)
-	StatManager.spend_from_category("Utilities", utilities_amount)
-	
-	var final_debt = StatManager.debt_balance
-	var new_debt_incurred = final_debt - initial_debt
-	
-	if new_debt_incurred > 0:
+	# GDD Section 3.3: Auto-settle without touching current_balance if envelopes cover both bills!
+	if rent_env >= rent_amount and util_env >= utilities_amount:
+		StatManager.spend_from_category("Rent", rent_amount)
+		StatManager.spend_from_category("Utilities", utilities_amount)
+		StatManager.modify_credit_score(2)
+		
 		var dialog = AcceptDialog.new()
-		dialog.title = "Naku, Nagka-utang ka!"
-		var text = "Nagbayad ka ng monthly bills (Upa: PHP " + str(rent_amount) + ", Kuryente/Tubig: PHP " + str(utilities_amount) + " — Total: PHP " + str(total_bills) + "), pero kulang ang pondo mo!\n\nNadagdag ang PHP " + str(new_debt_incurred) + " sa utang mo."
-		var log_text = "Monthly Bills [- PHP " + str(total_bills) + "] (Kulang pondo, utang +" + str(new_debt_incurred) + ")"
-		if interest > 0:
-			text += "\n\nMay penalty pa na PHP " + str(interest) + " interest sa dati mong utang."
-			log_text += "\n[font_size=12][color=red]Interest Penalty -" + str(interest) + " PHP[/color][/font_size]"
-		text += "\n\nMay 5% Interest na papatong kada buwan sa di mo nabayarang utang!"
+		dialog.title = "Auto-Paid na ang Monthly Bills!"
+		var text = "Dahil kumpleto ang naka-budget mo sa Cash Envelopes, automatic nang nabayaran ang bills nang hindi nabawasan ang hawak mong cash!\n\n• Upa: PHP " + str(rent_amount) + "\n• Kuryente/Tubig: PHP " + str(utilities_amount) + "\n• +2 Credit Score!"
+		var log_text = "Monthly Bills Auto-Paid via Envelopes! [- PHP " + str(total_bills) + "] (+2 Credit Score)"
+		if savings_interest > 0:
+			text += "\n\nKumita rin ang Ipon mo sa bangko ng +PHP " + str(savings_interest) + " (2% Compounding Interest)!"
+			log_text += "\n[font_size=12][color=green]Savings Compounding Interest +" + str(savings_interest) + " PHP[/color][/font_size]"
+		if debt_interest > 0:
+			text += "\n\nPero nadagdagan ng PHP " + str(debt_interest) + " (5% Interest) ang dati mong utang."
+			log_text += "\n[font_size=12][color=red]Debt Interest Penalty -" + str(debt_interest) + " PHP[/color][/font_size]"
 		dialog.dialog_text = text
-		dialog.ok_button_text = "Naiintindihan ko"
 		PlannerManager.record_event(bill_month, bill_day, log_text)
 		spawn_dialog(dialog)
 	else:
-		var dialog = AcceptDialog.new()
-		dialog.title = "Bayad na ang Bills!"
-		var text = "Bayad na ang monthly bills mo:\nUpa: PHP " + str(rent_amount) + "\nKuryente/Tubig: PHP " + str(utilities_amount)
-		var log_text = "Monthly Bills Paid! [- PHP " + str(total_bills) + "]"
-		if interest > 0:
-			text += "\n\nPero may nadagdag na PHP " + str(interest) + " na interest sa dati mong utang."
-			log_text += "\n[font_size=12][color=red]Interest Penalty -" + str(interest) + " PHP[/color][/font_size]"
-		dialog.dialog_text = text
-		PlannerManager.record_event(bill_month, bill_day, log_text)
-		spawn_dialog(dialog)
+		# GDD Section 3.3: Cost Mismatch or Unallocated Budget -> Prompt player to manually settle!
+		enqueue_modal(func():
+			var mbs_scene = preload("res://scenes/monthly_bill_settlement.tscn")
+			var mbs_instance = mbs_scene.instantiate()
+			add_child(mbs_instance)
+			mbs_instance.setup_settlement(bill_month, bill_day, rent_amount, utilities_amount, savings_interest, debt_interest)
+			mbs_instance.settlement_completed.connect(func():
+				mbs_instance.queue_free()
+				update_ui()
+				_run_next_modal()
+			)
+		)
 	
 func process_daily_expenses() -> void:
 	var food_idx = clamp(StatManager.daily_food_choice, 0, 1)

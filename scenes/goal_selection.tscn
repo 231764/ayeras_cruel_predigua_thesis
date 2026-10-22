@@ -1,0 +1,142 @@
+[gd_scene load_steps=2 format=3 uid="uid://c_goal_selection"]
+
+[ext_resource type="Script" path="res://scripts/goal_selection.gd" id="1_goalsel"]
+
+[node name="GoalSelectionCanvas" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_goalsel")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="Panel" type="Panel" parent="Backdrop"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -240.0
+offset_right = 350.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Backdrop/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="Backdrop/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Piliin ang Iyong 1-Year Life Goal!"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="RichTextLabel" parent="Backdrop/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 75)
+layout_mode = 2
+bbcode_enabled = true
+text = "Goal details here"
+fit_content = true
+
+[node name="GoalProgressBar" type="ProgressBar" parent="Backdrop/Panel/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+max_value = 40000.0
+
+[node name="OptionsContainer" type="VBoxContainer" parent="Backdrop/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="SavingsControls" type="VBoxContainer" parent="Backdrop/Panel/VBoxContainer"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="QuickDepositRow" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer/SavingsControls"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Dep500" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Mag-ipon +PHP 500"
+
+[node name="Dep1000" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Mag-ipon +PHP 1,000"
+
+[node name="Dep2500" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Mag-ipon +PHP 2,500"
+
+[node name="QuickWithdrawRow" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer/SavingsControls"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="With500" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickWithdrawRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kumuha -PHP 500"
+
+[node name="With1000" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickWithdrawRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kumuha -PHP 1,000"
+
+[node name="CustomRow" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer/SavingsControls"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="AmountInput" type="LineEdit" parent="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "I-type ang halaga (PHP)..."
+
+[node name="CustomDepositBtn" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow"]
+layout_mode = 2
+text = "Maghulog sa Ipon"
+
+[node name="CustomWithdrawBtn" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow"]
+layout_mode = 2
+text = "Hugutin sa Ipon"
+
+[node name="CloseButton" type="Button" parent="Backdrop/Panel/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Bumalik sa Desk"
+
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow/Dep500" to="." method="_on_quick_deposit" binds= [500]]
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow/Dep1000" to="." method="_on_quick_deposit" binds= [1000]]
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow/Dep2500" to="." method="_on_quick_deposit" binds= [2500]]
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/QuickWithdrawRow/With500" to="." method="_on_quick_withdraw" binds= [500]]
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/QuickWithdrawRow/With1000" to="." method="_on_quick_withdraw" binds= [1000]]
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow/CustomDepositBtn" to="." method="_on_custom_deposit_pressed"]
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow/CustomWithdrawBtn" to="." method="_on_custom_withdraw_pressed"]
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/CloseButton" to="." method="_on_close_button_pressed"]

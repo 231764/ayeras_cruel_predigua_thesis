@@ -50,13 +50,27 @@ text = "Next Phase ->"
 
 [node name="DateLabel" type="Label" parent="." unique_id=1478174443]
 offset_left = 290.0
-offset_top = 20.0
+offset_top = 14.0
 offset_right = 860.0
-offset_bottom = 56.0
+offset_bottom = 48.0
 theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
 text = "January 1 - Morning"
 horizontal_alignment = 1
+
+[node name="GoalButton" type="Button" parent="." unique_id=1478174444]
+offset_left = 415.0
+offset_top = 50.0
+offset_right = 735.0
+offset_bottom = 86.0
+text = "Goal: PHP 0 / PHP 40,000 (0%)"
+
+[node name="SavingsJarButton" type="Button" parent="." unique_id=1478174445]
+offset_left = 225.0
+offset_top = 155.0
+offset_right = 435.0
+offset_bottom = 225.0
+text = "Ipon / Savings (+2%/mo)\nClick to Manage"
 
 [node name="DailyRoutinePanel" type="Panel" parent="." unique_id=133159737]
 offset_left = 713.0
@@ -118,5 +132,7 @@ popup/item_1/text = "Angkas/Joyride (PHP 180)"
 popup/item_1/id = 1
 
 [connection signal="pressed" from="NextPhaseButton" to="." method="advance_phase"]
+[connection signal="pressed" from="GoalButton" to="." method="open_savings_and_goal_inspector"]
+[connection signal="pressed" from="SavingsJarButton" to="." method="open_savings_and_goal_inspector"]
 [connection signal="item_selected" from="DailyRoutinePanel/VBoxContainer/FoodHBox/FoodOption" to="." method="_on_food_option_selected"]
 [connection signal="item_selected" from="DailyRoutinePanel/VBoxContainer/CommuteHBox/CommuteOption" to="." method="_on_commute_option_selected"]

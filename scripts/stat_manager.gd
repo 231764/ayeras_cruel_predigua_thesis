@@ -72,6 +72,7 @@ var savings_monthly_interest_rate: float = 0.02 # 2% monthly compounding interes
 var total_savings_interest_earned: int = 0
 
 # Base Economy Parameters (Rebalanced so entry-level breadwinner can save & survive)
+var employment_status: String = "regular" # "regular" (25k/mo), "laid_off" (0/mo), "temporary_job" (15k/mo), "new_stable_job" (30k/mo)
 var base_biweekly_salary: int = 12500 # PHP 25,000 / month
 var monthly_rent: int = 6000
 var monthly_utilities: int = 2000
@@ -593,6 +594,103 @@ func get_stage_info() -> Dictionary:
 		_:
 			return {"stage": 5, "name": "Mastery Stage", "theme": "Situations keep getting worse. Can I manage until the end?"}
 
+func set_employment_status(status: String) -> void:
+	employment_status = status
+	match status:
+		"laid_off":
+			base_biweekly_salary = 0
+		"temporary_job":
+			base_biweekly_salary = 7500
+		"new_stable_job":
+			base_biweekly_salary = 15000
+		_:
+			employment_status = "regular"
+			base_biweekly_salary = 12500
+	on_stats_changed.emit()
+
+func get_employment_display_text() -> String:
+	match employment_status:
+		"laid_off":
+			return "Laid Off / Unemployed (PHP 0/mo Regular Salary)"
+		"temporary_job":
+			return "Temporary Job (PHP 15,000/mo)"
+		"new_stable_job":
+			return "New Stable Job (PHP 30,000/mo)"
+		_:
+			return "Regular Job (PHP 25,000/mo)"
+
+func evaluate_year_end() -> Dictionary:
+	var goal := get_current_goal()
+	var target: int = get_goal_target()
+	var total_obligations: int = get_total_debt_and_loans() + credit_balance
+	
+	var goal_reached: bool = (savings >= target)
+	var wellbeing_maintained: bool = (happy >= 50 and social >= 50)
+	var good_credit: bool = (credit_score >= 70)
+	var debt_free: bool = (total_obligations == 0)
+	
+	var met_count := 0
+	if goal_reached:
+		met_count += 1
+	if wellbeing_maintained:
+		met_count += 1
+	if good_credit:
+		met_count += 1
+	if debt_free:
+		met_count += 1
+		
+	var is_full_paldo: bool = (met_count == 4)
+	var ending_id := ""
+	var ending_title := ""
+	var ending_summary := ""
+	var baldo_verdict := ""
+	
+	if is_full_paldo:
+		ending_id = "full_paldo"
+		ending_title = "🏆 TUNAY NA PALDO! (Full Breadwinner Mastery Victory)"
+		ending_summary = "Nakamit mo ang iyong 1-Year Life Goal (\"" + str(goal["title"]) + "\"), nanatiling 100% debt-free, mataas ang Credit Score, at napangalagaan ang iyong Happiness at Relationships sa gitna ng layoff at mga krisis!"
+		baldo_verdict = "Omsim par, ISA KANG ALAMAT! Kahit dumaan sa layoff, inflation, at hospital emergencies, na-balance mo ang Cash Envelopes, Ipon, at mental health mo. Tunay na PALDO!"
+	elif goal_reached:
+		ending_id = "pyrrhic_goal"
+		ending_title = "⚠️ NATUPAD ANG GOAL PERO MAY KAPALIT (Partial Victory)"
+		ending_summary = "Naabot mo ang target na PHP " + str(target) + " sa Ipon para sa \"" + str(goal["title"]) + "\", ngunit may naiwang utang/credit balance, bumaba ang Credit Score, o na-kompromiso ang iyong Happiness/Social."
+		baldo_verdict = "Congrats at naipon mo yung pang-\"" + str(goal["title"]) + "\" par! Pero tandaan: ang tunay na pag-paldo ay hindi lang malaking ipon—dapat debt-free rin at hindi nasasakripisyo ang sarili at pamilya."
+	elif debt_free and wellbeing_maintained:
+		ending_id = "debt_free_survivor"
+		ending_title = "🌱 MATATAG NA BREADWINNER (Debt-Free Survivor Ending)"
+		ending_summary = "Nalampasan mo ang buong taon nang walang utang, maganda ang well-being, at nakabangon mula sa layoff, ngunit kinapos pa ang iyong Ipon (PHP " + str(savings) + " / PHP " + str(target) + ") para sa \"" + str(goal["title"]) + "\"."
+		baldo_verdict = "Proud pa rin ako sa'yo lods! Hindi biro ang ma-layoff at ma-ospital ang kapatid, pero tinapos mo ang taon nang walang utang at buo ang loob. Konting ipon at investment pa, papaldo ka na!"
+	else:
+		ending_id = "financial_struggle"
+		ending_title = "📉 KINAPOS SA TAONG ITO (Financial Struggle Ending)"
+		ending_summary = "Natapos ang taon na kinapos sa Life Goal (PHP " + str(savings) + " / PHP " + str(target) + ") at may mabigat pang obligasyon o pagod na kalusugan/relasyon. Mahalagang aral ito sa pag-budget at paghahanda ng Emergency Fund."
+		baldo_verdict = "Hinga nang malalim par! Mabigat talaga ang unang taon bilang breadwinner lalo na kung sabay-sabay ang utang at emergency. Bawi tayo next run: unahin ang Emergency Fund at iwas sa minimum payment trap!"
+		
+	return {
+		"goal_title": str(goal["title"]),
+		"goal_target": target,
+		"savings": savings,
+		"current_balance": current_balance,
+		"total_investments": get_total_investments(),
+		"happy": happy,
+		"social": social,
+		"credit_score": credit_score,
+		"debt_balance": debt_balance,
+		"loan_balance": get_total_active_loan_balance(),
+		"credit_balance": credit_balance,
+		"total_obligations": total_obligations,
+		"goal_reached": goal_reached,
+		"wellbeing_maintained": wellbeing_maintained,
+		"good_credit": good_credit,
+		"debt_free": debt_free,
+		"conditions_met_count": met_count,
+		"is_full_paldo_victory": is_full_paldo,
+		"ending_id": ending_id,
+		"ending_title": ending_title,
+		"ending_summary": ending_summary,
+		"baldo_verdict": baldo_verdict
+	}
+
 func get_live_summary_for_ai() -> String:
 	var phase_names = ["Morning", "Afternoon", "Evening"]
 	var month_name = year[current_month].month
@@ -621,6 +719,7 @@ func get_live_summary_for_ai() -> String:
 	var summary = "=== LIVE PLAYER GAME STATE (StatManager) ===\n"
 	summary += "- Date & Time: " + month_name + " " + str(current_day) + " (" + phase_names[current_phase] + "), " + str(days_in_month - current_day) + " days left in month\n"
 	summary += "- Current Stage: " + stage_info["name"] + " (\"" + stage_info["theme"] + "\")\n"
+	summary += "- Employment Status: " + get_employment_display_text() + "\n"
 	summary += "- Chosen 1-Year Life Goal: \"" + str(goal["title"]) + "\" — Target Cost: PHP " + str(goal["cost"]) + " | Progress: PHP " + str(savings) + " / PHP " + str(goal["cost"]) + " (" + str(get_goal_progress_percent()) + "%, Need PHP " + str(goal_rem) + " more)\n"
 	summary += "- Available Cash (Current Balance): PHP " + str(current_balance) + "\n"
 	summary += "- Savings (Ipon in Bank, earns 2% monthly compounding interest): PHP " + str(savings) + " (Total Compounding Interest Earned So Far: PHP " + str(total_savings_interest_earned) + ")\n"

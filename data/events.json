@@ -734,6 +734,287 @@
           "next_event_id": ""
         }
       ]
+    },
+    {
+      "id": "job_layoff",
+      "title": "Retrenchment / Job Layoff (+PHP 50,000 Severance Pay)",
+      "description": "Biglang nagbawas ng empleyado ang kumpanya mo at kasama ka sa na-layoff! Nawalan ka ng regular na buwanang sahod (PHP 0/buwan), pero binigyan ka ng PHP 50,000 Severance Pay. Kailangan mong mapagkasya ito habang naghahanap ng bagong trabaho!",
+      "is_direct": true,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "Tanggapin ang PHP 50,000 Severance at ilagay ang PHP 20,000 sa Ipon",
+          "cost": -50000,
+          "set_employment_status": "laid_off",
+          "deposit_to_savings": 20000,
+          "happy_change": -8,
+          "social_change": -2,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Tanggapin ang buong PHP 50,000 Severance sa Available Cash",
+          "cost": -50000,
+          "set_employment_status": "laid_off",
+          "happy_change": -10,
+          "social_change": -2,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "lifestyle_adjustment_choice",
+      "title": "Lifestyle Adjustment habang Walang Trabaho",
+      "description": "Dahil wala kang regular na sahod ngayon, kailangan mong magdesisyon: magbabawas ka ba nang todo sa pang-araw-araw na gastos (Tipid Mode: bawas sa pagkain/pamasahe pero nakakapagod) o papanatilihin ang nakasanayang lifestyle?",
+      "is_direct": true,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "Todo Tipid Mode (-PHP 50/araw sa Pagkain, Switch to Cook & Jeep)",
+          "cost": 0,
+          "daily_food_mod": -50,
+          "set_daily_food": 0,
+          "set_daily_commute": 0,
+          "credit_score_change": 2,
+          "happy_change": -6,
+          "social_change": -3,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Panatilihin ang kasalukuyang lifestyle (Walang pagbabago sa gastos)",
+          "cost": 0,
+          "happy_change": 3,
+          "social_change": 1,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "major_medical_emergency",
+      "title": "Major Medical Emergency: Operasyon ni Kapatid (PHP 30,000)",
+      "description": "Kailangan nang operahan agad ang kapatid mo! Aabot sa PHP 30,000 ang gastos sa operasyon. Paano mo babayaran ang mabigat na emergency na ito habang nasa gitna ng pagsubok?",
+      "is_direct": true,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "Bayaran nang buo gamit ang Cash (PHP 30,000)",
+          "cost": 30000,
+          "happy_change": 4,
+          "social_change": 10,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Hugutin mula sa Ipon / Emergency Fund (PHP 30,000 mula sa Savings)",
+          "cost": 0,
+          "withdraw_from_savings_for_event": 30000,
+          "happy_change": 3,
+          "social_change": 10,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-charge sa Credit Card (+PHP 30,000 Credit)",
+          "cost": 0,
+          "credit_cost": 30000,
+          "happy_change": 0,
+          "social_change": 8,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Magbigay lang ng PHP 10,000 at mangutang ang pamilya sa iba",
+          "cost": 10000,
+          "happy_change": -8,
+          "social_change": -10,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "job_opportunity_tradeoff",
+      "title": "Job Opportunity: Temporary Job o Maghihintay?",
+      "description": "May alok na pansamantalang trabaho na may sahod na PHP 15,000/buwan (PHP 7,500 bawat kinsenas), pero nakakapagod ito. Tatanggapin mo ba ito o maghihintay ka ng mas magandang kumpanya sa susunod na buwan?",
+      "is_direct": true,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "Tanggapin ang Temporary Job (PHP 15,000/buwan — May sahod agad)",
+          "cost": 0,
+          "set_employment_status": "temporary_job",
+          "happy_change": -5,
+          "social_change": -2,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Maghintay at mag-upskill para sa mas magandang trabaho (Manatiling PHP 0/buwan)",
+          "cost": 0,
+          "happy_change": 3,
+          "social_change": 1,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "new_job_offer",
+      "title": "New Stable Job Offer! (PHP 30,000/buwan)",
+      "description": "Bunga ng iyong tiyaga, natanggap ka sa isang mas magandang kumpanya na may regular na sahod na PHP 30,000 kada buwan (PHP 15,000 bawat kinsenas)! Panahon na para makabawi bago matapos ang taon!",
+      "is_direct": true,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "Tanggapin ang New Stable Job! (PHP 30,000/buwan, +10 Happy, +5 Social)",
+          "cost": 0,
+          "set_employment_status": "new_stable_job",
+          "credit_score_change": 3,
+          "happy_change": 10,
+          "social_change": 5,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "debt_collector_pressure",
+      "title": "Paniningil ng Debt Collector!",
+      "description": "Tumatawag at naniningil na ang mga pinagkakautangan mo! Kailangang magbayad agad upang hindi bumagsak ang iyong Credit Score at hindi ma-stress.",
+      "is_direct": false,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "Bayaran agad ang PHP 5,000 sa utang/credit (+3 Credit Score)",
+          "cost": 0,
+          "pay_debt_collector": 5000,
+          "credit_score_change": 3,
+          "happy_change": 2,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Humingi ng palugit — Wala pang pambayad (-6 Credit Score, -6 Happy)",
+          "cost": 0,
+          "credit_score_change": -6,
+          "happy_change": -6,
+          "social_change": -2,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "social_isolation_effect",
+      "title": "Kumusta Ka Na? Aya ng Barkada at Pamilya",
+      "description": "Napansin ng mga kaibigan mo na sobrang stressed at tahimik ka na mula nang ma-layoff. Inaaya ka nilang lumabas at mag-unwind (PHP 1,500) para gumaan ang loob mo.",
+      "is_direct": false,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "Sumama at makipag-bonding (PHP 1,500 — +8 Happy, +10 Social)",
+          "cost": 1500,
+          "category": "Entertainment",
+          "happy_change": 8,
+          "social_change": 10,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Makipag-videocall at kwentuhan na lang sa bahay (PHP 0 — +2 Happy, +4 Social)",
+          "cost": 0,
+          "happy_change": 2,
+          "social_change": 4,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Tanggihan at magmukmok mag-isa (PHP 0 — -4 Happy, -8 Social)",
+          "cost": 0,
+          "happy_change": -4,
+          "social_change": -8,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "housing_pressure",
+      "title": "Housing Pressure: Paalala ng Landlord sa Upa",
+      "description": "Nag-text ang landlord mo tungkol sa upa. Pwede kang lumipat sa mas maliit na bedspace/kwarto para bumaba ang upa sa PHP 4,500/buwan (pero bawas ginhawa), o manatili sa kasalukuyang apartment (PHP 6,000/buwan).",
+      "is_direct": false,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "Manatili sa kasalukuyang apartment (PHP 6,000/mo Rent, +3 Happy)",
+          "cost": 0,
+          "set_monthly_rent": 6000,
+          "happy_change": 3,
+          "social_change": 1,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Lumipat sa mas murang kwarto (PHP 4,500/mo Rent, -4 Happy)",
+          "cost": 0,
+          "set_monthly_rent": 4500,
+          "happy_change": -4,
+          "social_change": -2,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "market_crash_or_boom",
+      "title": "Year-End Market Boom or Crash!",
+      "description": "Malaki ang galaw ng stock market ngayong Nobyembre! Kung may investments ka, pwede kang mag-take profit sa Year-End Boom (+6% Low-Risk, +25% High-Risk) o maapektuhan ng Market Crash (+2% Low-Risk, -15% High-Risk).",
+      "is_direct": false,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "Mag-lock in ng Year-End Market Boom Gains (Low-Risk +6%, High-Risk +25%)",
+          "cost": 0,
+          "apply_investment_rates": {
+            "low_rate": 0.06,
+            "high_rate": 0.25
+          },
+          "happy_change": 6,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Market Crash / Defensive Hold (Low-Risk +2%, High-Risk -15%)",
+          "cost": 0,
+          "apply_investment_rates": {
+            "low_rate": 0.02,
+            "high_rate": -0.15
+          },
+          "happy_change": -4,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "final_goal_opportunity",
+      "title": "Final Year-End Goal & Debt Consolidation",
+      "description": "Huling buwan na ng taon (Disyembre)! Ito na ang huling pagkakataon para ilipat ang iyong Investments sa Ipon, bayaran ang mga natitirang utang, at magdagdag sa Savings para maabot ang iyong 1-Year Life Goal!",
+      "is_direct": false,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "All-In para Pumaldo! (I-lipat ang Investments sa Ipon, bayaran ang utang, +PHP 10,000 sa Savings)",
+          "cost": 0,
+          "final_goal_consolidate": 10000,
+          "credit_score_change": 3,
+          "happy_change": 6,
+          "social_change": 2,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-lipat ang Investments sa Ipon at maghulog ng PHP 5,000 sa Savings",
+          "cost": 0,
+          "final_goal_consolidate": 5000,
+          "credit_score_change": 2,
+          "happy_change": 4,
+          "social_change": 1,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Panatilihin ang kasalukuyang ayos ng pera (PHP 0)",
+          "cost": 0,
+          "happy_change": 1,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
     }
   ]
 }

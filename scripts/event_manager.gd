@@ -64,6 +64,19 @@ func trigger_event(event_id: String) -> void:
 		var dip_delta: int = int(round(float(low_bal) * 0.03)) + int(round(float(high_bal) * -0.12))
 		var dip_sign: String = "+" if dip_delta >= 0 else ""
 		event["description"] = "Nagbago ang galaw ng merkado ngayong buwan!\nPortfolio mo ngayon — Low-Risk Fund: PHP " + str(low_bal) + " | High-Risk Stock: PHP " + str(high_bal) + "\n• Market Rally Result: +" + str(rally_gain) + " PHP\n• Market Correction Result: " + dip_sign + str(dip_delta) + " PHP"
+	elif event_id == "debt_collector_pressure":
+		var total_owed: int = StatManager.get_total_debt_and_loans() + StatManager.credit_balance
+		var demand_pay: int = min(5000, max(1000, total_owed))
+		event["description"] = "Tumatawag at naniningil na ang mga pinagkakautangan mo! Kabuuang Utang/Credit Obligations: PHP " + str(total_owed) + ".\nKailangan mong magbayad ng kahit PHP " + str(demand_pay) + " ngayon upang maiwasan ang matinding stress at pagbagsak ng Credit Score!"
+		if event["options"].size() >= 1:
+			event["options"][0]["pay_debt_collector"] = demand_pay
+			event["options"][0]["choice_text"] = "Bayaran agad ang PHP " + str(demand_pay) + " sa utang/credit (+3 Credit Score)"
+	elif event_id == "final_goal_opportunity":
+		var g := StatManager.get_current_goal()
+		var rem_goal: int = max(0, StatManager.get_goal_target() - StatManager.savings)
+		var inv_tot: int = StatManager.get_total_investments()
+		var ob_tot: int = StatManager.get_total_debt_and_loans() + StatManager.credit_balance
+		event["description"] = "Huling buwan na ng taon (Disyembre)!\n• Life Goal (\"" + str(g["title"]) + "\"): PHP " + str(StatManager.savings) + " / PHP " + str(g["cost"]) + " (Kulang: PHP " + str(rem_goal) + ")\n• Investments: PHP " + str(inv_tot) + " | Unpaid Debt/Credit: PHP " + str(ob_tot) + "\nI-consolidate na ang iyong pera bago mag-December 31!"
 	
 	# If it's an indirect event, add it to active events
 	if not event["is_direct"]:
@@ -129,6 +142,23 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 		var hr_sign: String = "+" if hr >= 0 else ""
 		stats_text += "[color=aqua]Low-Risk +" + str(lr) + "% / High-Risk " + hr_sign + str(hr) + "%[/color] "
 		
+	if opt.has("set_employment_status"):
+		var emp_st := str(opt["set_employment_status"])
+		if emp_st == "laid_off":
+			stats_text += "[color=orange]⚠️ Laid Off (PHP 0/mo)[/color] "
+		elif emp_st == "temporary_job":
+			stats_text += "[color=yellow]💼 Temp Job (PHP 15,000/mo)[/color] "
+		elif emp_st == "new_stable_job":
+			stats_text += "[color=green]🎉 Stable Job (PHP 30,000/mo)[/color] "
+	if opt.has("withdraw_from_savings_for_event") and int(opt["withdraw_from_savings_for_event"]) > 0:
+		stats_text += "[color=orange]🏺 -" + str(opt["withdraw_from_savings_for_event"]) + " PHP from Savings[/color] "
+	if opt.has("pay_debt_collector") and int(opt["pay_debt_collector"]) > 0:
+		stats_text += "[color=green]-" + str(opt["pay_debt_collector"]) + " PHP Debt/Credit[/color] "
+	if opt.has("set_monthly_rent") and int(opt["set_monthly_rent"]) > 0:
+		stats_text += "[color=aqua]🏠 Rent = PHP " + str(opt["set_monthly_rent"]) + "/mo[/color] "
+	if opt.has("final_goal_consolidate") and int(opt["final_goal_consolidate"]) > 0:
+		stats_text += "[color=green]🏆 Consolidate + Save PHP " + str(opt["final_goal_consolidate"]) + "[/color] "
+		
 	if opt.has("installment") and opt["installment"] is Dictionary:
 		var inst: Dictionary = opt["installment"]
 		stats_text += "[color=orange]📅 PHP " + str(inst.get("monthly_cost", 0)) + "/mo x " + str(inst.get("months_left", 0)) + " mos[/color] "
@@ -136,9 +166,11 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 	if opt.has("extra_utilities") and int(opt["extra_utilities"]) > 0:
 		stats_text += "[color=orange]+" + str(opt["extra_utilities"]) + " PHP Bill[/color] "
 	if opt.has("daily_commute_mod") and int(opt["daily_commute_mod"]) != 0:
-		stats_text += "[color=orange]+" + str(opt["daily_commute_mod"]) + " PHP/day Commute[/color] "
+		var dc_sign := "+" if int(opt["daily_commute_mod"]) > 0 else ""
+		stats_text += "[color=orange]" + dc_sign + str(opt["daily_commute_mod"]) + " PHP/day Commute[/color] "
 	if opt.has("daily_food_mod") and int(opt["daily_food_mod"]) != 0:
-		stats_text += "[color=orange]+" + str(opt["daily_food_mod"]) + " PHP/day Food[/color] "
+		var df_sign := "+" if int(opt["daily_food_mod"]) > 0 else ""
+		stats_text += "[color=orange]" + df_sign + str(opt["daily_food_mod"]) + " PHP/day Food[/color] "
 		
 	var happy_val: int = int(opt.get("happy_change", 0))
 	if happy_val != 0:
@@ -263,6 +295,61 @@ func resolve_event(event_id: String, option_index: int) -> void:
 		
 	if chosen_option.has("monthly_family_support_mod"):
 		StatManager.monthly_family_support += int(chosen_option["monthly_family_support_mod"])
+		
+	# 6b. Apply Stage 5 Mastery Mechanics (Employment State, Emergency Savings Withdrawal, Debt Collector, Rent, Consolidation)
+	if chosen_option.has("set_employment_status"):
+		StatManager.set_employment_status(str(chosen_option["set_employment_status"]))
+		
+	if chosen_option.has("withdraw_from_savings_for_event") and int(chosen_option["withdraw_from_savings_for_event"]) > 0:
+		var w_amt: int = int(chosen_option["withdraw_from_savings_for_event"])
+		var from_sav: int = min(StatManager.savings, w_amt)
+		StatManager.savings -= from_sav
+		StatManager.sync_savings_envelope()
+		var rem_after_sav: int = w_amt - from_sav
+		if rem_after_sav > 0:
+			StatManager.spend_direct(rem_after_sav)
+		else:
+			StatManager.weekly_expenses += from_sav
+		cost += w_amt
+		
+	if chosen_option.has("pay_debt_collector") and int(chosen_option["pay_debt_collector"]) > 0:
+		var pay_rem: int = int(chosen_option["pay_debt_collector"])
+		StatManager.spend_direct(pay_rem)
+		if StatManager.debt_balance > 0 and pay_rem > 0:
+			var d_pay: int = min(StatManager.debt_balance, pay_rem)
+			StatManager.debt_balance -= d_pay
+			pay_rem -= d_pay
+		if StatManager.active_loans.size() > 0 and pay_rem > 0:
+			var l_rem: int = int(StatManager.active_loans[0].get("remaining_balance", 0))
+			var l_pay: int = min(l_rem, pay_rem)
+			StatManager.active_loans[0]["remaining_balance"] = l_rem - l_pay
+			if int(StatManager.active_loans[0]["remaining_balance"]) <= 0:
+				StatManager.active_loans.remove_at(0)
+			pay_rem -= l_pay
+		if StatManager.credit_balance > 0 and pay_rem > 0:
+			var c_pay: int = min(StatManager.credit_balance, pay_rem)
+			StatManager.credit_balance -= c_pay
+			pay_rem -= c_pay
+		cost += int(chosen_option["pay_debt_collector"])
+		
+	if chosen_option.has("set_monthly_rent") and int(chosen_option["set_monthly_rent"]) > 0:
+		StatManager.monthly_rent = int(chosen_option["set_monthly_rent"])
+		
+	if chosen_option.has("final_goal_consolidate") and int(chosen_option["final_goal_consolidate"]) > 0:
+		var target_save_add: int = int(chosen_option["final_goal_consolidate"])
+		StatManager.withdraw_investments_to_savings()
+		if StatManager.debt_balance > 0 and StatManager.current_balance > 0:
+			StatManager.pay_overdue_debt(StatManager.debt_balance)
+		while StatManager.active_loans.size() > 0 and StatManager.current_balance > 0:
+			var paid_l := StatManager.pay_active_loan(0, StatManager.get_total_active_loan_balance())
+			if paid_l <= 0:
+				break
+		if StatManager.credit_balance > 0 and StatManager.current_balance > 0:
+			StatManager.pay_credit_card_balance(min(StatManager.current_balance, StatManager.credit_balance))
+		var actual_save_add: int = min(target_save_add, StatManager.current_balance)
+		if actual_save_add > 0:
+			StatManager.deposit_savings(actual_save_add)
+			cost += actual_save_add
 			
 	# 7. Apply Phone Slow / Upgraded flags
 	if chosen_option.get("set_phone_slow", false):
@@ -430,6 +517,45 @@ func evaluate_daily_events() -> void:
 				trigger_event("investment_fluctuation")
 		elif day == 22 and phase == 1:
 			trigger_event("family_pressure_increases")
+		elif day == 25 and phase == 1:
+			if StatManager.has_credit_card and StatManager.credit_balance > 0:
+				trigger_event("credit_card_statement")
+	# STAGE 5: MASTERY STAGE (September - December)
+	elif month == "September":
+		if day == 3 and phase == 0:
+			trigger_event("job_layoff")
+		elif day == 10 and phase == 1:
+			trigger_event("lifestyle_adjustment_choice")
+		elif day == 20 and phase == 1:
+			if (StatManager.get_total_debt_and_loans() + StatManager.credit_balance) > 0:
+				trigger_event("debt_collector_pressure")
+		elif day == 25 and phase == 1:
+			if StatManager.has_credit_card and StatManager.credit_balance > 0:
+				trigger_event("credit_card_statement")
+	elif month == "October":
+		if day == 6 and phase == 1:
+			trigger_event("major_medical_emergency")
+		elif day == 12 and phase == 2:
+			trigger_event("social_isolation_effect")
+		elif day == 18 and phase == 0:
+			trigger_event("job_opportunity_tradeoff")
+		elif day == 25 and phase == 1:
+			if StatManager.has_credit_card and StatManager.credit_balance > 0:
+				trigger_event("credit_card_statement")
+	elif month == "November":
+		if day == 4 and phase == 0:
+			trigger_event("new_job_offer")
+		elif day == 14 and phase == 1:
+			trigger_event("housing_pressure")
+		elif day == 22 and phase == 1:
+			if StatManager.get_total_investments() > 0:
+				trigger_event("market_crash_or_boom")
+		elif day == 25 and phase == 1:
+			if StatManager.has_credit_card and StatManager.credit_balance > 0:
+				trigger_event("credit_card_statement")
+	elif month == "December":
+		if day == 10 and phase == 1:
+			trigger_event("final_goal_opportunity")
 		elif day == 25 and phase == 1:
 			if StatManager.has_credit_card and StatManager.credit_balance > 0:
 				trigger_event("credit_card_statement")

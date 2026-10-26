@@ -463,8 +463,12 @@ func _generate_offline_baldo_reply(_user_text: String) -> String:
 		var active_ev = EventManager.active_events[0]
 		tips.append("May unread message ka pa tungkol sa \"" + str(active_ev["title"]) + "\"! I-settle mo muna 'yan bago mag-Evening.")
 		
-	# 2. Check past decisions context
-	if EventManager.event_history.size() > 0:
+	# 2. Check past decisions context & employment state
+	if StatManager.employment_status == "laid_off":
+		tips.append("Kapit lang par habang Laid Off (PHP 0/mo sahod)! I-prioritize mo muna ang essentials at Emergency Fund habang naghahanap ng bagong trabaho.")
+	elif StatManager.employment_status == "new_stable_job":
+		tips.append("Solid yung bago mong Stable Job na PHP 30,000/buwan! I-todo na natin ang pag-ipon bago matapos ang taon.")
+	elif EventManager.event_history.size() > 0:
 		var last_ev = EventManager.event_history[EventManager.event_history.size() - 1]
 		tips.append("Naalala ko pinili mo yung \"" + str(last_ev["choice_text"]) + "\" sa \"" + str(last_ev["title"]) + "\".")
 		

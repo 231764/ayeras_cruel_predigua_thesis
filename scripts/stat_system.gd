@@ -205,6 +205,7 @@ func _update_status_report() -> void:
 	var txt = "[b][font_size=22]" + stage_info["name"] + "[/font_size][/b]\n"
 	txt += "[i]\"" + stage_info["theme"] + "\"[/i]\n\n"
 	txt += "[b]1. Year-End Victory Conditions Status:[/b]\n"
+	txt += "• Employment Status: [color=yellow]" + StatManager.get_employment_display_text() + "[/color]\n"
 	txt += "• Life Goal (" + str(g["title"]) + "): " + goal_ok + "\n"
 	txt += "• Well-Being (Happiness): " + happy_ok + "\n"
 	txt += "• Relationships (Sociability): " + social_ok + "\n"
@@ -308,7 +309,7 @@ func daily_cycle() -> void:
 	if StatManager.year[StatManager.current_month].days < StatManager.current_day:
 		StatManager.current_day = 1
 		if StatManager.year[StatManager.current_month].month == "December":
-			trigger_game_over("CONGRATULATIONS!\n\nNaka-survive ka ng isang buong taon! Abangan ang next updates para sa iyong Final Score!")
+			trigger_year_end_evaluation()
 			return
 		else:
 			StatManager.current_month += 1
@@ -319,6 +320,20 @@ func daily_cycle() -> void:
 		
 	print("New Day: " + StatManager.year[StatManager.current_month].month + " " + str(StatManager.current_day))
 	update_ui()
+
+func trigger_year_end_evaluation() -> void:
+	enqueue_modal(func():
+		is_game_over = true
+		_update_next_button_visibility()
+		var yee_scene = preload("res://scenes/year_end_evaluation.tscn")
+		var yee_instance = yee_scene.instantiate()
+		add_child(yee_instance)
+		yee_instance.show_year_end_evaluation()
+		yee_instance.evaluation_closed.connect(func():
+			yee_instance.queue_free()
+			get_tree().quit()
+		)
+	)
 	
 func receive_salary() -> void:
 	var base_salary = StatManager.base_biweekly_salary
@@ -327,7 +342,7 @@ func receive_salary() -> void:
 	var salary_amount = total_gross
 	var garnished_amount = 0
 	
-	if StatManager.debt_balance > 0:
+	if StatManager.debt_balance > 0 and total_gross > 0:
 		var max_garnish = int(total_gross * 0.5)
 		if StatManager.debt_balance <= max_garnish:
 			garnished_amount = StatManager.debt_balance
@@ -344,12 +359,23 @@ func receive_salary() -> void:
 	var salary_month = StatManager.current_month
 	var salary_day = StatManager.current_day
 	var dialog = AcceptDialog.new()
-	dialog.title = "Sahod Day!"
-	var text = "Pumasok na ang sahod mo na PHP " + str(base_salary) + "!"
-	var log_text = "Sahod Day! (+ PHP " + str(base_salary) + ")"
-	if side_bonus > 0:
-		text += "\n+ PHP " + str(side_bonus) + " mula sa iyong Freelance Side Hustle (Total: PHP " + str(total_gross) + ")!"
-		log_text += "\n[font_size=12][color=green]+PHP " + str(side_bonus) + " Side Hustle[/color][/font_size]"
+	var text := ""
+	var log_text := ""
+	if base_salary == 0 and side_bonus == 0:
+		dialog.title = "Walang Sahod (Laid Off)"
+		text = "Kasalukuyan kang walang regular na trabaho (Laid Off), kaya PHP 0 ang pumasok ngayong araw ng sahod. Gamitin nang maingat ang iyong Severance Pay at Ipon!"
+		log_text = "Payday Notice: PHP 0 (Laid Off)"
+	elif base_salary == 0 and side_bonus > 0:
+		dialog.title = "Side Hustle Payday!"
+		text = "Walang regular na sahod dahil sa Layoff, pero kumita ka ng PHP " + str(side_bonus) + " mula sa iyong Freelance Side Hustle!"
+		log_text = "Side Hustle Payday! (+ PHP " + str(side_bonus) + ")"
+	else:
+		dialog.title = "Sahod Day!"
+		text = "Pumasok na ang sahod mo na PHP " + str(base_salary) + " (" + StatManager.get_employment_display_text() + ")!"
+		log_text = "Sahod Day! (+ PHP " + str(base_salary) + ")"
+		if side_bonus > 0:
+			text += "\n+ PHP " + str(side_bonus) + " mula sa iyong Freelance Side Hustle (Total: PHP " + str(total_gross) + ")!"
+			log_text += "\n[font_size=12][color=green]+PHP " + str(side_bonus) + " Side Hustle[/color][/font_size]"
 	if garnished_amount > 0:
 		text += "\n\nPero kinuha ng banko ang PHP " + str(garnished_amount) + " para pambayad sa utang mo!"
 		text += "\nAng natira sa iyo ay PHP " + str(salary_amount) + "."

@@ -72,6 +72,22 @@ custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 text = "Kausapin si Baldo"
 
+[node name="AppsRow" type="HBoxContainer" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LoansAppButton" type="Button" parent="ScrollContainer/VBoxContainer/AppsRow"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🏦 Utang App"
+
+[node name="InvestAppButton" type="Button" parent="ScrollContainer/VBoxContainer/AppsRow"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "📈 Invest App"
+
 [node name="NotificationsContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -167,9 +183,147 @@ text = "I-send"
 layout_mode = 2
 text = "I-close ang Chat"
 
+[node name="LoansPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LoansPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="LoansTitle" type="Label" parent="LoansPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🏦 Digital Lending Platform"
+horizontal_alignment = 1
+
+[node name="LoansInfoLabel" type="RichTextLabel" parent="LoansPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Loan details..."
+
+[node name="Borrow5kButton" type="Button" parent="LoansPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+text = "Borrow PHP 5,000 (2 Mos)"
+
+[node name="Borrow10kButton" type="Button" parent="LoansPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+text = "Borrow PHP 10,000 (3 Mos)"
+
+[node name="PayLoanInstallmentButton" type="Button" parent="LoansPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Pay Active Loan Monthly Due"
+
+[node name="PayLoanFullButton" type="Button" parent="LoansPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Pay Full Active Loan (+2 CS)"
+
+[node name="PayOverdueDebtButton" type="Button" parent="LoansPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Pay Overdue Debt Balance"
+
+[node name="CloseLoansButton" type="Button" parent="LoansPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Bumalik sa Home"
+
+[node name="InvestPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InvestPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="InvestTitle" type="Label" parent="InvestPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "📈 Paldo Invest & Portfolio"
+horizontal_alignment = 1
+
+[node name="InvestInfoLabel" type="RichTextLabel" parent="InvestPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Portfolio details..."
+
+[node name="InvestLowRiskButton" type="Button" parent="InvestPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Invest PHP 3,000 -> Low-Risk Fund (+4%/mo)"
+
+[node name="InvestHighRiskButton" type="Button" parent="InvestPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Invest PHP 3,000 -> High-Risk Stock (-15% to +25%)"
+
+[node name="WithdrawCashButton" type="Button" parent="InvestPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Withdraw Investments to Cash"
+
+[node name="TransferSavingsButton" type="Button" parent="InvestPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Transfer Investments to Ipon (Savings)"
+
+[node name="CloseInvestButton" type="Button" parent="InvestPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Bumalik sa Home"
+
 [node name="AIHTTPRequest" type="HTTPRequest" parent="."]
 
 [connection signal="pressed" from="ScrollContainer/VBoxContainer/BaldoButton" to="." method="_on_baldo_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/AppsRow/LoansAppButton" to="." method="_on_loans_app_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/AppsRow/InvestAppButton" to="." method="_on_invest_app_button_pressed"]
 [connection signal="pressed" from="EventDetailPanel/VBoxContainer/BackButton" to="." method="_on_event_back_button_pressed"]
 [connection signal="pressed" from="ChatPanel/VBoxContainer/HBoxContainer/SendButton" to="." method="_on_send_chat_button_pressed"]
 [connection signal="pressed" from="ChatPanel/VBoxContainer/CloseChatButton" to="." method="_on_close_chat_button_pressed"]
+[connection signal="pressed" from="LoansPanel/VBoxContainer/Borrow5kButton" to="." method="_on_borrow_5k_pressed"]
+[connection signal="pressed" from="LoansPanel/VBoxContainer/Borrow10kButton" to="." method="_on_borrow_10k_pressed"]
+[connection signal="pressed" from="LoansPanel/VBoxContainer/PayLoanInstallmentButton" to="." method="_on_pay_loan_installment_pressed"]
+[connection signal="pressed" from="LoansPanel/VBoxContainer/PayLoanFullButton" to="." method="_on_pay_loan_full_pressed"]
+[connection signal="pressed" from="LoansPanel/VBoxContainer/PayOverdueDebtButton" to="." method="_on_pay_overdue_debt_pressed"]
+[connection signal="pressed" from="LoansPanel/VBoxContainer/CloseLoansButton" to="." method="_on_close_loans_button_pressed"]
+[connection signal="pressed" from="InvestPanel/VBoxContainer/InvestLowRiskButton" to="." method="_on_invest_low_risk_pressed"]
+[connection signal="pressed" from="InvestPanel/VBoxContainer/InvestHighRiskButton" to="." method="_on_invest_high_risk_pressed"]
+[connection signal="pressed" from="InvestPanel/VBoxContainer/WithdrawCashButton" to="." method="_on_withdraw_cash_pressed"]
+[connection signal="pressed" from="InvestPanel/VBoxContainer/TransferSavingsButton" to="." method="_on_transfer_savings_pressed"]
+[connection signal="pressed" from="InvestPanel/VBoxContainer/CloseInvestButton" to="." method="_on_close_invest_button_pressed"]

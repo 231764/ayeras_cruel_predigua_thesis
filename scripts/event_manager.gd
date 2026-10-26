@@ -48,6 +48,22 @@ func trigger_event(event_id: String) -> void:
 		if event["options"].size() >= 2:
 			event["options"][0]["choice_text"] = "Bayaran nang Buo (PHP " + str(bal) + " — 0 Interest, +3 Credit Score)"
 			event["options"][1]["choice_text"] = "Bayaran lang ang Minimum Due (PHP " + str(min_due) + " — -2 Credit Score)"
+	elif event_id == "interest_applied":
+		var unpaid_base: int = StatManager.credit_balance + StatManager.debt_balance + StatManager.get_total_active_loan_balance()
+		var interest_amt: int = clamp(int(round(float(max(5000, unpaid_base)) * 0.10)), 500, 1500)
+		event["description"] = "Pumatong na ang interest na +PHP " + str(interest_amt) + " sa iyong hindi pa bayad na Credit o Utang (Unpaid Balance: PHP " + str(unpaid_base) + ")! Kahit wala kang bagong binibili, lumalaki ang utang kapag may natitirang balanse."
+		if event["options"].size() >= 2:
+			event["options"][0]["cost"] = interest_amt
+			event["options"][0]["choice_text"] = "Bayaran agad ang Interest sa Cash (PHP " + str(interest_amt) + " — +1 Credit Score)"
+			event["options"][1]["add_interest_to_balance"] = interest_amt
+			event["options"][1]["choice_text"] = "Idagdag sa utang/credit balance (+PHP " + str(interest_amt) + " Obligation, -3 Credit Score)"
+	elif event_id == "investment_fluctuation":
+		var low_bal: int = StatManager.low_risk_investment
+		var high_bal: int = StatManager.high_risk_investment
+		var rally_gain: int = int(round(float(low_bal) * 0.05)) + int(round(float(high_bal) * 0.20))
+		var dip_delta: int = int(round(float(low_bal) * 0.03)) + int(round(float(high_bal) * -0.12))
+		var dip_sign: String = "+" if dip_delta >= 0 else ""
+		event["description"] = "Nagbago ang galaw ng merkado ngayong buwan!\nPortfolio mo ngayon — Low-Risk Fund: PHP " + str(low_bal) + " | High-Risk Stock: PHP " + str(high_bal) + "\n• Market Rally Result: +" + str(rally_gain) + " PHP\n• Market Correction Result: " + dip_sign + str(dip_delta) + " PHP"
 	
 	# If it's an indirect event, add it to active events
 	if not event["is_direct"]:
@@ -71,7 +87,11 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 		stats_text += "[color=green]+" + str(abs(cost)) + " PHP[/color] "
 		
 	if credit_cost > 0:
-		if StatManager.can_use_credit_card(credit_cost):
+		var can_use_cc := StatManager.can_use_credit_card(credit_cost)
+		if opt.get("unlock_credit_card", false):
+			var new_lim: int = max(StatManager.credit_limit, int(opt.get("credit_limit", 20000)))
+			can_use_cc = (StatManager.credit_balance + credit_cost) <= new_lim
+		if can_use_cc:
 			stats_text += "[color=aqua]💳 +" + str(credit_cost) + " PHP Credit[/color] "
 		else:
 			stats_text += "[color=gray]💳 " + str(credit_cost) + " PHP (No Credit/Limit)[/color] "
@@ -80,6 +100,34 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 		stats_text += "[color=red]-" + str(StatManager.credit_balance) + " PHP (Full Bill)[/color] "
 	elif opt.get("pay_credit_minimum", false):
 		stats_text += "[color=orange]-" + str(StatManager.get_credit_minimum_due()) + " PHP (Min Due)[/color] "
+		
+	if opt.has("add_interest_to_balance") and int(opt["add_interest_to_balance"]) > 0:
+		stats_text += "[color=red]+" + str(opt["add_interest_to_balance"]) + " PHP Obligation[/color] "
+		
+	if opt.has("take_loan") and opt["take_loan"] is Dictionary:
+		var ln: Dictionary = opt["take_loan"]
+		var p: int = int(ln.get("principal", 5000))
+		var r: float = float(ln.get("monthly_rate", 0.20))
+		var t: int = int(ln.get("term_months", 2))
+		var tot_due: int = p + StatManager.calculate_simple_interest(p, r, t)
+		stats_text += "[color=orange]🏦 +" + str(p) + " PHP Cash (Repay " + str(tot_due) + " PHP)[/color] "
+		
+	if opt.has("invest_low_risk") and int(opt["invest_low_risk"]) > 0:
+		stats_text += "[color=aqua]📈 Invest " + str(opt["invest_low_risk"]) + " PHP (Low-Risk)[/color] "
+	if opt.has("invest_high_risk") and int(opt["invest_high_risk"]) > 0:
+		stats_text += "[color=yellow]📈 Invest " + str(opt["invest_high_risk"]) + " PHP (High-Risk)[/color] "
+	if opt.has("deposit_to_savings") and int(opt["deposit_to_savings"]) > 0:
+		stats_text += "[color=green]🏺 +" + str(opt["deposit_to_savings"]) + " PHP Savings[/color] "
+	if opt.get("set_side_income", false):
+		stats_text += "[color=green]+5,000 PHP/mo Side Hustle[/color] "
+	if opt.has("monthly_family_support_mod") and int(opt["monthly_family_support_mod"]) > 0:
+		stats_text += "[color=orange]+" + str(opt["monthly_family_support_mod"]) + " PHP/mo Family Bill[/color] "
+	if opt.has("apply_investment_rates") and opt["apply_investment_rates"] is Dictionary:
+		var rates: Dictionary = opt["apply_investment_rates"]
+		var lr: int = int(round(float(rates.get("low_rate", 0.0)) * 100.0))
+		var hr: int = int(round(float(rates.get("high_rate", 0.0)) * 100.0))
+		var hr_sign: String = "+" if hr >= 0 else ""
+		stats_text += "[color=aqua]Low-Risk +" + str(lr) + "% / High-Risk " + hr_sign + str(hr) + "%[/color] "
 		
 	if opt.has("installment") and opt["installment"] is Dictionary:
 		var inst: Dictionary = opt["installment"]
@@ -114,6 +162,9 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 
 func is_option_selectable(opt: Dictionary) -> bool:
 	if opt.has("credit_cost") and int(opt["credit_cost"]) > 0:
+		if opt.get("unlock_credit_card", false):
+			var new_lim: int = max(StatManager.credit_limit, int(opt.get("credit_limit", 20000)))
+			return (StatManager.credit_balance + int(opt["credit_cost"])) <= new_lim
 		return StatManager.can_use_credit_card(int(opt["credit_cost"]))
 	return true
 
@@ -139,7 +190,12 @@ func resolve_event(event_id: String, option_index: int) -> void:
 	var cs_delta: int = int(chosen_option.get("credit_score_change", 0))
 	var paid_credit_amount: int = 0
 	
-	# 1. Apply cash/category cost
+	# 1. Apply Credit Card unlock/upgrade FIRST (in case option also charges credit_cost)
+	if chosen_option.has("unlock_credit_card"):
+		if bool(chosen_option["unlock_credit_card"]):
+			StatManager.unlock_credit_card(int(chosen_option.get("credit_limit", 20000)))
+			
+	# 2. Apply cash/category cost
 	if cost != 0:
 		var cat: String = str(chosen_option.get("category", ""))
 		if cat != "" and cost > 0:
@@ -147,22 +203,68 @@ func resolve_event(event_id: String, option_index: int) -> void:
 		else:
 			StatManager.spend_direct(cost)
 			
-	# 2. Apply Credit Card purchase
+	# 3. Apply Credit Card purchase
 	if credit_cost > 0:
 		StatManager.charge_credit_card(credit_cost)
 		
-	# 3. Apply Credit Card statement payments
+	# 4. Apply Credit Card statement payments
 	if chosen_option.get("pay_credit_full", false):
 		paid_credit_amount = StatManager.pay_credit_card_balance(StatManager.credit_balance)
 	elif chosen_option.get("pay_credit_minimum", false):
 		paid_credit_amount = StatManager.pay_credit_card_balance(StatManager.get_credit_minimum_due())
 		
-	# 4. Apply Credit Card unlock
-	if chosen_option.has("unlock_credit_card"):
-		if bool(chosen_option["unlock_credit_card"]):
-			StatManager.unlock_credit_card(int(chosen_option.get("credit_limit", 20000)))
+	# 5. Apply Stage 3 Interest & Delayed Health & Simple Interest Loan (5-6)
+	if chosen_option.has("add_interest_to_balance") and int(chosen_option["add_interest_to_balance"]) > 0:
+		var add_int: int = int(chosen_option["add_interest_to_balance"])
+		if StatManager.has_credit_card and StatManager.credit_balance > 0:
+			StatManager.credit_balance += add_int
+			StatManager.total_credit_interest_incurred += add_int
+		else:
+			StatManager.debt_balance += add_int
 			
-	# 5. Apply Phone Slow / Upgraded flags
+	if chosen_option.has("set_health_delayed"):
+		StatManager.health_issue_delayed = bool(chosen_option["set_health_delayed"])
+		
+	if chosen_option.has("take_loan") and chosen_option["take_loan"] is Dictionary:
+		var ln: Dictionary = chosen_option["take_loan"]
+		StatManager.take_simple_interest_loan(
+			str(ln.get("id", event_id)),
+			str(ln.get("name", event["title"])),
+			int(ln.get("principal", 5000)),
+			float(ln.get("monthly_rate", 0.20)),
+			int(ln.get("term_months", 2))
+		)
+		
+	# 6. Apply Stage 4 Side Hustle, Investments, Emergency Fund & Family Pressure
+	if chosen_option.has("set_side_income"):
+		StatManager.has_side_income = bool(chosen_option["set_side_income"])
+		
+	if chosen_option.has("invest_low_risk") and int(chosen_option["invest_low_risk"]) > 0:
+		StatManager.invest_low_risk(int(chosen_option["invest_low_risk"]), true)
+		cost += int(chosen_option["invest_low_risk"])
+	if chosen_option.has("invest_high_risk") and int(chosen_option["invest_high_risk"]) > 0:
+		StatManager.invest_high_risk(int(chosen_option["invest_high_risk"]), true)
+		cost += int(chosen_option["invest_high_risk"])
+		
+	if chosen_option.has("deposit_to_savings") and int(chosen_option["deposit_to_savings"]) > 0:
+		var save_amt: int = int(chosen_option["deposit_to_savings"])
+		if not StatManager.deposit_savings(save_amt):
+			StatManager.spend_direct(save_amt)
+			StatManager.savings += save_amt
+			StatManager.sync_savings_envelope()
+		cost += save_amt
+		
+	if chosen_option.has("apply_investment_rates") and chosen_option["apply_investment_rates"] is Dictionary:
+		var rates: Dictionary = chosen_option["apply_investment_rates"]
+		StatManager.apply_investment_fluctuation(
+			float(rates.get("low_rate", 0.04)),
+			float(rates.get("high_rate", 0.15))
+		)
+		
+	if chosen_option.has("monthly_family_support_mod"):
+		StatManager.monthly_family_support += int(chosen_option["monthly_family_support_mod"])
+			
+	# 7. Apply Phone Slow / Upgraded flags
 	if chosen_option.get("set_phone_slow", false):
 		StatManager.phone_is_slow = true
 		StatManager.phone_upgraded = false
@@ -170,7 +272,7 @@ func resolve_event(event_id: String, option_index: int) -> void:
 		StatManager.phone_is_slow = false
 		StatManager.phone_upgraded = true
 		
-	# 6. Apply Installment plan if present
+	# 8. Apply Installment plan if present
 	if chosen_option.has("installment") and chosen_option["installment"] is Dictionary:
 		var inst: Dictionary = chosen_option["installment"]
 		StatManager.add_installment(
@@ -180,7 +282,7 @@ func resolve_event(event_id: String, option_index: int) -> void:
 			int(inst.get("months_left", 1))
 		)
 			
-	# 7. Apply extra monthly bill & daily routine modifiers
+	# 9. Apply extra monthly bill & daily routine modifiers
 	if chosen_option.has("extra_utilities"):
 		StatManager.extra_utilities_this_month += int(chosen_option["extra_utilities"])
 	if chosen_option.has("daily_commute_mod"):
@@ -192,7 +294,7 @@ func resolve_event(event_id: String, option_index: int) -> void:
 	if chosen_option.has("set_daily_commute"):
 		StatManager.daily_commute_choice = int(chosen_option["set_daily_commute"])
 		
-	# 8. Apply clamped stat changes
+	# 10. Apply clamped stat changes
 	if happy_delta != 0:
 		StatManager.modify_happy(happy_delta)
 	if social_delta != 0:
@@ -282,6 +384,52 @@ func evaluate_daily_events() -> void:
 			trigger_event("coworker_debt_story")
 		elif day == 20 and phase == 1:
 			trigger_event("family_medical_checkup")
+		elif day == 25 and phase == 1:
+			if StatManager.has_credit_card and StatManager.credit_balance > 0:
+				trigger_event("credit_card_statement")
+	# STAGE 3: INTEREST AND FINANCIAL RISK (May - June)
+	elif month == "May":
+		if day == 4 and phase == 0:
+			trigger_event("interest_applied")
+		elif day == 12 and phase == 1:
+			trigger_event("sibling_hospitalized")
+		elif day == 18 and phase == 1:
+			trigger_event("personal_health_issue")
+		elif day == 25 and phase == 1:
+			if StatManager.has_credit_card and StatManager.credit_balance > 0:
+				trigger_event("credit_card_statement")
+	elif month == "June":
+		if day == 2 and phase == 0:
+			if StatManager.health_issue_delayed:
+				trigger_event("health_complication")
+		elif day == 6 and phase == 1:
+			trigger_event("emergency_loan_5_6")
+		elif day == 12 and phase == 0:
+			trigger_event("inflation_hits_essentials")
+		elif day == 22 and phase == 1:
+			trigger_event("credit_limit_increased")
+		elif day == 25 and phase == 1:
+			if StatManager.has_credit_card and StatManager.credit_balance > 0:
+				trigger_event("credit_card_statement")
+	# STAGE 4: INVESTMENTS AND LONG-TERM PLANNING (July - August)
+	elif month == "July":
+		if day == 4 and phase == 0:
+			trigger_event("side_income_opportunity")
+		elif day == 16 and phase == 1:
+			trigger_event("investment_opportunity")
+		elif day == 24 and phase == 1:
+			trigger_event("sibling_condition_worsens")
+		elif day == 25 and phase == 1:
+			if StatManager.has_credit_card and StatManager.credit_balance > 0:
+				trigger_event("credit_card_statement")
+	elif month == "August":
+		if day == 4 and phase == 0:
+			trigger_event("emergency_fund_decision")
+		elif day == 14 and phase == 1:
+			if StatManager.get_total_investments() > 0:
+				trigger_event("investment_fluctuation")
+		elif day == 22 and phase == 1:
+			trigger_event("family_pressure_increases")
 		elif day == 25 and phase == 1:
 			if StatManager.has_credit_card and StatManager.credit_balance > 0:
 				trigger_event("credit_card_statement")

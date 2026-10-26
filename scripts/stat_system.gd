@@ -145,7 +145,7 @@ func update_ui() -> void:
 	if credit_score:
 		credit_score.text = str(StatManager.credit_score)
 	if debt_balance:
-		debt_balance.text = "PHP " + str(StatManager.debt_balance)
+		debt_balance.text = "PHP " + str(StatManager.get_total_debt_and_loans())
 	
 	var phase_names = ["Morning", "Afternoon", "Evening"]
 	if date_label:
@@ -187,19 +187,20 @@ func _update_status_report() -> void:
 	var g = StatManager.get_current_goal()
 	var target = StatManager.get_goal_target()
 	var pct = StatManager.get_goal_progress_percent()
-	var total_util = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments()
+	var total_util = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments() + StatManager.monthly_family_support
 	var rent_env = StatManager.get_envelope_amount("Rent")
 	var util_env = StatManager.get_envelope_amount("Utilities")
 	var cc_env = StatManager.get_envelope_amount("Credit Card")
 	var food_env = StatManager.get_envelope_amount("Food")
 	var trans_env = StatManager.get_envelope_amount("Transportation")
 	var ent_env = StatManager.get_envelope_amount("Entertainment")
+	var total_debt_and_loans = StatManager.get_total_debt_and_loans()
 	
 	var goal_ok = "[color=green]REACHED (PHP " + str(StatManager.savings) + " / PHP " + str(target) + ")[/color]" if StatManager.savings >= target else "[color=yellow]PHP " + str(StatManager.savings) + " / PHP " + str(target) + " (" + str(pct) + "%)[/color]"
 	var happy_ok = "[color=green]GOOD (" + str(StatManager.happy) + "/100)[/color]" if StatManager.happy >= 50 else "[color=red]LOW (" + str(StatManager.happy) + "/100 - Need >=50)[/color]"
 	var social_ok = "[color=green]GOOD (" + str(StatManager.social) + "/100)[/color]" if StatManager.social >= 50 else "[color=red]LOW (" + str(StatManager.social) + "/100 - Need >=50)[/color]"
 	var credit_ok = "[color=green]GOOD (" + str(StatManager.credit_score) + "/100)[/color]" if StatManager.credit_score >= 70 else "[color=red]POOR (" + str(StatManager.credit_score) + "/100 - Need >=70)[/color]"
-	var debt_ok = "[color=green]DEBT-FREE (PHP 0)[/color]" if StatManager.debt_balance == 0 and StatManager.credit_balance == 0 else "[color=red]HAS OBLIGATIONS (Debt: PHP " + str(StatManager.debt_balance) + ", Credit: PHP " + str(StatManager.credit_balance) + ")[/color]"
+	var debt_ok = "[color=green]DEBT-FREE (PHP 0)[/color]" if total_debt_and_loans == 0 and StatManager.credit_balance == 0 else "[color=red]HAS OBLIGATIONS (Debt/Loans: PHP " + str(total_debt_and_loans) + ", Credit: PHP " + str(StatManager.credit_balance) + ")[/color]"
 	
 	var txt = "[b][font_size=22]" + stage_info["name"] + "[/font_size][/b]\n"
 	txt += "[i]\"" + stage_info["theme"] + "\"[/i]\n\n"
@@ -208,12 +209,13 @@ func _update_status_report() -> void:
 	txt += "• Well-Being (Happiness): " + happy_ok + "\n"
 	txt += "• Relationships (Sociability): " + social_ok + "\n"
 	txt += "• Credit Standing: " + credit_ok + "\n"
-	txt += "• Debt & Credit Status: " + debt_ok + "\n"
-	txt += "• Compounding Interest Earned on Savings: [color=lightblue]PHP " + str(StatManager.total_savings_interest_earned) + "[/color]\n\n"
-	txt += "[b]2. Monthly Bills, Installments & Allocated Envelopes:[/b]\n"
+	txt += "• Debt, Loans & Credit Status: " + debt_ok + "\n"
+	txt += "• Savings Interest Earned: [color=lightblue]PHP " + str(StatManager.total_savings_interest_earned) + "[/color] | Investments: [color=aqua]PHP " + str(StatManager.get_total_investments()) + "[/color] (P&L: PHP " + str(StatManager.total_investment_gains) + ")\n\n"
+	txt += "[b]2. Monthly Bills, Loans, Installments & Allocated Envelopes:[/b]\n"
 	txt += "• Upa (Rent): PHP " + str(rent_env) + " / PHP " + str(StatManager.monthly_rent) + "\n"
-	txt += "• Utilities + Installments: PHP " + str(util_env) + " / PHP " + str(total_util) + " (" + StatManager.get_installments_summary_text() + ")\n"
+	txt += "• Utilities + Installments + Family Support: PHP " + str(util_env) + " / PHP " + str(total_util) + " (Installments: " + StatManager.get_installments_summary_text() + ", Family Padala: PHP " + str(StatManager.monthly_family_support) + "/mo)\n"
 	txt += "• Credit Card Envelope: PHP " + str(cc_env) + " (Card Balance: PHP " + str(StatManager.credit_balance) + " / Limit: PHP " + str(StatManager.credit_limit) + ")\n"
+	txt += "• Active Simple Interest Loans: " + StatManager.get_loans_summary_text() + "\n"
 	txt += "• Pagkain (Food): PHP " + str(food_env) + " | Pamasahe: PHP " + str(trans_env) + " | Libangan: PHP " + str(ent_env) + "\n"
 	status_report_label.text = txt
 
@@ -293,6 +295,9 @@ func daily_cycle() -> void:
 	
 	# Check for Weekly Summary BEFORE incrementing day
 	if StatManager.current_day == 7 or StatManager.current_day == 14 or StatManager.current_day == 21 or StatManager.current_day == 28:
+		if StatManager.has_side_income:
+			StatManager.modify_happy(-3)
+			StatManager.modify_social(-2)
 		trigger_weekly_summary(int(StatManager.current_day / 7))
 		
 	# Check for Monthly Bills on the last day of the month
@@ -317,11 +322,13 @@ func daily_cycle() -> void:
 	
 func receive_salary() -> void:
 	var base_salary = StatManager.base_biweekly_salary
-	var salary_amount = base_salary
+	var side_bonus = StatManager.side_income_biweekly if StatManager.has_side_income else 0
+	var total_gross = base_salary + side_bonus
+	var salary_amount = total_gross
 	var garnished_amount = 0
 	
 	if StatManager.debt_balance > 0:
-		var max_garnish = int(base_salary * 0.5)
+		var max_garnish = int(total_gross * 0.5)
 		if StatManager.debt_balance <= max_garnish:
 			garnished_amount = StatManager.debt_balance
 		else:
@@ -340,6 +347,9 @@ func receive_salary() -> void:
 	dialog.title = "Sahod Day!"
 	var text = "Pumasok na ang sahod mo na PHP " + str(base_salary) + "!"
 	var log_text = "Sahod Day! (+ PHP " + str(base_salary) + ")"
+	if side_bonus > 0:
+		text += "\n+ PHP " + str(side_bonus) + " mula sa iyong Freelance Side Hustle (Total: PHP " + str(total_gross) + ")!"
+		log_text += "\n[font_size=12][color=green]+PHP " + str(side_bonus) + " Side Hustle[/color][/font_size]"
 	if garnished_amount > 0:
 		text += "\n\nPero kinuha ng banko ang PHP " + str(garnished_amount) + " para pambayad sa utang mo!"
 		text += "\nAng natira sa iyo ay PHP " + str(salary_amount) + "."
@@ -377,14 +387,21 @@ func trigger_monthly_bills() -> void:
 	# 2. Apply 5% compounding monthly interest to unpaid Credit Card balance (GDD Section 4.4)
 	var cc_interest = StatManager.apply_monthly_credit_card_interest()
 	
-	# 3. Apply 5% compounding monthly interest to existing Debt
+	# 3. Apply 5% compounding monthly interest to existing Overdue Debt
 	var debt_interest = int(StatManager.debt_balance * 0.05)
 	if debt_interest > 0:
 		StatManager.debt_balance += debt_interest
 		
+	# 4. Process monthly Simple Interest Loan installments & Investment returns
+	var loan_res = StatManager.process_monthly_loan_installments()
+	var inv_delta := 0
+	if StatManager.get_total_investments() > 0:
+		var inv_res = StatManager.apply_investment_fluctuation(0.04, 0.08)
+		inv_delta = int(inv_res.get("total_delta", 0))
+		
 	var installments_due = StatManager.get_total_monthly_installments()
 	var rent_amount = StatManager.monthly_rent
-	var utilities_amount = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + installments_due
+	var utilities_amount = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + installments_due + StatManager.monthly_family_support
 	StatManager.extra_utilities_this_month = 0
 	StatManager.advance_installments_one_month()
 	var total_bills = rent_amount + utilities_amount
@@ -400,11 +417,17 @@ func trigger_monthly_bills() -> void:
 		
 		var dialog = AcceptDialog.new()
 		dialog.title = "Auto-Paid na ang Monthly Bills!"
-		var text = "Dahil kumpleto ang naka-budget mo sa Cash Envelopes, automatic nang nabayaran ang bills nang hindi nabawasan ang hawak mong cash!\n\n• Upa: PHP " + str(rent_amount) + "\n• Kuryente/Tubig + Installments: PHP " + str(utilities_amount) + "\n• +2 Credit Score!"
+		var text = "Dahil kumpleto ang naka-budget mo sa Cash Envelopes, automatic nang nabayaran ang bills nang hindi nabawasan ang hawak mong cash!\n\n• Upa: PHP " + str(rent_amount) + "\n• Kuryente/Tubig + Installments + Family Padala: PHP " + str(utilities_amount) + "\n• +2 Credit Score!"
 		var log_text = "Monthly Bills Auto-Paid via Envelopes! [- PHP " + str(total_bills) + "] (+2 Credit Score)"
 		if savings_interest > 0:
 			text += "\n\nKumita rin ang Ipon mo sa bangko ng +PHP " + str(savings_interest) + " (2% Compounding Interest)!"
 			log_text += "\n[font_size=12][color=green]Savings Compounding Interest +" + str(savings_interest) + " PHP[/color][/font_size]"
+		if inv_delta != 0:
+			var inv_sign = "+" if inv_delta > 0 else ""
+			text += "\n\nInvestments Monthly Update: " + inv_sign + "PHP " + str(inv_delta)
+			log_text += "\n[font_size=12][color=aqua]Investments Return " + inv_sign + str(inv_delta) + " PHP[/color][/font_size]"
+		if int(loan_res.get("paid_cash", 0)) > 0:
+			text += "\n\nNabayaran din ang Loan Installment: -PHP " + str(loan_res["paid_cash"])
 		if cc_interest > 0:
 			text += "\n\n⚠ Pumatong ang +PHP " + str(cc_interest) + " (5% Compounding Interest) sa hindi nabayarang Credit Card balance!"
 			log_text += "\n[font_size=12][color=orange]Credit Card Interest +" + str(cc_interest) + " PHP[/color][/font_size]"
@@ -442,7 +465,7 @@ func process_daily_expenses() -> void:
 	StatManager.modify_happy(food_happy + comm_happy)
 	
 func check_game_over_conditions() -> bool:
-	if StatManager.debt_balance > 50000:
+	if StatManager.get_total_debt_and_loans() > 50000:
 		trigger_game_over("GAME OVER: Baon sa utang! (Lagpas PHP 50,000 na ang utang mo)")
 		return true
 		

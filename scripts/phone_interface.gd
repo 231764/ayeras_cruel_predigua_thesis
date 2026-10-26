@@ -13,6 +13,21 @@ extends Control
 @onready var send_button = $ChatPanel/VBoxContainer/HBoxContainer/SendButton
 @onready var ai_http_request = $AIHTTPRequest
 
+@onready var loans_panel: Panel = $LoansPanel
+@onready var loans_info_label: RichTextLabel = $LoansPanel/VBoxContainer/LoansInfoLabel
+@onready var borrow_5k_btn: Button = $LoansPanel/VBoxContainer/Borrow5kButton
+@onready var borrow_10k_btn: Button = $LoansPanel/VBoxContainer/Borrow10kButton
+@onready var pay_loan_inst_btn: Button = $LoansPanel/VBoxContainer/PayLoanInstallmentButton
+@onready var pay_loan_full_btn: Button = $LoansPanel/VBoxContainer/PayLoanFullButton
+@onready var pay_overdue_debt_btn: Button = $LoansPanel/VBoxContainer/PayOverdueDebtButton
+
+@onready var invest_panel: Panel = $InvestPanel
+@onready var invest_info_label: RichTextLabel = $InvestPanel/VBoxContainer/InvestInfoLabel
+@onready var invest_low_btn: Button = $InvestPanel/VBoxContainer/InvestLowRiskButton
+@onready var invest_high_btn: Button = $InvestPanel/VBoxContainer/InvestHighRiskButton
+@onready var withdraw_cash_btn: Button = $InvestPanel/VBoxContainer/WithdrawCashButton
+@onready var transfer_savings_btn: Button = $InvestPanel/VBoxContainer/TransferSavingsButton
+
 var current_viewing_event_id: String = ""
 var chat_messages: Array = []
 var is_request_pending: bool = false
@@ -21,7 +36,7 @@ var is_lag_waiting: bool = false
 func _ready() -> void:
 	EventManager.on_indirect_event_triggered.connect(_on_event_triggered)
 	EventManager.on_event_resolved.connect(_on_event_resolved)
-	StatManager.on_stats_changed.connect(_update_header_status)
+	StatManager.on_stats_changed.connect(_on_stats_updated)
 	ai_http_request.request_completed.connect(_on_ai_request_completed)
 	
 	if chat_input and not chat_input.text_submitted.is_connected(_on_chat_input_submitted):
@@ -34,8 +49,13 @@ func _ready() -> void:
 	})
 	
 	add_chat_bubble("Baldo", "Yow par! Ako si Baldo, ang financial buddy mo. Tanong ka lang kung paano i-budget ang sahod mo, ano gagawin sa bills, o kung may gumugulo sa isip mo!")
-	_update_header_status()
+	_on_stats_updated()
 	refresh_notifications()
+
+func _on_stats_updated() -> void:
+	_update_header_status()
+	_refresh_loans_panel()
+	_refresh_invest_panel()
 
 func _update_header_status() -> void:
 	if not header_title or is_lag_waiting:
@@ -156,6 +176,177 @@ func _on_baldo_button_pressed() -> void:
 func _on_close_chat_button_pressed() -> void:
 	chat_panel.hide()
 
+func _on_loans_app_button_pressed() -> void:
+	if is_lag_waiting:
+		return
+	await _apply_phone_lag_if_needed()
+	_refresh_loans_panel()
+	loans_panel.show()
+
+func _on_close_loans_button_pressed() -> void:
+	loans_panel.hide()
+
+func _on_invest_app_button_pressed() -> void:
+	if is_lag_waiting:
+		return
+	await _apply_phone_lag_if_needed()
+	_refresh_invest_panel()
+	invest_panel.show()
+
+func _on_close_invest_button_pressed() -> void:
+	invest_panel.hide()
+
+func _refresh_loans_panel() -> void:
+	if not loans_info_label:
+		return
+	var rate := StatManager.get_personal_loan_monthly_rate()
+	var rate_pct := int(round(rate * 100.0))
+	var can_borrow := StatManager.can_take_formal_loan()
+	
+	# 5k 2-month Simple Interest calculation (I = P * r * t)
+	var int_5k := StatManager.calculate_simple_interest(5000, rate, 2)
+	var tot_5k := 5000 + int_5k
+	var mo_5k := int(ceil(float(tot_5k) / 2.0))
+	var mat_5k := str(StatManager.year[(StatManager.current_month + 2) % StatManager.year.size()].month)
+	
+	# 10k 3-month Simple Interest calculation (I = P * r * t)
+	var int_10k := StatManager.calculate_simple_interest(10000, rate, 3)
+	var tot_10k := 10000 + int_10k
+	var mo_10k := int(ceil(float(tot_10k) / 3.0))
+	var mat_10k := str(StatManager.year[(StatManager.current_month + 3) % StatManager.year.size()].month)
+	
+	var txt := "[b]Credit Score:[/b] " + str(StatManager.credit_score) + "/100 | [b]Cash:[/b] PHP " + str(StatManager.current_balance) + "\n"
+	txt += "[b]Simple Interest Formula (I = P × r × t):[/b] Rate = [color=yellow]" + str(rate_pct) + "%/mo[/color]\n\n"
+	txt += "[b]1. QuickCash Loan:[/b] Principal: PHP 5,000 | Term: 2 Mos | Simple Interest: PHP " + str(int_5k) + " | Total: PHP " + str(tot_5k) + " | Due: PHP " + str(mo_5k) + "/mo | Maturity: " + mat_5k + "\n"
+	txt += "[b]2. FlexiLoan:[/b] Principal: PHP 10,000 | Term: 3 Mos | Simple Interest: PHP " + str(int_10k) + " | Total: PHP " + str(tot_10k) + " | Due: PHP " + str(mo_10k) + "/mo | Maturity: " + mat_10k + "\n\n"
+	txt += "[b]Active Loans (" + str(StatManager.active_loans.size()) + "):[/b] " + StatManager.get_loans_summary_text() + "\n"
+	txt += "[b]Overdue Debt (5% Penalty/mo):[/b] [color=red]PHP " + str(StatManager.debt_balance) + "[/color]"
+	loans_info_label.text = txt
+	
+	if borrow_5k_btn:
+		borrow_5k_btn.text = "Hiram PHP 5,000 (Repay PHP " + str(tot_5k) + ", " + str(mo_5k) + "/mo)" if StatManager.credit_score >= 55 else "Locked (Need Credit Score >= 55)"
+		borrow_5k_btn.disabled = not can_borrow
+	if borrow_10k_btn:
+		borrow_10k_btn.text = "Hiram PHP 10,000 (Repay PHP " + str(tot_10k) + ", " + str(mo_10k) + "/mo)" if StatManager.credit_score >= 55 else "Locked (Need Credit Score >= 55)"
+		borrow_10k_btn.disabled = not can_borrow
+		
+	if StatManager.active_loans.size() > 0:
+		var first_loan: Dictionary = StatManager.active_loans[0]
+		var rem: int = int(first_loan.get("remaining_balance", 0))
+		var due: int = min(rem, int(first_loan.get("monthly_payment", rem)))
+		if pay_loan_inst_btn:
+			pay_loan_inst_btn.text = "Bayaran Monthly Due: " + str(first_loan["name"]) + " (-PHP " + str(due) + ")"
+			pay_loan_inst_btn.disabled = (StatManager.current_balance < due or due <= 0)
+		if pay_loan_full_btn:
+			pay_loan_full_btn.text = "Bayaran Buo: " + str(first_loan["name"]) + " (-PHP " + str(rem) + ", +2 CS)"
+			pay_loan_full_btn.disabled = (StatManager.current_balance < rem or rem <= 0)
+	else:
+		if pay_loan_inst_btn:
+			pay_loan_inst_btn.text = "Walang Active Loan Monthly Due"
+			pay_loan_inst_btn.disabled = true
+		if pay_loan_full_btn:
+			pay_loan_full_btn.text = "Walang Active Loan na Babayaran"
+			pay_loan_full_btn.disabled = true
+			
+	if pay_overdue_debt_btn:
+		if StatManager.debt_balance > 0:
+			var pay_amt: int = min(StatManager.current_balance, StatManager.debt_balance)
+			pay_overdue_debt_btn.text = "Bayaran Overdue Debt (-PHP " + str(pay_amt) + " / PHP " + str(StatManager.debt_balance) + ")"
+			pay_overdue_debt_btn.disabled = (pay_amt <= 0)
+		else:
+			pay_overdue_debt_btn.text = "Walang Overdue Debt (PHP 0)"
+			pay_overdue_debt_btn.disabled = true
+
+func _on_borrow_5k_pressed() -> void:
+	if not StatManager.can_take_formal_loan():
+		return
+	var rate := StatManager.get_personal_loan_monthly_rate()
+	var ln := StatManager.take_simple_interest_loan("quickcash_5k", "QuickCash 5k Loan", 5000, rate, 2)
+	PlannerManager.record_event(StatManager.current_month, StatManager.current_day, "Borrowed QuickCash Loan (+PHP 5,000 Cash, Repay PHP " + str(ln["total_repayment"]) + ")")
+	_refresh_loans_panel()
+
+func _on_borrow_10k_pressed() -> void:
+	if not StatManager.can_take_formal_loan():
+		return
+	var rate := StatManager.get_personal_loan_monthly_rate()
+	var ln := StatManager.take_simple_interest_loan("flexiloan_10k", "FlexiLoan 10k", 10000, rate, 3)
+	PlannerManager.record_event(StatManager.current_month, StatManager.current_day, "Borrowed FlexiLoan (+PHP 10,000 Cash, Repay PHP " + str(ln["total_repayment"]) + ")")
+	_refresh_loans_panel()
+
+func _on_pay_loan_installment_pressed() -> void:
+	if StatManager.active_loans.is_empty():
+		return
+	var first_loan: Dictionary = StatManager.active_loans[0]
+	var due: int = min(int(first_loan.get("remaining_balance", 0)), int(first_loan.get("monthly_payment", 0)))
+	var paid := StatManager.pay_active_loan(0, due)
+	if paid > 0:
+		PlannerManager.record_event(StatManager.current_month, StatManager.current_day, "Paid Loan Installment (-PHP " + str(paid) + ")")
+	_refresh_loans_panel()
+
+func _on_pay_loan_full_pressed() -> void:
+	if StatManager.active_loans.is_empty():
+		return
+	var first_loan: Dictionary = StatManager.active_loans[0]
+	var rem: int = int(first_loan.get("remaining_balance", 0))
+	var paid := StatManager.pay_active_loan(0, rem)
+	if paid > 0:
+		PlannerManager.record_event(StatManager.current_month, StatManager.current_day, "Paid Full Loan Balance (-PHP " + str(paid) + ", +2 Credit Score)")
+	_refresh_loans_panel()
+
+func _on_pay_overdue_debt_pressed() -> void:
+	var paid := StatManager.pay_overdue_debt(StatManager.debt_balance)
+	if paid > 0:
+		PlannerManager.record_event(StatManager.current_month, StatManager.current_day, "Paid Overdue Debt (-PHP " + str(paid) + ")")
+	_refresh_loans_panel()
+
+func _refresh_invest_panel() -> void:
+	if not invest_info_label:
+		return
+	var total_inv := StatManager.get_total_investments()
+	var pnl := StatManager.total_investment_gains
+	var pnl_sign := "+" if pnl >= 0 else ""
+	var pnl_color := "green" if pnl >= 0 else "red"
+	
+	var txt := "[b]Available Cash:[/b] [color=green]PHP " + str(StatManager.current_balance) + "[/color] | [b]Ipon (Savings):[/b] [color=lightblue]PHP " + str(StatManager.savings) + "[/color]\n\n"
+	txt += "[b]1. Low-Risk Mutual Fund (Steady +3% to +5%/mo):[/b]\n   Current Value: [color=aqua]PHP " + str(StatManager.low_risk_investment) + "[/color]\n"
+	txt += "[b]2. High-Risk Stock Market (Volatile -15% to +25%):[/b]\n   Current Value: [color=yellow]PHP " + str(StatManager.high_risk_investment) + "[/color]\n\n"
+	txt += "[b]Total Portfolio Value:[/b] PHP " + str(total_inv) + " | [b]Net P&L:[/b] [color=" + pnl_color + "]" + pnl_sign + "PHP " + str(pnl) + "[/color]\n"
+	txt += "[b]Side Hustle Status:[/b] " + ("[color=green]Active (+PHP 5,000/mo)[/color]" if StatManager.has_side_income else "Inactive")
+	invest_info_label.text = txt
+	
+	if invest_low_btn:
+		invest_low_btn.disabled = (StatManager.current_balance < 3000)
+	if invest_high_btn:
+		invest_high_btn.disabled = (StatManager.current_balance < 3000)
+	if withdraw_cash_btn:
+		withdraw_cash_btn.text = "Withdraw Investments to Cash (+PHP " + str(total_inv) + ")"
+		withdraw_cash_btn.disabled = (total_inv <= 0)
+	if transfer_savings_btn:
+		transfer_savings_btn.text = "Transfer Investments to Ipon (+PHP " + str(total_inv) + ")"
+		transfer_savings_btn.disabled = (total_inv <= 0)
+
+func _on_invest_low_risk_pressed() -> void:
+	if StatManager.invest_low_risk(3000):
+		PlannerManager.record_event(StatManager.current_month, StatManager.current_day, "Invested PHP 3,000 in Low-Risk Mutual Fund")
+		_refresh_invest_panel()
+
+func _on_invest_high_risk_pressed() -> void:
+	if StatManager.invest_high_risk(3000):
+		PlannerManager.record_event(StatManager.current_month, StatManager.current_day, "Invested PHP 3,000 in High-Risk Stock")
+		_refresh_invest_panel()
+
+func _on_withdraw_cash_pressed() -> void:
+	var amt := StatManager.withdraw_investments_to_cash()
+	if amt > 0:
+		PlannerManager.record_event(StatManager.current_month, StatManager.current_day, "Withdrew Investments to Cash (+PHP " + str(amt) + ")")
+		_refresh_invest_panel()
+
+func _on_transfer_savings_pressed() -> void:
+	var amt := StatManager.withdraw_investments_to_savings()
+	if amt > 0:
+		PlannerManager.record_event(StatManager.current_month, StatManager.current_day, "Transferred Investments to Savings (+PHP " + str(amt) + ")")
+		_refresh_invest_panel()
+
 func _on_chat_input_submitted(_submitted_text: String) -> void:
 	_on_send_chat_button_pressed()
 
@@ -262,7 +453,7 @@ func _on_ai_request_completed(_result: int, response_code: int, _headers: Packed
 func _generate_offline_baldo_reply(_user_text: String) -> String:
 	var rent_env = StatManager.get_envelope_amount("Rent")
 	var util_env = StatManager.get_envelope_amount("Utilities")
-	var total_util_due = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments()
+	var total_util_due = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments() + StatManager.monthly_family_support
 	var rent_short = max(0, StatManager.monthly_rent - rent_env)
 	var util_short = max(0, total_util_due - util_env)
 	var tips: Array[String] = []
@@ -277,16 +468,20 @@ func _generate_offline_baldo_reply(_user_text: String) -> String:
 		var last_ev = EventManager.event_history[EventManager.event_history.size() - 1]
 		tips.append("Naalala ko pinili mo yung \"" + str(last_ev["choice_text"]) + "\" sa \"" + str(last_ev["title"]) + "\".")
 		
-	# 3. Check debt, credit card, envelopes, and Life Goal savings progress
+	# 3. Check debt, active loans, credit card, envelopes, investments, and Life Goal savings progress
 	var goal = StatManager.get_current_goal()
 	if StatManager.debt_balance > 0:
-		tips.append("Naku par, may PHP " + str(StatManager.debt_balance) + " kang utang na may 5% monthly interest at kaltas sa sahod, kaya tipid mode muna tayo!")
+		tips.append("Naku par, may PHP " + str(StatManager.debt_balance) + " kang overdue utang na may 5% monthly interest at kaltas sa sahod, kaya bayaran mo na sa Utang App!")
+	elif StatManager.get_total_active_loan_balance() > 0:
+		tips.append("May active loan ka pa na PHP " + str(StatManager.get_total_active_loan_balance()) + " (" + StatManager.get_loans_summary_text() + "). Pwede mo 'yang bayaran sa Utang App para tumaas ang Credit Score mo!")
 	elif StatManager.credit_balance > 0:
 		tips.append("May PHP " + str(StatManager.credit_balance) + " kang Credit Card balance! Ihanda mo ang pambayad nang buo sa Credit Card envelope para iwas sa 5% compounding interest.")
 	elif rent_short > 0 or util_short > 0:
-		tips.append("Sa PHP " + str(StatManager.current_balance) + " mong hawak ngayon, magtabi ka na sa Cash Envelopes: kulang ka pa ng PHP " + str(rent_short) + " sa Upa at PHP " + str(util_short) + " sa Kuryente/Tubig/Installments bago mag-katapusan.")
+		tips.append("Sa PHP " + str(StatManager.current_balance) + " mong hawak ngayon, magtabi ka na sa Cash Envelopes: kulang ka pa ng PHP " + str(rent_short) + " sa Upa at PHP " + str(util_short) + " sa Kuryente/Tubig/Installments/Padala bago mag-katapusan.")
+	elif StatManager.get_total_investments() > 0:
+		tips.append("Solid par, may PHP " + str(StatManager.get_total_investments()) + " kang Investments (Net P&L: PHP " + str(StatManager.total_investment_gains) + ") at PHP " + str(StatManager.savings) + " sa Ipon para sa \"" + str(goal["title"]) + "\"!")
 	else:
-		tips.append("Solid par, kumpleto na ang pambayad mo sa Upa at Utilities envelopes! Maghulog ka na sa Ipon / Savings (nasa PHP " + str(StatManager.savings) + " / PHP " + str(goal["cost"]) + " ka na para sa \"" + str(goal["title"]) + "\") para kumita ng 2% monthly compounding interest!")
+		tips.append("Solid par, kumpleto na ang pambayad mo sa Upa at Utilities envelopes! Maghulog ka na sa Ipon / Savings (nasa PHP " + str(StatManager.savings) + " / PHP " + str(goal["cost"]) + " ka na para sa \"" + str(goal["title"]) + "\") o subukan ang Invest App!")
 		
 	# 4. Check well-being meters
 	if StatManager.happy < 40 or StatManager.social < 40:

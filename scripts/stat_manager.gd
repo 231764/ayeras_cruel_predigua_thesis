@@ -19,6 +19,22 @@ var total_credit_interest_incurred: int = 0
 # Recurring Monthly Installments (GDD Sections 8.1, 8.2)
 var active_installments: Array = [] # Array of {"id": String, "name": String, "monthly_cost": int, "months_left": int}
 
+# Simple Interest Loans & Predatory 5-6 System (GDD Sections 4.3, 4.4, 8.3)
+var active_loans: Array = [] # Array of {"id", "name", "principal", "monthly_rate", "term_months", "total_interest", "total_repayment", "remaining_balance", "monthly_payment", "months_left", "maturity_month"}
+var total_loan_interest_incurred: int = 0
+
+# Stage 3 Delayed Health Flag (GDD Section 8.3.1 Event 2)
+var health_issue_delayed: bool = false
+
+# Stage 4 Investments, Side Hustle & Family Pressure (GDD Section 8.4)
+var has_side_income: bool = false
+var side_income_biweekly: int = 2500 # +PHP 5,000/month (+PHP 2,500 per payday)
+var monthly_family_support: int = 0 # +PHP 3,000/month from family_pressure_increases
+var low_risk_investment: int = 0
+var high_risk_investment: int = 0
+var total_investment_principal: int = 0
+var total_investment_gains: int = 0
+
 # Phone Plan Upgrade / Slow Phone Mechanic (GDD Section 8.1.1 Event 3)
 var phone_is_slow: bool = false
 var phone_lag_seconds: float = 2.0
@@ -211,6 +227,206 @@ func get_installments_summary_text() -> String:
 		parts.append(str(inst["name"]) + " (PHP " + str(inst["monthly_cost"]) + "/mo, " + str(inst["months_left"]) + " mos left)")
 	return ", ".join(parts)
 
+# --- SIMPLE INTEREST LOANS & LENDING PLATFORM (GDD Sections 4.3, 4.4, 8.3) ---
+func calculate_simple_interest(principal: int, monthly_rate: float, term_months: int) -> int:
+	# Simple Interest Formula: I = P * r * t
+	return int(round(float(principal) * monthly_rate * float(max(1, term_months))))
+
+func get_personal_loan_monthly_rate() -> float:
+	if credit_score >= 75:
+		return 0.06 # 6% simple interest per month for high credit score
+	elif credit_score >= 55:
+		return 0.10 # 10% simple interest per month for fair credit score
+	return 0.15
+
+func can_take_formal_loan() -> bool:
+	return credit_score >= 55 and active_loans.size() < 3
+
+func take_simple_interest_loan(loan_id: String, loan_name: String, principal: int, monthly_rate: float, term_months: int) -> Dictionary:
+	var clean_term: int = max(1, term_months)
+	var total_interest: int = calculate_simple_interest(principal, monthly_rate, clean_term)
+	var total_repayment: int = principal + total_interest
+	var monthly_pay: int = int(ceil(float(total_repayment) / float(clean_term)))
+	var mat_idx: int = (current_month + clean_term) % year.size()
+	var mat_month: String = str(year[mat_idx].month)
+	
+	var loan_entry := {
+		"id": loan_id,
+		"name": loan_name,
+		"principal": principal,
+		"monthly_rate": monthly_rate,
+		"term_months": clean_term,
+		"total_interest": total_interest,
+		"total_repayment": total_repayment,
+		"remaining_balance": total_repayment,
+		"monthly_payment": monthly_pay,
+		"months_left": clean_term,
+		"maturity_month": mat_month
+	}
+	active_loans.append(loan_entry)
+	current_balance += principal
+	weekly_income += principal
+	total_loan_interest_incurred += total_interest
+	on_stats_changed.emit()
+	return loan_entry
+
+func get_total_active_loan_balance() -> int:
+	var total := 0
+	for loan in active_loans:
+		total += max(0, int(loan.get("remaining_balance", 0)))
+	return total
+
+func get_total_monthly_loan_payments_due() -> int:
+	var total := 0
+	for loan in active_loans:
+		var rem: int = max(0, int(loan.get("remaining_balance", 0)))
+		var m_pay: int = max(0, int(loan.get("monthly_payment", 0)))
+		if rem > 0:
+			total += min(rem, m_pay)
+	return total
+
+func get_total_debt_and_loans() -> int:
+	return debt_balance + get_total_active_loan_balance()
+
+func pay_active_loan(loan_index: int, amount: int) -> int:
+	if loan_index < 0 or loan_index >= active_loans.size() or amount <= 0 or current_balance <= 0:
+		return 0
+	var loan: Dictionary = active_loans[loan_index]
+	var rem: int = int(loan.get("remaining_balance", 0))
+	var actual_pay: int = min(amount, min(current_balance, rem))
+	if actual_pay <= 0:
+		return 0
+	current_balance -= actual_pay
+	weekly_expenses += actual_pay
+	loan["remaining_balance"] = rem - actual_pay
+	if int(loan["remaining_balance"]) <= 0:
+		active_loans.remove_at(loan_index)
+		modify_credit_score(2)
+	on_stats_changed.emit()
+	return actual_pay
+
+func pay_overdue_debt(amount: int) -> int:
+	if amount <= 0 or current_balance <= 0 or debt_balance <= 0:
+		return 0
+	var actual_pay: int = min(amount, min(current_balance, debt_balance))
+	current_balance -= actual_pay
+	weekly_expenses += actual_pay
+	debt_balance -= actual_pay
+	if debt_balance == 0:
+		modify_credit_score(2)
+	else:
+		modify_credit_score(1)
+	on_stats_changed.emit()
+	return actual_pay
+
+func process_monthly_loan_installments() -> Dictionary:
+	var paid_cash := 0
+	var rolled_to_debt := 0
+	for i in range(active_loans.size() - 1, -1, -1):
+		var loan: Dictionary = active_loans[i]
+		var rem: int = int(loan.get("remaining_balance", 0))
+		var due: int = min(rem, int(loan.get("monthly_payment", rem)))
+		if due > 0:
+			var covered: int = min(current_balance, due)
+			var unpaid: int = due - covered
+			current_balance -= covered
+			weekly_expenses += covered
+			paid_cash += covered
+			if unpaid > 0:
+				debt_balance += unpaid
+				rolled_to_debt += unpaid
+				modify_credit_score(-4)
+			loan["remaining_balance"] = max(0, rem - due)
+		loan["months_left"] = max(0, int(loan.get("months_left", 1)) - 1)
+		if int(loan["remaining_balance"]) <= 0:
+			active_loans.remove_at(i)
+	on_stats_changed.emit()
+	return {"paid_cash": paid_cash, "rolled_to_debt": rolled_to_debt}
+
+func get_loans_summary_text() -> String:
+	if active_loans.is_empty():
+		return "None"
+	var parts: Array[String] = []
+	for loan in active_loans:
+		parts.append(str(loan["name"]) + " (Remaining: PHP " + str(loan["remaining_balance"]) + ", Due: PHP " + str(min(int(loan["remaining_balance"]), int(loan["monthly_payment"]))) + "/mo, Maturity: " + str(loan["maturity_month"]) + ")")
+	return "; ".join(parts)
+
+# --- INVESTMENTS SYSTEM (GDD Section 8.4) ---
+func get_total_investments() -> int:
+	return max(0, low_risk_investment) + max(0, high_risk_investment)
+
+func invest_low_risk(amount: int, force_event: bool = false) -> bool:
+	if amount <= 0:
+		return false
+	if current_balance >= amount:
+		current_balance -= amount
+		weekly_expenses += amount
+		low_risk_investment += amount
+		total_investment_principal += amount
+		on_stats_changed.emit()
+		return true
+	elif force_event:
+		spend_direct(amount)
+		low_risk_investment += amount
+		total_investment_principal += amount
+		on_stats_changed.emit()
+		return true
+	return false
+
+func invest_high_risk(amount: int, force_event: bool = false) -> bool:
+	if amount <= 0:
+		return false
+	if current_balance >= amount:
+		current_balance -= amount
+		weekly_expenses += amount
+		high_risk_investment += amount
+		total_investment_principal += amount
+		on_stats_changed.emit()
+		return true
+	elif force_event:
+		spend_direct(amount)
+		high_risk_investment += amount
+		total_investment_principal += amount
+		on_stats_changed.emit()
+		return true
+	return false
+
+func apply_investment_fluctuation(low_rate: float = 0.04, high_rate: float = 0.15) -> Dictionary:
+	var low_delta := 0
+	var high_delta := 0
+	if low_risk_investment > 0:
+		low_delta = int(round(float(low_risk_investment) * low_rate))
+		low_risk_investment = max(0, low_risk_investment + low_delta)
+	if high_risk_investment > 0:
+		high_delta = int(round(float(high_risk_investment) * high_rate))
+		high_risk_investment = max(0, high_risk_investment + high_delta)
+	var total_delta := low_delta + high_delta
+	total_investment_gains += total_delta
+	on_stats_changed.emit()
+	return {"low_delta": low_delta, "high_delta": high_delta, "total_delta": total_delta}
+
+func withdraw_investments_to_cash() -> int:
+	var total := get_total_investments()
+	if total <= 0:
+		return 0
+	current_balance += total
+	weekly_income += total
+	low_risk_investment = 0
+	high_risk_investment = 0
+	on_stats_changed.emit()
+	return total
+
+func withdraw_investments_to_savings() -> int:
+	var total := get_total_investments()
+	if total <= 0:
+		return 0
+	savings += total
+	low_risk_investment = 0
+	high_risk_investment = 0
+	sync_savings_envelope()
+	on_stats_changed.emit()
+	return total
+
 func sync_savings_envelope() -> void:
 	for env in envelopes:
 		if env["category"] == "Savings":
@@ -337,6 +553,7 @@ func spend_from_category(category_name: String, amount: int) -> void:
 	on_stats_changed.emit()
 
 func snapshot_weekly_summary(week_num: int) -> Dictionary:
+	var combined_debt := get_total_debt_and_loans()
 	var summary_data := {
 		"week_num": week_num,
 		"income": weekly_income,
@@ -347,8 +564,8 @@ func snapshot_weekly_summary(week_num: int) -> Dictionary:
 		"goal_title": str(get_current_goal()["title"]),
 		"goal_target": get_goal_target(),
 		"goal_percent": get_goal_progress_percent(),
-		"total_debt": debt_balance,
-		"debt_delta": debt_balance - week_start_debt,
+		"total_debt": combined_debt,
+		"debt_delta": combined_debt - week_start_debt,
 		"happy": happy,
 		"happy_delta": happy - week_start_happy,
 		"social": social,
@@ -358,7 +575,7 @@ func snapshot_weekly_summary(week_num: int) -> Dictionary:
 	weekly_income = 0
 	weekly_expenses = 0
 	week_start_savings = savings
-	week_start_debt = debt_balance
+	week_start_debt = combined_debt
 	week_start_happy = happy
 	week_start_social = social
 	return summary_data
@@ -391,7 +608,7 @@ func get_live_summary_for_ai() -> String:
 		env_lines.append(env["category"] + ": PHP " + str(env["amount"]))
 	
 	var inst_total = get_total_monthly_installments()
-	var total_utilities_due = monthly_utilities + extra_utilities_this_month + inst_total
+	var total_utilities_due = monthly_utilities + extra_utilities_this_month + inst_total + monthly_family_support
 	var rent_env = get_envelope_amount("Rent")
 	var util_env = get_envelope_amount("Utilities")
 	var rent_shortfall = max(0, monthly_rent - rent_env)
@@ -407,9 +624,14 @@ func get_live_summary_for_ai() -> String:
 	summary += "- Chosen 1-Year Life Goal: \"" + str(goal["title"]) + "\" — Target Cost: PHP " + str(goal["cost"]) + " | Progress: PHP " + str(savings) + " / PHP " + str(goal["cost"]) + " (" + str(get_goal_progress_percent()) + "%, Need PHP " + str(goal_rem) + " more)\n"
 	summary += "- Available Cash (Current Balance): PHP " + str(current_balance) + "\n"
 	summary += "- Savings (Ipon in Bank, earns 2% monthly compounding interest): PHP " + str(savings) + " (Total Compounding Interest Earned So Far: PHP " + str(total_savings_interest_earned) + ")\n"
-	summary += "- Unpaid Debt Balance: PHP " + str(debt_balance) + " (5% monthly interest penalty if unpaid; >PHP 50,000 = Game Over)\n"
+	summary += "- Unpaid Overdue Debt Balance: PHP " + str(debt_balance) + " (5% monthly interest penalty if unpaid; Total Debt + Loans > PHP 50,000 = Game Over)\n"
+	summary += "- Active Simple Interest Loans (Lending Platform / 5-6): " + get_loans_summary_text() + " (Total Loan Balance: PHP " + str(get_total_active_loan_balance()) + ")\n"
 	summary += "- Credit Card Status: " + cc_status + " | Credit Score: " + str(credit_score) + "/100 (Need >=70 for Good standing)\n"
 	summary += "- Active Monthly Installments: " + get_installments_summary_text() + "\n"
+	summary += "- Investments Portfolio: Low-Risk Fund = PHP " + str(low_risk_investment) + " (+4%/mo steady) | High-Risk Stock = PHP " + str(high_risk_investment) + " (volatile) | Total Investment P&L = PHP " + str(total_investment_gains) + "\n"
+	summary += "- Side Hustle / Freelance Status: " + ("Active (+PHP 5,000/mo, -3 Happy & -2 Social/week)" if has_side_income else "None") + " | Regular Family Support Obligation: PHP " + str(monthly_family_support) + "/mo\n"
+	if health_issue_delayed:
+		summary += "  [HEALTH WARNING: Player delayed medical treatment in Stage 3—at risk of severe health complication!]\n"
 	summary += "- Phone Status: " + ("Slow Phone (2s lag per tap)" if phone_is_slow else ("Upgraded Plan (PHP 1,200/mo)" if phone_upgraded else "Normal")) + "\n"
 	summary += "- Well-Being Meters: Happiness = " + str(happy) + "/100, Sociability/Relationships = " + str(social) + "/100 (Need >=50 by year-end; 5 consecutive days at 0 = Game Over)\n"
 	if days_at_zero_happiness > 0:
@@ -419,5 +641,5 @@ func get_live_summary_for_ai() -> String:
 	summary += "- This Week's Tracker: Income = PHP " + str(weekly_income) + " | Expenses = PHP " + str(weekly_expenses) + "\n"
 	summary += "- Active Daily Routine Settings: Food = " + food_mode + " | Commute = " + commute_mode + " (Total Daily Routine = PHP " + str(get_daily_food_cost() + get_daily_commute_cost()) + "/day)\n"
 	summary += "- Cash Envelopes Allocated: " + ", ".join(env_lines) + "\n"
-	summary += "- End-of-Month Fixed Bills Forecast: Rent Due = PHP " + str(monthly_rent) + " (Shortfall in Rent Envelope: PHP " + str(rent_shortfall) + "), Utilities + Installments Due = PHP " + str(total_utilities_due) + " (Shortfall in Utilities Envelope: PHP " + str(util_shortfall) + ")\n"
+	summary += "- End-of-Month Fixed Bills Forecast: Rent Due = PHP " + str(monthly_rent) + " (Shortfall in Rent Envelope: PHP " + str(rent_shortfall) + "), Utilities + Installments + Family Support Due = PHP " + str(total_utilities_due) + " (Shortfall in Utilities Envelope: PHP " + str(util_shortfall) + ")\n"
 	return summary

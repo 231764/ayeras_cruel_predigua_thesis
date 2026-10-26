@@ -322,6 +322,418 @@
           "next_event_id": ""
         }
       ]
+    },
+    {
+      "id": "interest_applied",
+      "title": "Interest Applied sa Unpaid Balances!",
+      "description": "Pumatong na ang interest (+PHP 500–PHP 1,500) sa iyong hindi pa bayad na Credit o Utang! Kahit wala kang bagong binibili, lumalaki ang utang kapag may natitirang balanse.",
+      "is_direct": true,
+      "stage": 3,
+      "options": [
+        {
+          "choice_text": "Bayaran agad ang Interest sa Cash (PHP 500 — +1 Credit Score)",
+          "cost": 500,
+          "credit_score_change": 1,
+          "happy_change": -1,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Idagdag sa utang/credit balance (+PHP 500 Obligation, -3 Credit Score)",
+          "cost": 0,
+          "add_interest_to_balance": 500,
+          "credit_score_change": -3,
+          "happy_change": -3,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "personal_health_issue",
+      "title": "Nagkasakit Ka Dahil sa Pagod (PHP 2,500)",
+      "description": "Nakaramdam ka ng matinding lagnat at ubo dahil sa puyat at trabaho. Kailangan ng PHP 2,500 para sa konsultasyon at gamot. Kung ipagpapaliban mo ito, pwedeng lumala ang sakit mo!",
+      "is_direct": true,
+      "stage": 3,
+      "options": [
+        {
+          "choice_text": "Magpacheck-up at bumili ng gamot agad (PHP 2,500 Cash)",
+          "cost": 2500,
+          "set_health_delayed": false,
+          "happy_change": 4,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-charge sa Credit Card (+PHP 2,500 Credit)",
+          "cost": 0,
+          "credit_cost": 2500,
+          "set_health_delayed": false,
+          "happy_change": 3,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-delay muna ang pagpapagamot (PHP 0 — Pwedeng lumala!)",
+          "cost": 0,
+          "set_health_delayed": true,
+          "happy_change": -5,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "health_complication",
+      "title": "Lumala ang Sakit Mo! (ER Confinement)",
+      "description": "Dahil tiniis at ipinagpaliban mo ang pagpapagamot noong nakaraang buwan, bumagsak ang katawan mo at dinala ka sa Emergency Room! Umabot sa PHP 6,000 ang hospital bill.",
+      "is_direct": true,
+      "stage": 3,
+      "options": [
+        {
+          "choice_text": "Bayaran ang ER Bill sa Cash (PHP 6,000)",
+          "cost": 6000,
+          "set_health_delayed": false,
+          "happy_change": -6,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-swipe sa Credit Card (+PHP 6,000 Credit)",
+          "cost": 0,
+          "credit_cost": 6000,
+          "set_health_delayed": false,
+          "happy_change": -6,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "emergency_loan_5_6",
+      "title": "Emergency Loan Offer ('5-6' Lender)",
+      "description": "May lumapit na lokal na nagpapautang ng '5-6' para sa mabilisang pera: Hiram ng PHP 5,000 ngayon -> Bayad ng PHP 7,000 (40% Simple Interest sa loob ng 2 buwan, PHP 3,500/buwan). Tatanggapin mo ba?",
+      "is_direct": true,
+      "stage": 3,
+      "options": [
+        {
+          "choice_text": "Tanggapin ang 5-6 Loan (+PHP 5,000 Cash ngayon, PHP 7,000 ang babayaran)",
+          "cost": 0,
+          "take_loan": {
+            "id": "loan_5_6",
+            "name": "5-6 Emergency Loan",
+            "principal": 5000,
+            "monthly_rate": 0.20,
+            "term_months": 2
+          },
+          "credit_score_change": -4,
+          "happy_change": -2,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Tanggihan ang 5-6 — Iwas sa predatory interest! (+2 Credit Score)",
+          "cost": 0,
+          "credit_score_change": 2,
+          "happy_change": 1,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "sibling_hospitalized",
+      "title": "Na-ospital si Kapatid (PHP 5,000)",
+      "description": "Isinugod sa ospital ang kapatid mo at kailangan ng PHP 5,000 bilang paunang bayad sa confinement. Humihingi ng tulong ang pamilya mo.",
+      "is_direct": false,
+      "stage": 3,
+      "options": [
+        {
+          "choice_text": "Magpadala agad ng PHP 5,000 sa Cash",
+          "cost": 5000,
+          "happy_change": 2,
+          "social_change": 6,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-charge sa Credit Card (+PHP 5,000 Credit)",
+          "cost": 0,
+          "credit_cost": 5000,
+          "happy_change": 1,
+          "social_change": 6,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Magpadala ng kalahati muna (PHP 2,500)",
+          "cost": 2500,
+          "happy_change": -3,
+          "social_change": -4,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Wala talagang maipapadala ngayon (PHP 0)",
+          "cost": 0,
+          "happy_change": -8,
+          "social_change": -12,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "inflation_hits_essentials",
+      "title": "Inflation Hits Essentials (+PHP 2,000/buwan sa Pagkain)",
+      "description": "Tumaas ang presyo ng bigas, gulay, at karne sa palengke! Tumaas ng ~PHP 2,000 kada buwan (+PHP 65/araw) ang gastusin sa pagkain.",
+      "is_direct": false,
+      "stage": 3,
+      "options": [
+        {
+          "choice_text": "Tanggapin at i-adjust ang Food budget (+PHP 65/araw sa Pagkain)",
+          "cost": 0,
+          "daily_food_mod": 65,
+          "happy_change": -3,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Mag-meal prep at magluto sa bahay (+PHP 65/araw, Switch to Cook)",
+          "cost": 0,
+          "daily_food_mod": 65,
+          "set_daily_food": 0,
+          "happy_change": -2,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "credit_limit_increased",
+      "title": "Tumaas ang Credit Limit Mo (PHP 20k -> PHP 35k)!",
+      "description": "Nag-message ang bangko: itinaas na sa PHP 35,000 ang iyong Credit Card limit! Nakakatuksong gumastos nang mas malaki dahil sa dagdag na limit.",
+      "is_direct": false,
+      "stage": 3,
+      "options": [
+        {
+          "choice_text": "Tanggapin ang PHP 35,000 Limit para lang sa emergencies",
+          "cost": 0,
+          "unlock_credit_card": true,
+          "credit_limit": 35000,
+          "happy_change": 2,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Tanggapin ang PHP 35,000 Limit at mag-shopping! (+PHP 4,000 Credit)",
+          "cost": 0,
+          "unlock_credit_card": true,
+          "credit_limit": 35000,
+          "credit_cost": 4000,
+          "credit_score_change": -2,
+          "happy_change": 10,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Tanggihan ang limit increase — iwas tukso sa utang (+2 Credit Score)",
+          "cost": 0,
+          "credit_score_change": 2,
+          "happy_change": 1,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "side_income_opportunity",
+      "title": "Side Income / Freelance Opportunity (+PHP 5,000/buwan)",
+      "description": "May nag-alok sa iyo ng part-time freelance gig pagkatapos ng regular work mo! Kikita ka ng dagdag na PHP 5,000 kada buwan (+PHP 2,500 bawat kinsenas), pero nakakapagod ito at mababawasan ang oras mo sa sarili at pamilya.",
+      "is_direct": true,
+      "stage": 4,
+      "options": [
+        {
+          "choice_text": "Tanggapin ang Side Hustle (+PHP 5,000/buwan, -4 Happy, -3 Social)",
+          "cost": 0,
+          "set_side_income": true,
+          "happy_change": -4,
+          "social_change": -3,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Tanggihan — Unahin ang pahinga at mental health (+3 Happy, +2 Social)",
+          "cost": 0,
+          "set_side_income": false,
+          "happy_change": 3,
+          "social_change": 2,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "investment_opportunity",
+      "title": "Investment Opportunity (Minimum PHP 3,000)",
+      "description": "May pagkakataon kang mag-invest ng PHP 3,000 para mapalago ang pera mo! Pwedeng ilagay sa Low-Risk Mutual Fund (steady, mabagal na kita) o sa High-Risk Stock (pwedeng lumaki nang malaki o bumagsak). Pwede mo rin itong buksan sa Invest App sa Phone!",
+      "is_direct": true,
+      "stage": 4,
+      "options": [
+        {
+          "choice_text": "Mag-invest sa Low-Risk Fund (PHP 3,000 — Steady +3% to +5%/buwan)",
+          "cost": 0,
+          "invest_low_risk": 3000,
+          "happy_change": 3,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Mag-invest sa High-Risk Stock (PHP 3,000 — Volatile -15% to +25%)",
+          "cost": 0,
+          "invest_high_risk": 3000,
+          "happy_change": 4,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Huwag munang mag-invest — Ipon sa bangko muna (PHP 0)",
+          "cost": 0,
+          "happy_change": 0,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "emergency_fund_decision",
+      "title": "Emergency Fund Decision (Magtabi ng PHP 5,000)",
+      "description": "Payo ni Baldo at ng mga financial experts: magtabi ng dagdag na PHP 5,000 sa iyong Ipon / Emergency Fund bago dumating ang mabibigat na buwan ng ber-months. Magtatabi ka ba ngayon?",
+      "is_direct": true,
+      "stage": 4,
+      "options": [
+        {
+          "choice_text": "Magtabi ng PHP 5,000 sa Ipon / Emergency Fund (+2% Compounding/mo)",
+          "cost": 0,
+          "deposit_to_savings": 5000,
+          "credit_score_change": 2,
+          "happy_change": 4,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Magtabi ng kalahati (PHP 2,500 sa Ipon)",
+          "cost": 0,
+          "deposit_to_savings": 2500,
+          "credit_score_change": 1,
+          "happy_change": 2,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-skip muna ang pag-iipon — Hawak muna ang cash (PHP 0)",
+          "cost": 0,
+          "happy_change": -2,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "sibling_condition_worsens",
+      "title": "Lumala ang Lagay ni Kapatid sa Ospital (PHP 10,000)",
+      "description": "Lumaki ang hospital bills ng kapatid mo dahil sa karagdagang tests at gamot. Kailangan ng dagdag na PHP 10,000 para makalabas siya ng ospital.",
+      "is_direct": false,
+      "stage": 4,
+      "options": [
+        {
+          "choice_text": "Bayaran nang buo sa Cash (PHP 10,000)",
+          "cost": 10000,
+          "happy_change": 4,
+          "social_change": 8,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "I-charge sa Credit Card (+PHP 10,000 Credit)",
+          "cost": 0,
+          "credit_cost": 10000,
+          "happy_change": 2,
+          "social_change": 8,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Magpadala ng PHP 5,000 na kaya ng budget",
+          "cost": 5000,
+          "happy_change": -4,
+          "social_change": -4,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Hindi talaga kaya ngayon (PHP 0)",
+          "cost": 0,
+          "happy_change": -10,
+          "social_change": -12,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "investment_fluctuation",
+      "title": "Investment Market Fluctuation Update",
+      "description": "Nagbago ang galaw ng merkado ngayong buwan! Ang Low-Risk Fund ay nagbibigay ng steady return (+3% to +5%), habang ang High-Risk Stock ay malakas ang galaw (-12% to +20%).",
+      "is_direct": false,
+      "stage": 4,
+      "options": [
+        {
+          "choice_text": "I-hold ang Portfolio sa Market Rally (Low-Risk +5%, High-Risk +20%)",
+          "cost": 0,
+          "apply_investment_rates": {
+            "low_rate": 0.05,
+            "high_rate": 0.20
+          },
+          "happy_change": 5,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Market Dip / Conservative Rebalance (Low-Risk +3%, High-Risk -12%)",
+          "cost": 0,
+          "apply_investment_rates": {
+            "low_rate": 0.03,
+            "high_rate": -0.12
+          },
+          "happy_change": -2,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "family_pressure_increases",
+      "title": "Family Pressure: Regular Monthly Padala (+PHP 3,000/buwan)",
+      "description": "Dahil ilang buwan ka nang nagtatrabaho, umaasa na ang pamilya mo ng regular na buwanang suporta na PHP 3,000 kada buwan bukod pa sa sarili mong gastusin.",
+      "is_direct": false,
+      "stage": 4,
+      "options": [
+        {
+          "choice_text": "Mangakong magpapadala ng PHP 3,000 kada buwan (+PHP 3,000/mo Bill)",
+          "cost": 0,
+          "monthly_family_support_mod": 3000,
+          "happy_change": 2,
+          "social_change": 7,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Makipag-usap na PHP 1,500/buwan lang ang kakayanin (+PHP 1,500/mo Bill)",
+          "cost": 0,
+          "monthly_family_support_mod": 1500,
+          "happy_change": -2,
+          "social_change": -2,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Magtakda ng boundaries — tumulong lang kapag emergency (PHP 0/mo)",
+          "cost": 0,
+          "monthly_family_support_mod": 0,
+          "happy_change": -4,
+          "social_change": -8,
+          "next_event_id": ""
+        }
+      ]
     }
   ]
 }

@@ -23,6 +23,8 @@ func _button_pressed() -> void:
 		if child is Label and child.name.ends_with("Label"):
 			child.visible = false
 		if child.name == "Stat System":
+			if child.has_method("stop_auto_advance"):
+				child.stop_auto_advance()
 			child.visible = false
 
 func _process(_delta: float) -> void:

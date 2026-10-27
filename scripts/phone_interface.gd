@@ -173,6 +173,14 @@ func _on_baldo_button_pressed() -> void:
 	await _apply_phone_lag_if_needed()
 	chat_panel.show()
 
+func open_baldo_chat_direct() -> void:
+	event_detail_panel.hide()
+	if loans_panel:
+		loans_panel.hide()
+	if invest_panel:
+		invest_panel.hide()
+	chat_panel.show()
+
 func _on_close_chat_button_pressed() -> void:
 	chat_panel.hide()
 

@@ -11,8 +11,11 @@ extends Node2D
 @export var status_report_label: RichTextLabel
 
 @onready var next_phase_button: Button = $NextPhaseButton
+@onready var auto_advance_button: Button = get_node_or_null("AutoAdvanceButton")
 @onready var goal_button: Button = $GoalButton
 @onready var savings_jar_button: Button = $SavingsJarButton
+@onready var envelope_runway_label: RichTextLabel = get_node_or_null("EnvelopeRunwayPanel/HBoxContainer/EnvelopeRunwayLabel")
+@onready var baldo_toast_label: RichTextLabel = get_node_or_null("BaldoToastPanel/HBoxContainer/BaldoToastLabel")
 @onready var food_option: OptionButton = $DailyRoutinePanel/VBoxContainer/FoodHBox/FoodOption
 @onready var commute_option: OptionButton = $DailyRoutinePanel/VBoxContainer/CommuteHBox/CommuteOption
 
@@ -21,19 +24,47 @@ var is_modal_open: bool = false
 var is_game_over: bool = false
 var pending_desk_tool_to_open: String = ""
 
+var is_auto_advancing: bool = false
+var auto_advance_timer: Timer = null
+var auto_pause_override_reason: String = ""
+var _auto_started_with_food_env: bool = false
+var _auto_started_with_trans_env: bool = false
+var _auto_started_with_healthy_happy: bool = false
+var _auto_started_with_healthy_social: bool = false
+
+var _stats_baseline_initialized: bool = false
+var _prev_balance: int = 0
+var _prev_savings: int = 0
+var _prev_credit_balance: int = 0
+var _prev_credit_score: int = 0
+var _prev_debt: int = 0
+var _prev_happy: int = 0
+var _prev_social: int = 0
+var recent_floating_popups_count: int = 0
+var last_floating_popup_text: String = ""
+
 func _ready() -> void:
+	auto_advance_timer = Timer.new()
+	auto_advance_timer.wait_time = 0.22
+	auto_advance_timer.one_shot = false
+	auto_advance_timer.timeout.connect(_on_auto_advance_tick)
+	add_child(auto_advance_timer)
+	
 	update_ui()
 	StatManager.on_stats_changed.connect(update_ui)
 	
 	EventManager.on_direct_event_triggered.connect(func(_event_data):
+		stop_auto_advance()
 		_update_next_button_visibility()
 	)
 	
 	EventManager.on_indirect_event_triggered.connect(func(_event_data):
+		stop_auto_advance()
 		update_ui()
 	)
 	
 	EventManager.on_event_resolved.connect(func(_id):
+		auto_pause_override_reason = ""
 		update_ui()
 		_update_next_button_visibility()
 	)
@@ -50,10 +81,24 @@ func _start_initial_day() -> void:
 	receive_salary()
 
 func _update_next_button_visibility() -> void:
+	var can_advance := (not EventManager.is_direct_event_active) and (not is_modal_open) and (not is_game_over)
 	if next_phase_button:
-		next_phase_button.visible = (not EventManager.is_direct_event_active) and (not is_modal_open) and (not is_game_over)
+		next_phase_button.visible = can_advance
+		if StatManager.current_phase > 0:
+			next_phase_button.text = "▶ Finish Day"
+		else:
+			next_phase_button.text = "▶ Next Day"
+	if auto_advance_button:
+		auto_advance_button.visible = can_advance
+		if is_auto_advancing:
+			auto_advance_button.text = "⏸ Pause"
+			auto_advance_button.modulate = Color(1.0, 0.9, 0.4, 1.0)
+		else:
+			auto_advance_button.text = "⏩ Auto-Play"
+			auto_advance_button.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func enqueue_modal(task: Callable) -> void:
+	stop_auto_advance()
 	modal_queue.append(task)
 	if not is_modal_open:
 		_run_next_modal()
@@ -76,6 +121,7 @@ func _run_next_modal() -> void:
 	next_task.call()
 
 func _open_desk_tool_by_name(tool_name: String) -> void:
+	stop_auto_advance()
 	var parent_desk = get_parent()
 	if not parent_desk:
 		return
@@ -87,6 +133,24 @@ func _open_desk_tool_by_name(tool_name: String) -> void:
 		var p_btn = parent_desk.get_node_or_null("Planner Button")
 		if p_btn and p_btn.has_method("_button_pressed"):
 			p_btn._button_pressed()
+	elif tool_name == "phone" or tool_name == "baldo_chat":
+		var ph_btn = parent_desk.get_node_or_null("Phone Button")
+		if ph_btn and ph_btn.has_method("_button_pressed"):
+			ph_btn._button_pressed()
+		if tool_name == "baldo_chat":
+			var ph_ui = parent_desk.get_node_or_null("Phone Node/Phone Interface")
+			if ph_ui and ph_ui.has_method("open_baldo_chat_direct"):
+				ph_ui.open_baldo_chat_direct()
+
+func _on_quick_budget_pressed() -> void:
+	if is_modal_open or EventManager.is_direct_event_active or is_game_over:
+		return
+	_open_desk_tool_by_name("budget")
+
+func _on_ask_baldo_pressed() -> void:
+	if is_modal_open or EventManager.is_direct_event_active or is_game_over:
+		return
+	_open_desk_tool_by_name("baldo_chat")
 
 func spawn_dialog(dialog: AcceptDialog) -> void:
 	enqueue_modal(func():
@@ -181,7 +245,153 @@ func update_ui() -> void:
 		if commute_option.selected != StatManager.daily_commute_choice:
 			commute_option.selected = StatManager.daily_commute_choice
 			
+	_check_and_spawn_floating_deltas()
+	_update_envelope_runway_ui()
+	_update_baldo_toast_ui()
+	_update_next_button_visibility()
 	_update_status_report()
+
+func _check_and_spawn_floating_deltas() -> void:
+	var cur_debt_total := StatManager.get_total_debt_and_loans()
+	if not _stats_baseline_initialized:
+		_prev_balance = StatManager.current_balance
+		_prev_savings = StatManager.savings
+		_prev_credit_balance = StatManager.credit_balance
+		_prev_credit_score = StatManager.credit_score
+		_prev_debt = cur_debt_total
+		_prev_happy = StatManager.happy
+		_prev_social = StatManager.social
+		_stats_baseline_initialized = true
+		return
+		
+	if StatManager.current_balance != _prev_balance:
+		var diff := StatManager.current_balance - _prev_balance
+		_prev_balance = StatManager.current_balance
+		spawn_floating_delta(current_balance, ("+PHP " if diff > 0 else "-PHP ") + str(abs(diff)), Color(0.25, 1.0, 0.35) if diff > 0 else Color(1.0, 0.35, 0.35))
+		
+	if StatManager.savings != _prev_savings:
+		var diff := StatManager.savings - _prev_savings
+		_prev_savings = StatManager.savings
+		spawn_floating_delta(savings, ("+PHP " if diff > 0 else "-PHP ") + str(abs(diff)) + " Ipon", Color(0.3, 0.9, 1.0) if diff > 0 else Color(1.0, 0.75, 0.3))
+		
+	if StatManager.credit_balance != _prev_credit_balance:
+		var diff := StatManager.credit_balance - _prev_credit_balance
+		_prev_credit_balance = StatManager.credit_balance
+		spawn_floating_delta(credit_balance, ("+PHP " if diff > 0 else "-PHP ") + str(abs(diff)) + " Credit", Color(1.0, 0.65, 0.25) if diff > 0 else Color(0.3, 1.0, 0.5))
+		
+	if StatManager.credit_score != _prev_credit_score:
+		var diff := StatManager.credit_score - _prev_credit_score
+		_prev_credit_score = StatManager.credit_score
+		spawn_floating_delta(credit_score, ("+" if diff > 0 else "") + str(diff) + " CS", Color(0.3, 1.0, 0.4) if diff > 0 else Color(1.0, 0.3, 0.3))
+		
+	if cur_debt_total != _prev_debt:
+		var diff := cur_debt_total - _prev_debt
+		_prev_debt = cur_debt_total
+		spawn_floating_delta(debt_balance, ("+PHP " if diff > 0 else "-PHP ") + str(abs(diff)) + " Debt", Color(1.0, 0.25, 0.25) if diff > 0 else Color(0.3, 1.0, 0.4))
+		
+	if StatManager.happy != _prev_happy:
+		var diff := StatManager.happy - _prev_happy
+		_prev_happy = StatManager.happy
+		spawn_floating_delta(happy_bar, ("+" if diff > 0 else "") + str(diff) + " Happy", Color(0.3, 1.0, 0.4) if diff > 0 else Color(1.0, 0.4, 0.4))
+		
+	if StatManager.social != _prev_social:
+		var diff := StatManager.social - _prev_social
+		_prev_social = StatManager.social
+		spawn_floating_delta(social_bar, ("+" if diff > 0 else "") + str(diff) + " Social", Color(0.3, 0.9, 1.0) if diff > 0 else Color(1.0, 0.45, 0.35))
+
+func spawn_floating_delta(target_node: Control, text_str: String, color: Color) -> void:
+	recent_floating_popups_count += 1
+	last_floating_popup_text = text_str
+	if not target_node or not is_inside_tree():
+		return
+	var lbl := Label.new()
+	lbl.text = text_str
+	lbl.z_index = 25
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
+	lbl.add_theme_constant_override("outline_size", 4)
+	lbl.add_theme_font_size_override("font_size", 16)
+	var base_pos := target_node.global_position + Vector2(20, -6)
+	lbl.global_position = base_pos
+	add_child(lbl)
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(lbl, "global_position", base_pos + Vector2(0, -26), 0.75)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.75)
+	tw.chain().tween_callback(lbl.queue_free)
+
+func _update_envelope_runway_ui() -> void:
+	if not envelope_runway_label:
+		return
+	var daily_food: int = max(1, StatManager.get_daily_food_cost())
+	var food_env: int = StatManager.get_envelope_amount("Food")
+	var food_days: int = int(food_env / daily_food)
+	var food_col := "green" if food_days >= 5 else ("yellow" if food_env > 0 else "red")
+	
+	var daily_trans: int = max(1, StatManager.get_daily_commute_cost())
+	var trans_env: int = StatManager.get_envelope_amount("Transportation")
+	var trans_days: int = int(trans_env / daily_trans)
+	var trans_col := "green" if trans_days >= 5 else ("yellow" if trans_env > 0 else "red")
+	
+	var ent_env: int = StatManager.get_envelope_amount("Entertainment")
+	var rent_env: int = StatManager.get_envelope_amount("Rent")
+	var rent_ok: bool = (rent_env >= StatManager.monthly_rent)
+	var rent_col := "green" if rent_ok else "orange"
+	var rent_icon := "✅" if rent_ok else "⚠️"
+	
+	var total_util: int = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments() + StatManager.monthly_family_support
+	var util_env: int = StatManager.get_envelope_amount("Utilities")
+	var util_ok: bool = (util_env >= total_util)
+	var util_col := "green" if util_ok else "orange"
+	var util_icon := "✅" if util_ok else "⚠️"
+	
+	envelope_runway_label.text = (
+		"🍔 Pagkain: [color=" + food_col + "]PHP " + str(food_env) + " (" + str(food_days) + "d)[/color] | " +
+		"🚌 Byahe: [color=" + trans_col + "]PHP " + str(trans_env) + " (" + str(trans_days) + "d)[/color] | " +
+		"🎉 Libangan: PHP " + str(ent_env) + " | " +
+		"🏠 Upa: [color=" + rent_col + "]PHP " + str(rent_env) + "/" + str(StatManager.monthly_rent) + " " + rent_icon + "[/color] | " +
+		"⚡ Bills: [color=" + util_col + "]PHP " + str(util_env) + "/" + str(total_util) + " " + util_icon + "[/color]"
+	)
+
+func get_live_baldo_desk_tip() -> String:
+	if auto_pause_override_reason != "":
+		return "⏸️ [b][color=yellow]Baldo (Auto-Paused):[/color][/b] " + auto_pause_override_reason
+		
+	if EventManager.active_events.size() > 0:
+		var ev_title := str(EventManager.active_events[0].get("title", "New Message"))
+		return "📱 [b][color=orange]Baldo:[/color][/b] Uy par, may unread notification ka sa Phone ([i]\"" + ev_title + "\"[/i])! Buksan ang Phone bago matapos ang araw."
+		
+	if StatManager.happy < 40 or StatManager.social < 40:
+		return "⚠️ [b][color=red]Baldo:[/color][/b] Mababa na ang Happiness (" + str(StatManager.happy) + ") o Social (" + str(StatManager.social) + ") mo! Mag-Angkas/Mag-order muna para iwas Burnout!"
+		
+	var food_env := StatManager.get_envelope_amount("Food")
+	var trans_env := StatManager.get_envelope_amount("Transportation")
+	var rent_env := StatManager.get_envelope_amount("Rent")
+	var util_env := StatManager.get_envelope_amount("Utilities")
+	var total_util := StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments() + StatManager.monthly_family_support
+	
+	if StatManager.employment_status == "laid_off":
+		return "🛡️ [b][color=yellow]Baldo:[/color][/b] Laid Off tayo ngayon par—gamitin ang Severance/Emergency Fund sa Ipon at Todo Tipid Mode para di mabaon sa utang!"
+		
+	if (StatManager.current_day == 1 or StatManager.current_day == 15) and (rent_env < StatManager.monthly_rent or food_env < StatManager.get_daily_food_cost() * 5):
+		return "💰 [b][color=lightblue]Baldo:[/color][/b] Sahod Day ngayon! I-click ang [b]'📂 Budget Now'[/b] para pondohan ang Upa, Bills, at 15-day Pagkain/Byahe envelopes!"
+		
+	if food_env == 0 or trans_env == 0:
+		return "🍔 [b][color=orange]Baldo:[/color][/b] Walang laman ang Pagkain o Byahe envelope mo! Bumabawas na tayo direkta sa Pocket Cash—mag-allocate sa Budget Envelopes."
+		
+	if StatManager.current_day >= 23 and (rent_env < StatManager.monthly_rent or util_env < total_util):
+		var short_amt: int = max(0, StatManager.monthly_rent - rent_env) + max(0, total_util - util_env)
+		return "🏠 [b][color=orange]Baldo:[/color][/b] Malapit na ang Katapusan! Kulang pa ng PHP " + str(short_amt) + " ang Upa/Bills envelopes mo para sa auto-pay (+2 Credit Score)."
+		
+	if StatManager.credit_balance > 0 and StatManager.current_day >= 20:
+		return "💳 [b][color=yellow]Baldo:[/color][/b] May PHP " + str(StatManager.credit_balance) + " Credit Card balance ka! Bayaran nang buo sa Statement (Day 25) para iwas 5% interest."
+		
+	return "🔥 [b][color=lightgreen]Baldo:[/color][/b] Solid ang envelope runway mo par! Pwede kang mag-[b]⏩ Auto-Play[/b] o maghulog ng sobrang cash sa Ipon (+2%/mo)!"
+
+func _update_baldo_toast_ui() -> void:
+	if baldo_toast_label:
+		baldo_toast_label.text = get_live_baldo_desk_tip()
 
 func _update_status_report() -> void:
 	if not status_report_label:
@@ -248,6 +458,106 @@ func debt_calc(amount: int) -> void:
 	StatManager.debt_balance = max(0, StatManager.debt_balance + amount)
 	StatManager.on_stats_changed.emit()
 
+func toggle_auto_advance() -> void:
+	if is_auto_advancing:
+		stop_auto_advance()
+		return
+	if EventManager.is_direct_event_active or is_modal_open or is_game_over:
+		return
+	if EventManager.active_events.size() > 0:
+		_show_notification_warning()
+		return
+	auto_pause_override_reason = ""
+	_auto_started_with_food_env = (StatManager.get_envelope_amount("Food") > 0)
+	_auto_started_with_trans_env = (StatManager.get_envelope_amount("Transportation") > 0)
+	_auto_started_with_healthy_happy = (StatManager.happy >= 35)
+	_auto_started_with_healthy_social = (StatManager.social >= 35)
+	is_auto_advancing = true
+	if auto_advance_timer:
+		auto_advance_timer.start()
+	_update_next_button_visibility()
+	_on_auto_advance_tick()
+
+func stop_auto_advance(reason: String = "") -> void:
+	if reason != "":
+		auto_pause_override_reason = reason
+	if is_auto_advancing:
+		is_auto_advancing = false
+		if auto_advance_timer:
+			auto_advance_timer.stop()
+		_update_next_button_visibility()
+		_update_baldo_toast_ui()
+	elif reason != "":
+		_update_baldo_toast_ui()
+
+func _on_auto_advance_tick() -> void:
+	if not is_auto_advancing:
+		return
+	if EventManager.is_direct_event_active or is_modal_open or is_game_over or EventManager.active_events.size() > 0:
+		stop_auto_advance()
+		return
+	advance_day(true)
+	# Smart Safety Auto-Pause Checks
+	if _auto_started_with_food_env and StatManager.get_envelope_amount("Food") == 0:
+		stop_auto_advance("Ubos na ang Pagkain Envelope mo! Mag-reload sa '📂 Budget Now' para di mabawasan ang Pocket Cash.")
+		return
+	if _auto_started_with_trans_env and StatManager.get_envelope_amount("Transportation") == 0:
+		stop_auto_advance("Ubos na ang Byahe Envelope mo! Mag-reload sa '📂 Budget Now' para di mabawasan ang Pocket Cash.")
+		return
+	if (_auto_started_with_healthy_happy and StatManager.happy < 35) or (_auto_started_with_healthy_social and StatManager.social < 35):
+		stop_auto_advance("Bumaba na sa <35 ang Happiness o Social mo! Mag-order/Mag-Angkas muna para iwas Burnout.")
+		return
+
+func advance_day(from_auto: bool = false) -> void:
+	if not from_auto:
+		auto_pause_override_reason = ""
+	if EventManager.is_direct_event_active or is_modal_open or is_game_over:
+		stop_auto_advance()
+		return
+		
+	# If already in Evening (phase 2) with unread notifications and player explicitly clicks Finish Day, show warning dialog
+	if StatManager.current_phase == 2 and EventManager.active_events.size() > 0:
+		stop_auto_advance()
+		_show_notification_warning()
+		return
+		
+	# Step through remaining intra-day phases (Morning -> Afternoon -> Evening), stopping only if an event triggers
+	while StatManager.current_phase < 2:
+		var prev_indirect_count := EventManager.active_events.size()
+		StatManager.current_phase += 1
+		update_ui()
+		EventManager.evaluate_daily_events()
+		
+		if EventManager.is_direct_event_active or is_modal_open or is_game_over:
+			stop_auto_advance()
+			update_ui()
+			return
+			
+		if EventManager.active_events.size() > prev_indirect_count:
+			stop_auto_advance()
+			
+	# At Evening (phase 2), if an Indirect Notification is pending on the Phone, pause cleanly at Evening and flash Phone
+	if EventManager.active_events.size() > 0:
+		stop_auto_advance()
+		_flash_phone_button()
+		update_ui()
+		return
+		
+	# Complete the day rollover into tomorrow Morning (phase 0)
+	StatManager.current_phase = 0
+	daily_cycle()
+	update_ui()
+	if not is_modal_open and not is_game_over:
+		var prev_ind := EventManager.active_events.size()
+		EventManager.evaluate_daily_events()
+		if EventManager.is_direct_event_active or EventManager.active_events.size() > prev_ind:
+			stop_auto_advance()
+			if EventManager.active_events.size() > prev_ind:
+				_flash_phone_button()
+	else:
+		stop_auto_advance()
+	update_ui()
+
 func advance_phase() -> void:
 	if EventManager.is_direct_event_active or is_modal_open or is_game_over:
 		print("Cannot advance phase while an event or modal is active!")
@@ -272,22 +582,23 @@ func advance_phase() -> void:
 		print("Phase advanced. Current Phase: ", StatManager.current_phase)
 		EventManager.evaluate_daily_events()
 
+func _flash_phone_button() -> void:
+	var parent_desk = get_parent()
+	if parent_desk:
+		var phone_btn = parent_desk.find_child("Phone Button", true, false)
+		if phone_btn:
+			var tween = create_tween()
+			tween.tween_property(phone_btn, "modulate", Color(1, 0.25, 0.25, 1), 0.18)
+			tween.tween_property(phone_btn, "modulate", Color(1, 1, 1, 1), 0.18)
+			tween.tween_property(phone_btn, "modulate", Color(1, 0.25, 0.25, 1), 0.18)
+			tween.tween_property(phone_btn, "modulate", Color(1, 1, 1, 1), 0.18)
+
 func _show_notification_warning() -> void:
 	var dialog = AcceptDialog.new()
 	dialog.title = "Unread Notifications"
 	dialog.dialog_text = "Hindi pwedeng matapos ang araw nang may unread notifications ka sa phone! Buksan ang Phone sa desk para basahin at sagutin."
 	spawn_dialog(dialog)
-	
-	# Make the phone button flash
-	var main_scene = get_tree().current_scene
-	if main_scene:
-		var phone_btn = main_scene.find_child("Phone Button", true, false)
-		if phone_btn:
-			var tween = create_tween()
-			tween.tween_property(phone_btn, "modulate", Color(1, 0, 0, 1), 0.2)
-			tween.tween_property(phone_btn, "modulate", Color(1, 1, 1, 1), 0.2)
-			tween.tween_property(phone_btn, "modulate", Color(1, 0, 0, 1), 0.2)
-			tween.tween_property(phone_btn, "modulate", Color(1, 1, 1, 1), 0.2)
+	_flash_phone_button()
 
 func daily_cycle() -> void:
 	# Process daily living costs before moving to the next day
@@ -345,10 +656,13 @@ func trigger_year_end_evaluation() -> void:
 	)
 
 func restart_new_year_run() -> void:
+	stop_auto_advance()
+	auto_pause_override_reason = ""
 	modal_queue.clear()
 	is_modal_open = false
 	is_game_over = false
 	pending_desk_tool_to_open = ""
+	_stats_baseline_initialized = false
 	StatManager.reset_for_new_run()
 	update_ui()
 	_update_next_button_visibility()

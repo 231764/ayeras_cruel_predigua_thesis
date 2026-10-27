@@ -60,9 +60,21 @@ size_flags_vertical = 3
 bbcode_enabled = true
 text = "Year-end report..."
 
-[node name="CloseButton" type="Button" parent="Backdrop/Panel/VBoxContainer"]
+[node name="ButtonsRow" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PlayAgainButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsRow"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Tapusin ang Taon (I-close ang Year-End Report)"
+size_flags_horizontal = 3
+text = "🔄 Maglaro Ulit (New 1-Year Run)"
 
-[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/CloseButton" to="." method="_on_close_button_pressed"]
+[node name="CloseButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsRow"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Tapusin ang Laro (Quit)"
+
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsRow/PlayAgainButton" to="." method="_on_play_again_button_pressed"]
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsRow/CloseButton" to="." method="_on_close_button_pressed"]

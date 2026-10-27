@@ -1,11 +1,13 @@
 extends CanvasLayer
 
 signal evaluation_closed
+signal play_again_requested
 
 @onready var title_label: Label = $Backdrop/Panel/VBoxContainer/TitleLabel
 @onready var subtitle_label: Label = $Backdrop/Panel/VBoxContainer/SubtitleLabel
 @onready var report_label: RichTextLabel = $Backdrop/Panel/VBoxContainer/ReportLabel
-@onready var close_button: Button = $Backdrop/Panel/VBoxContainer/CloseButton
+@onready var play_again_button: Button = $Backdrop/Panel/VBoxContainer/ButtonsRow/PlayAgainButton
+@onready var close_button: Button = $Backdrop/Panel/VBoxContainer/ButtonsRow/CloseButton
 
 var last_eval_data: Dictionary = {}
 
@@ -40,6 +42,10 @@ func show_year_end_evaluation() -> Dictionary:
 	report_label.text = txt
 	visible = true
 	return last_eval_data
+
+func _on_play_again_button_pressed() -> void:
+	visible = false
+	play_again_requested.emit()
 
 func _on_close_button_pressed() -> void:
 	visible = false

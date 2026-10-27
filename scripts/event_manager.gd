@@ -10,8 +10,19 @@ var current_direct_event: Dictionary = {}
 var event_history: Array = []
 var current_stage = 1
 var is_direct_event_active: bool = false
+var last_evaluated_phase_key: String = ""
 
 func _ready() -> void:
+	load_events_from_json("res://data/events.json")
+
+func reset_events() -> void:
+	event_pool.clear()
+	active_events.clear()
+	current_direct_event = {}
+	event_history.clear()
+	current_stage = 1
+	is_direct_event_active = false
+	last_evaluated_phase_key = ""
 	load_events_from_json("res://data/events.json")
 
 func load_events_from_json(path: String) -> void:
@@ -438,6 +449,10 @@ func evaluate_daily_events() -> void:
 	var month = StatManager.year[StatManager.current_month].month
 	var day = StatManager.current_day
 	var phase = StatManager.current_phase
+	var phase_key := str(StatManager.current_month) + "_" + str(day) + "_" + str(phase)
+	if last_evaluated_phase_key == phase_key:
+		return
+	last_evaluated_phase_key = phase_key
 	current_stage = StatManager.get_stage_info()["stage"]
 	
 	# STAGE 1: BUDGETING (January - February)

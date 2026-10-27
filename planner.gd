@@ -52,6 +52,7 @@ func make_buttons_for_month() -> void:
 		var button = Button.new()
 		var has_ev = PlannerManager.has_events_on_day(month_of_entry, day)
 		var has_nt = PlannerManager.has_notes_on_day(month_of_entry, day)
+		var has_ms = PlannerManager.has_scheduled_milestone(month_of_entry, day)
 		
 		var marker = ""
 		if has_ev and has_nt:
@@ -60,6 +61,8 @@ func make_buttons_for_month() -> void:
 			marker = " •"
 		elif has_nt:
 			marker = " *"
+		elif has_ms:
+			marker = " !"
 			
 		button.text = str(day) + marker
 		button.custom_minimum_size = Vector2(50, 50)
@@ -105,10 +108,16 @@ func replace_notes() -> void:
 func replace_events() -> void:
 	if event_label:
 		var recorded = PlannerManager.get_recorded_events(month_of_entry, day_of_entry)
-		if recorded == "":
+		var upcoming = PlannerManager.get_upcoming_milestones(month_of_entry, day_of_entry)
+		var combined := ""
+		if upcoming != "":
+			combined += upcoming + "\n"
+		if recorded != "":
+			combined += recorded
+		if combined == "":
 			event_label.text = "Mga Ganap:\nWalang ganap."
 		else:
-			event_label.text = "Mga Ganap:\n" + recorded
+			event_label.text = "Mga Ganap at Paalala:\n" + combined
 
 func finish_notes() -> void:
 	var date: int = day_of_entry

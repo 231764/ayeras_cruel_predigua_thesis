@@ -97,6 +97,7 @@ func spawn_dialog(dialog: AcceptDialog) -> void:
 			if closed:
 				return
 			closed = true
+			dialog.hide()
 			dialog.queue_free()
 			_run_next_modal()
 		dialog.confirmed.connect(on_close)
@@ -110,6 +111,7 @@ func trigger_goal_selection() -> void:
 		add_child(goal_instance)
 		goal_instance.show_goal_selection()
 		goal_instance.goal_modal_closed.connect(func():
+			goal_instance.visible = false
 			goal_instance.queue_free()
 			update_ui()
 			_run_next_modal()
@@ -125,6 +127,7 @@ func open_savings_and_goal_inspector() -> void:
 		add_child(goal_instance)
 		goal_instance.show_savings_and_goal_inspector()
 		goal_instance.goal_modal_closed.connect(func():
+			goal_instance.visible = false
 			goal_instance.queue_free()
 			update_ui()
 			_run_next_modal()
@@ -329,11 +332,27 @@ func trigger_year_end_evaluation() -> void:
 		var yee_instance = yee_scene.instantiate()
 		add_child(yee_instance)
 		yee_instance.show_year_end_evaluation()
+		yee_instance.play_again_requested.connect(func():
+			yee_instance.visible = false
+			yee_instance.queue_free()
+			restart_new_year_run()
+		)
 		yee_instance.evaluation_closed.connect(func():
+			yee_instance.visible = false
 			yee_instance.queue_free()
 			get_tree().quit()
 		)
 	)
+
+func restart_new_year_run() -> void:
+	modal_queue.clear()
+	is_modal_open = false
+	is_game_over = false
+	pending_desk_tool_to_open = ""
+	StatManager.reset_for_new_run()
+	update_ui()
+	_update_next_button_visibility()
+	_start_initial_day()
 	
 func receive_salary() -> void:
 	var base_salary = StatManager.base_biweekly_salary
@@ -398,6 +417,7 @@ func trigger_weekly_summary(week_num: int) -> void:
 			pending_desk_tool_to_open = action_name
 		)
 		summary_instance.summary_closed.connect(func():
+			summary_instance.visible = false
 			summary_instance.queue_free()
 			_run_next_modal()
 		)
@@ -471,6 +491,7 @@ func trigger_monthly_bills() -> void:
 			add_child(mbs_instance)
 			mbs_instance.setup_settlement(bill_month, bill_day, rent_amount, utilities_amount, savings_interest, debt_interest + cc_interest)
 			mbs_instance.settlement_completed.connect(func():
+				mbs_instance.visible = false
 				mbs_instance.queue_free()
 				update_ui()
 				_run_next_modal()
@@ -519,13 +540,21 @@ func trigger_game_over(reason: String) -> void:
 	is_game_over = true
 	modal_queue.clear()
 	_update_next_button_visibility()
-	var dialog = AcceptDialog.new()
+	var dialog = ConfirmationDialog.new()
 	dialog.title = "GAME OVER"
-	dialog.dialog_text = reason
+	dialog.dialog_text = reason + "\n\nGusto mo bang maglaro ulit (New 1-Year Run)?"
+	dialog.ok_button_text = "Maglaro Ulit (Restart)"
+	dialog.cancel_button_text = "Lumabas (Quit)"
 	add_child(dialog)
 	dialog.popup_centered()
-	dialog.confirmed.connect(func(): get_tree().quit())
-	dialog.canceled.connect(func(): get_tree().quit())
+	dialog.confirmed.connect(func():
+		dialog.queue_free()
+		restart_new_year_run()
+	)
+	dialog.canceled.connect(func():
+		dialog.queue_free()
+		get_tree().quit()
+	)
 	
 func _on_food_option_selected(index: int) -> void:
 	StatManager.daily_food_choice = index

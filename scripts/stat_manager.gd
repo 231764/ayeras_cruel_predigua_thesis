@@ -132,6 +132,65 @@ var week_start_social: int = 70
 func _ready() -> void:
 	pass
 
+func reset_for_new_run() -> void:
+	happy = 70
+	social = 70
+	current_balance = 5000
+	savings = 0
+	credit_score = 70
+	credit_balance = 0
+	debt_balance = 0
+	
+	has_credit_card = false
+	credit_limit = 0
+	total_credit_interest_incurred = 0
+	active_installments.clear()
+	active_loans.clear()
+	total_loan_interest_incurred = 0
+	health_issue_delayed = false
+	has_side_income = false
+	monthly_family_support = 0
+	low_risk_investment = 0
+	high_risk_investment = 0
+	total_investment_principal = 0
+	total_investment_gains = 0
+	phone_is_slow = false
+	phone_upgraded = false
+	selected_goal_index = 0
+	has_selected_goal = false
+	total_savings_interest_earned = 0
+	
+	employment_status = "regular"
+	base_biweekly_salary = 12500
+	monthly_rent = 6000
+	monthly_utilities = 2000
+	extra_utilities_this_month = 0
+	
+	daily_food_choice = 0
+	daily_commute_choice = 0
+	daily_food_modifier = 0
+	daily_commute_modifier = 0
+	
+	for env in envelopes:
+		env["amount"] = 0
+		
+	days_at_zero_happiness = 0
+	days_at_zero_social = 0
+	current_day = 1
+	current_month = 0
+	current_phase = 0
+	
+	weekly_income = 0
+	weekly_expenses = 0
+	week_start_savings = 0
+	week_start_debt = 0
+	week_start_happy = 70
+	week_start_social = 70
+	
+	EventManager.reset_events()
+	PlannerManager.reset_planner()
+	on_stats_changed.emit()
+
 func select_life_goal(index: int) -> void:
 	selected_goal_index = clamp(index, 0, life_goals.size() - 1)
 	has_selected_goal = true
@@ -592,7 +651,7 @@ func get_stage_info() -> Dictionary:
 		6, 7:
 			return {"stage": 4, "name": "Foundational Stage 4: Investments and Long-Term Planning", "theme": "I should think about the future despite chaos"}
 		_:
-			return {"stage": 5, "name": "Mastery Stage", "theme": "Situations keep getting worse. Can I manage until the end?"}
+			return {"stage": 5, "name": "Mastery Stage 5: Financial Resilience", "theme": "Situations keep getting worse. Can I manage until the end?"}
 
 func set_employment_status(status: String) -> void:
 	employment_status = status

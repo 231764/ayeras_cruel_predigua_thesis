@@ -1015,6 +1015,163 @@
           "next_event_id": ""
         }
       ]
+    },
+    {
+      "id": "micro_ulan_surge",
+      "title": "Biglaang Buhos ng Ulan at Surge Pricing",
+      "description": "Biglang bumuhos ang malakas na ulan habang pauwi ka! Mahaba ang pila sa sakayan at nag-surge ang presyo ng ride-hailing app. Kung may laman ang iyong Transportation Envelope, sasaluhin nito ang pamasahe mo.",
+      "is_direct": true,
+      "stage": 1,
+      "options": [
+        {
+          "choice_text": "Mag-book ng Angkas/Grab kahit surge (PHP 250 mula sa Transportation Envelope)",
+          "cost": 250,
+          "category": "Transportation",
+          "happy_change": 4,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Makipagsiksikan at pumila sa Jeep/Bus (PHP 80 mula sa Transportation Envelope)",
+          "cost": 80,
+          "category": "Transportation",
+          "happy_change": -3,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "micro_opisina_potluck",
+      "title": "Opisina Payday Potluck & Ambagan",
+      "description": "Nag-aya ang team mo sa opisina ng munting payday potluck! Pwede kang mag-ambag mula sa iyong Libangan Envelope o magluto ng simpleng pancit mula sa iyong Pagkain Envelope.",
+      "is_direct": false,
+      "stage": 1,
+      "options": [
+        {
+          "choice_text": "Mag-ambag sa potluck mula sa Libangan Envelope (PHP 300 — +4 Happy, +6 Social)",
+          "cost": 300,
+          "category": "Entertainment",
+          "happy_change": 4,
+          "social_change": 6,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Magdala ng lutong-bahay na pancit mula sa Pagkain Envelope (PHP 150 — +3 Happy, +5 Social)",
+          "cost": 150,
+          "category": "Food",
+          "happy_change": 3,
+          "social_change": 5,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Kumain na lang mag-isa ng sariling baon (PHP 0 — -2 Happy, -3 Social)",
+          "cost": 0,
+          "happy_change": -2,
+          "social_change": -3,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "micro_grocery_cashback",
+      "title": "Supermarket Bulk Tipid & Cashback Promo",
+      "description": "May weekend promo ang supermarket! Kapag bumili ka ng bulk grocery essentials (PHP 800 mula sa Pagkain Envelope), may instant +PHP 200 Cashback na deretso sa iyong Ipon (Savings)!",
+      "is_direct": true,
+      "stage": 2,
+      "options": [
+        {
+          "choice_text": "Kunin ang Bulk Grocery Promo (PHP 800 Food Env -> +PHP 200 Cashback sa Ipon, +3 Happy)",
+          "cost": 800,
+          "category": "Food",
+          "savings_bonus": 200,
+          "credit_score_change": 1,
+          "happy_change": 3,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Manatili muna sa tingi-tinging pamimili (PHP 0)",
+          "cost": 0,
+          "happy_change": 0,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "micro_meralco_tipid_reward",
+      "title": "Bantay-Kuryente Summer Tipid Challenge",
+      "description": "Sobrang init ngayong Mayo! Kung magtitipid ka sa kuryente at mag-a-unplug ng appliances sa gabi, makakakuha ka ng -PHP 400 rebate sa Utilities Bill ngayong katapusan.",
+      "is_direct": false,
+      "stage": 3,
+      "options": [
+        {
+          "choice_text": "Mag-tipid sa kuryente at mag-electric fan muna (-PHP 400 sa Utilities Bill, +1 Credit Score)",
+          "cost": 0,
+          "extra_utilities": -400,
+          "credit_score_change": 1,
+          "happy_change": -1,
+          "social_change": 0,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Buksan ang aircon/cooler para presko ang tulog (+PHP 300 sa Utilities Bill, +4 Happy)",
+          "cost": 0,
+          "extra_utilities": 300,
+          "happy_change": 4,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "micro_midyear_ukay_find",
+      "title": "Ukay-Ukay Office Clothes Steal",
+      "description": "Nakakita ka ng halos bagong blazer at office clothes sa ukay-ukay sa halagang PHP 350! Maganda ito para sa trabaho at kumpiyansa mo.",
+      "is_direct": false,
+      "stage": 4,
+      "options": [
+        {
+          "choice_text": "Bilhin gamit ang Libangan Envelope (PHP 350 — +5 Happy, +4 Social)",
+          "cost": 350,
+          "category": "Entertainment",
+          "happy_change": 5,
+          "social_change": 4,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Huwag munang bumili at magtipid (PHP 0)",
+          "cost": 0,
+          "happy_change": 0,
+          "social_change": 0,
+          "next_event_id": ""
+        }
+      ]
+    },
+    {
+      "id": "micro_ber_months_sideline",
+      "title": "Ber-Months Holiday Rush Sideline",
+      "description": "Dahil malapit na ang Pasko, may kakilala kang nag-aalok ng mabilisang weekend rush project na may bayad na +PHP 2,000 Cash agad!",
+      "is_direct": true,
+      "stage": 5,
+      "options": [
+        {
+          "choice_text": "Tanggapin ang Holiday Rush Sideline (+PHP 2,000 Cash Bonus, -3 Happy)",
+          "cost": -2000,
+          "credit_score_change": 1,
+          "happy_change": -3,
+          "social_change": -1,
+          "next_event_id": ""
+        },
+        {
+          "choice_text": "Ipahinga ang sarili at makipag-kwentuhan sa pamilya (PHP 0, +4 Happy, +3 Social)",
+          "cost": 0,
+          "happy_change": 4,
+          "social_change": 3,
+          "next_event_id": ""
+        }
+      ]
     }
   ]
 }

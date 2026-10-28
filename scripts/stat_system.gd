@@ -49,6 +49,7 @@ func _ready() -> void:
 	auto_advance_timer.one_shot = false
 	auto_advance_timer.timeout.connect(_on_auto_advance_tick)
 	add_child(auto_advance_timer)
+	_setup_shortcut_tooltips()
 	
 	update_ui()
 	StatManager.on_stats_changed.connect(update_ui)
@@ -120,12 +121,95 @@ func _run_next_modal() -> void:
 	var next_task: Callable = modal_queue.pop_front()
 	next_task.call()
 
+func _setup_shortcut_tooltips() -> void:
+	if next_phase_button:
+		next_phase_button.tooltip_text = "Advance 1 Full Day [Shortcut: Space]"
+	if auto_advance_button:
+		auto_advance_button.tooltip_text = "Toggle Fast-Forward Auto-Play [Shortcut: F]"
+	var parent_desk = get_parent()
+	if parent_desk:
+		var s_btn = parent_desk.get_node_or_null("Status Button")
+		if s_btn:
+			s_btn.tooltip_text = "Player Status & Victory Report [Shortcut: 1]"
+		var p_btn = parent_desk.get_node_or_null("Planner Button")
+		if p_btn:
+			p_btn.tooltip_text = "Calendar Planner & Milestones [Shortcut: 2]"
+		var b_btn = parent_desk.get_node_or_null("Budget Button")
+		if b_btn:
+			b_btn.tooltip_text = "Cash Envelopes & Smart Budget [Shortcut: 3]"
+		var ph_btn = parent_desk.get_node_or_null("Phone Button")
+		if ph_btn:
+			ph_btn.tooltip_text = "Smartphone, Apps & Baldo AI [Shortcut: 4]"
+		var back_btn = parent_desk.get_node_or_null("Back Button")
+		if back_btn:
+			back_btn.tooltip_text = "Return to Main Desk [Shortcut: Esc]"
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if handle_shortcut_key(event.keycode):
+			var vp := get_viewport()
+			if vp:
+				vp.set_input_as_handled()
+
+func handle_shortcut_key(keycode: Key) -> bool:
+	if is_modal_open or EventManager.is_direct_event_active or is_game_over:
+		return false
+	var vp := get_viewport()
+	if vp:
+		var focus_owner := vp.gui_get_focus_owner()
+		if (focus_owner is LineEdit or focus_owner is TextEdit) and keycode != KEY_ESCAPE:
+			return false
+	var parent_desk = get_parent()
+	var back_btn = parent_desk.get_node_or_null("Back Button") if parent_desk else null
+	var sub_open: bool = (back_btn != null and back_btn.visible)
+	
+	match keycode:
+		KEY_ESCAPE:
+			if sub_open and back_btn.has_method("_on_pressed"):
+				back_btn._on_pressed()
+				return true
+			if is_auto_advancing:
+				stop_auto_advance()
+				return true
+			return false
+		KEY_SPACE:
+			if not sub_open:
+				advance_day()
+				return true
+			return false
+		KEY_F:
+			if not sub_open:
+				toggle_auto_advance()
+				return true
+			return false
+		KEY_1:
+			_open_desk_tool_by_name("status")
+			return true
+		KEY_2:
+			_open_desk_tool_by_name("planner")
+			return true
+		KEY_3:
+			_open_desk_tool_by_name("budget")
+			return true
+		KEY_4:
+			_open_desk_tool_by_name("phone")
+			return true
+		_:
+			return false
+
 func _open_desk_tool_by_name(tool_name: String) -> void:
 	stop_auto_advance()
 	var parent_desk = get_parent()
 	if not parent_desk:
 		return
-	if tool_name == "budget":
+	var back_btn = parent_desk.get_node_or_null("Back Button")
+	if back_btn and back_btn.visible and back_btn.has_method("_on_pressed"):
+		back_btn._on_pressed()
+	if tool_name == "status":
+		var s_btn = parent_desk.get_node_or_null("Status Button")
+		if s_btn and s_btn.has_method("_button_pressed"):
+			s_btn._button_pressed()
+	elif tool_name == "budget":
 		var b_btn = parent_desk.get_node_or_null("Budget Button")
 		if b_btn and b_btn.has_method("_button_pressed"):
 			b_btn._button_pressed()
@@ -761,7 +845,7 @@ func trigger_monthly_bills() -> void:
 		
 	var installments_due = StatManager.get_total_monthly_installments()
 	var rent_amount = StatManager.monthly_rent
-	var utilities_amount = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + installments_due + StatManager.monthly_family_support
+	var utilities_amount = max(0, StatManager.monthly_utilities + StatManager.extra_utilities_this_month + installments_due + StatManager.monthly_family_support)
 	StatManager.extra_utilities_this_month = 0
 	StatManager.advance_installments_one_month()
 	var total_bills = rent_amount + utilities_amount
@@ -816,13 +900,16 @@ func process_daily_expenses() -> void:
 	var food_idx = clamp(StatManager.daily_food_choice, 0, 1)
 	var food_cost = StatManager.get_daily_food_cost()
 	var food_happy = StatManager.food_happy_deltas[food_idx]
+	var food_env_before = StatManager.get_envelope_amount("Food")
 	StatManager.spend_from_category("Food", food_cost)
 	
 	var comm_idx = clamp(StatManager.daily_commute_choice, 0, 1)
 	var comm_cost = StatManager.get_daily_commute_cost()
 	var comm_happy = StatManager.commute_happy_deltas[comm_idx]
+	var comm_env_before = StatManager.get_envelope_amount("Transportation")
 	StatManager.spend_from_category("Transportation", comm_cost)
 	
+	StatManager.record_daily_routine_envelope_coverage(food_env_before >= food_cost and comm_env_before >= comm_cost)
 	StatManager.modify_happy(food_happy + comm_happy)
 	
 func check_game_over_conditions() -> bool:

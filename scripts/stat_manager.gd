@@ -128,6 +128,9 @@ var week_start_savings: int = 0
 var week_start_debt: int = 0
 var week_start_happy: int = 70
 var week_start_social: int = 70
+var weekly_envelope_covered_days: int = 0
+var weekly_total_routine_days: int = 0
+var envelope_discipline_streak: int = 0
 
 func _ready() -> void:
 	pass
@@ -186,6 +189,9 @@ func reset_for_new_run() -> void:
 	week_start_debt = 0
 	week_start_happy = 70
 	week_start_social = 70
+	weekly_envelope_covered_days = 0
+	weekly_total_routine_days = 0
+	envelope_discipline_streak = 0
 	
 	EventManager.reset_events()
 	PlannerManager.reset_planner()
@@ -564,7 +570,7 @@ func get_envelope_recommended_target(category_name: String) -> int:
 		"Rent":
 			return monthly_rent
 		"Utilities":
-			return monthly_utilities + extra_utilities_this_month + get_total_monthly_installments() + monthly_family_support
+			return max(0, monthly_utilities + extra_utilities_this_month + get_total_monthly_installments() + monthly_family_support)
 		"Food":
 			return get_daily_food_cost() * 15
 		"Transportation":
@@ -775,8 +781,24 @@ func spend_from_category(category_name: String, amount: int) -> void:
 		
 	on_stats_changed.emit()
 
+func record_daily_routine_envelope_coverage(was_fully_covered: bool) -> void:
+	weekly_total_routine_days += 1
+	if was_fully_covered:
+		weekly_envelope_covered_days += 1
+
 func snapshot_weekly_summary(week_num: int) -> Dictionary:
 	var combined_debt := get_total_debt_and_loans()
+	var cov_days := weekly_envelope_covered_days
+	var tot_days := weekly_total_routine_days
+	var discipline_bonus := (tot_days > 0 and cov_days >= tot_days)
+	if discipline_bonus:
+		envelope_discipline_streak += 1
+		modify_happy(2)
+		modify_credit_score(1)
+		PlannerManager.record_event(current_month, current_day, "🏅 Disiplinadong Budgeter Streak (" + str(envelope_discipline_streak) + "w)! (+2 Happy, +1 Credit Score)")
+	elif tot_days > 0:
+		envelope_discipline_streak = 0
+		
 	var summary_data := {
 		"week_num": week_num,
 		"income": weekly_income,
@@ -792,7 +814,11 @@ func snapshot_weekly_summary(week_num: int) -> Dictionary:
 		"happy": happy,
 		"happy_delta": happy - week_start_happy,
 		"social": social,
-		"social_delta": social - week_start_social
+		"social_delta": social - week_start_social,
+		"discipline_bonus_earned": discipline_bonus,
+		"discipline_covered_days": cov_days,
+		"discipline_total_days": tot_days,
+		"discipline_streak": envelope_discipline_streak
 	}
 	# Reset weekly accumulators and advance baseline snapshots for the new week
 	weekly_income = 0
@@ -801,6 +827,8 @@ func snapshot_weekly_summary(week_num: int) -> Dictionary:
 	week_start_debt = combined_debt
 	week_start_happy = happy
 	week_start_social = social
+	weekly_envelope_covered_days = 0
+	weekly_total_routine_days = 0
 	return summary_data
 
 func get_stage_info() -> Dictionary:
@@ -959,7 +987,7 @@ func get_live_summary_for_ai() -> String:
 		summary += "  [URGENT WARNING: Player has been at 0 Happiness for " + str(days_at_zero_happiness) + "/5 days! Burnout imminent!]\n"
 	if days_at_zero_social > 0:
 		summary += "  [URGENT WARNING: Player has been at 0 Social for " + str(days_at_zero_social) + "/5 days! Isolation imminent!]\n"
-	summary += "- This Week's Tracker: Income = PHP " + str(weekly_income) + " | Expenses = PHP " + str(weekly_expenses) + "\n"
+	summary += "- This Week's Tracker: Income = PHP " + str(weekly_income) + " | Expenses = PHP " + str(weekly_expenses) + " | Envelope Discipline Streak = " + str(envelope_discipline_streak) + " week(s) (" + str(weekly_envelope_covered_days) + "/" + str(weekly_total_routine_days) + " days covered this week)\n"
 	summary += "- Active Daily Routine Settings: Food = " + food_mode + " | Commute = " + commute_mode + " (Total Daily Routine = PHP " + str(get_daily_food_cost() + get_daily_commute_cost()) + "/day)\n"
 	summary += "- Cash Envelopes Allocated: " + ", ".join(env_lines) + "\n"
 	summary += "- End-of-Month Fixed Bills Forecast: Rent Due = PHP " + str(monthly_rent) + " (Shortfall in Rent Envelope: PHP " + str(rent_shortfall) + "), Utilities + Installments + Family Support Due = PHP " + str(total_utilities_due) + " (Shortfall in Utilities Envelope: PHP " + str(util_shortfall) + ")\n"

@@ -14,6 +14,9 @@ func _button_pressed() -> void:
 		
 	print("You pressed " + button.name)
 	interface.visible = true
+	interface.modulate = Color(1, 1, 1, 0.0)
+	var tw = create_tween()
+	tw.tween_property(interface, "modulate:a", 1.0, 0.14)
 	back_button.visible = true
 	back_button.set_interface(interface)
 	

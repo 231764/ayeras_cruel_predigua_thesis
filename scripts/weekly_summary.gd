@@ -93,7 +93,14 @@ func _render_snapshot() -> void:
 	
 	var details = "[center][b]Ipon & Life Goal (" + goal_title + "):[/b]\n"
 	details += "PHP " + str(sav) + " / PHP " + str(goal_target) + " (" + str(goal_pct) + "%) " + _format_delta(sav_delta, true, false) + "\n"
-	details += "[b]Kabuuang Utang (Debt):[/b] PHP " + str(debt) + " " + _format_delta(debt_delta, true, true) + "\n\n"
+	details += "[b]Kabuuang Utang (Debt):[/b] PHP " + str(debt) + " " + _format_delta(debt_delta, true, true) + "\n"
+	if bool(snap.get("discipline_bonus_earned", false)):
+		var strk: int = max(1, int(snap.get("discipline_streak", StatManager.envelope_discipline_streak)))
+		details += "[color=lime][b]🏅 Disiplinadong Budgeter Bonus (" + str(strk) + "-Week Streak!):[/b] 100% Covered ang Pagkain & Byahe Envelopes (+2 Happy, +1 Credit Score)![/color]\n"
+	else:
+		var cov_d: int = int(snap.get("discipline_covered_days", 0))
+		var tot_d: int = max(7, int(snap.get("discipline_total_days", 7)))
+		details += "[color=orange][b]📂 Envelope Discipline:[/b] " + str(cov_d) + "/" + str(tot_d) + " days covered (Pondohan ang Pagkain & Byahe Envelopes para sa +2 Happy & +1 CS Bonus!)[/color]\n"
 	details += "[b]Character Well-Being:[/b]\n"
 	details += "Happiness: [b]" + str(hap) + "/100[/b] " + _format_delta(hap_delta, false, false) + " | "
 	details += "Social: [b]" + str(soc) + "/100[/b] " + _format_delta(soc_delta, false, false) + "\n"

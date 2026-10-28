@@ -142,6 +142,8 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 		stats_text += "[color=yellow]📈 Invest " + str(opt["invest_high_risk"]) + " PHP (High-Risk)[/color] "
 	if opt.has("deposit_to_savings") and int(opt["deposit_to_savings"]) > 0:
 		stats_text += "[color=green]🏺 +" + str(opt["deposit_to_savings"]) + " PHP Savings[/color] "
+	if opt.has("savings_bonus") and int(opt["savings_bonus"]) > 0:
+		stats_text += "[color=green]🏺 +" + str(opt["savings_bonus"]) + " PHP Cashback sa Ipon[/color] "
 	if opt.get("set_side_income", false):
 		stats_text += "[color=green]+5,000 PHP/mo Side Hustle[/color] "
 	if opt.has("monthly_family_support_mod") and int(opt["monthly_family_support_mod"]) > 0:
@@ -174,8 +176,12 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 		var inst: Dictionary = opt["installment"]
 		stats_text += "[color=orange]📅 PHP " + str(inst.get("monthly_cost", 0)) + "/mo x " + str(inst.get("months_left", 0)) + " mos[/color] "
 		
-	if opt.has("extra_utilities") and int(opt["extra_utilities"]) > 0:
-		stats_text += "[color=orange]+" + str(opt["extra_utilities"]) + " PHP Bill[/color] "
+	if opt.has("extra_utilities") and int(opt["extra_utilities"]) != 0:
+		var eu_val := int(opt["extra_utilities"])
+		if eu_val > 0:
+			stats_text += "[color=orange]+" + str(eu_val) + " PHP Bill[/color] "
+		else:
+			stats_text += "[color=green]" + str(eu_val) + " PHP Bill Rebate[/color] "
 	if opt.has("daily_commute_mod") and int(opt["daily_commute_mod"]) != 0:
 		var dc_sign := "+" if int(opt["daily_commute_mod"]) > 0 else ""
 		stats_text += "[color=orange]" + dc_sign + str(opt["daily_commute_mod"]) + " PHP/day Commute[/color] "
@@ -296,6 +302,12 @@ func resolve_event(event_id: String, option_index: int) -> void:
 			StatManager.savings += save_amt
 			StatManager.sync_savings_envelope()
 		cost += save_amt
+		
+	if chosen_option.has("savings_bonus") and int(chosen_option["savings_bonus"]) > 0:
+		var sb_amt: int = int(chosen_option["savings_bonus"])
+		StatManager.savings += sb_amt
+		StatManager.total_savings_interest_earned += sb_amt
+		StatManager.sync_savings_envelope()
 		
 	if chosen_option.has("apply_investment_rates") and chosen_option["apply_investment_rates"] is Dictionary:
 		var rates: Dictionary = chosen_option["apply_investment_rates"]
@@ -463,17 +475,23 @@ func evaluate_daily_events() -> void:
 			trigger_event("groceries_vs_eatout")
 		elif day == 12 and phase == 1:
 			trigger_event("electricity_spike")
+		elif day == 18 and phase == 1:
+			trigger_event("micro_ulan_surge")
 		elif day == 22 and phase == 1:
 			trigger_event("sibling_school_payment")
 	elif month == "February":
 		if day == 4 and phase == 1:
 			trigger_event("phone_plan_upgrade")
+		elif day == 10 and phase == 1:
+			trigger_event("micro_opisina_potluck")
 		elif day == 16 and phase == 0:
 			trigger_event("commute_cost_increase")
 	# STAGE 2: CREDIT AND DEBT (March - April)
 	elif month == "March":
 		if day == 3 and phase == 0:
 			trigger_event("credit_card_offer")
+		elif day == 8 and phase == 0:
+			trigger_event("micro_grocery_cashback")
 		elif day == 14 and phase == 2:
 			trigger_event("refrigerator_breakdown")
 		elif day == 25 and phase == 1:
@@ -497,6 +515,8 @@ func evaluate_daily_events() -> void:
 			trigger_event("sibling_hospitalized")
 		elif day == 18 and phase == 1:
 			trigger_event("personal_health_issue")
+		elif day == 22 and phase == 1:
+			trigger_event("micro_meralco_tipid_reward")
 		elif day == 25 and phase == 1:
 			if StatManager.has_credit_card and StatManager.credit_balance > 0:
 				trigger_event("credit_card_statement")
@@ -517,6 +537,8 @@ func evaluate_daily_events() -> void:
 	elif month == "July":
 		if day == 4 and phase == 0:
 			trigger_event("side_income_opportunity")
+		elif day == 10 and phase == 1:
+			trigger_event("micro_midyear_ukay_find")
 		elif day == 16 and phase == 1:
 			trigger_event("investment_opportunity")
 		elif day == 24 and phase == 1:
@@ -562,6 +584,8 @@ func evaluate_daily_events() -> void:
 			trigger_event("new_job_offer")
 		elif day == 14 and phase == 1:
 			trigger_event("housing_pressure")
+		elif day == 18 and phase == 0:
+			trigger_event("micro_ber_months_sideline")
 		elif day == 22 and phase == 1:
 			if StatManager.get_total_investments() > 0:
 				trigger_event("market_crash_or_boom")

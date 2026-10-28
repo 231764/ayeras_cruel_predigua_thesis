@@ -41,6 +41,45 @@ label_settings = SubResource("LabelSettings_8o8ra")
 horizontal_alignment = 1
 autowrap_mode = 1
 
+[node name="TargetInfoLabel" type="Label" parent="."]
+offset_left = 410.0
+offset_top = 372.0
+offset_right = 790.0
+offset_bottom = 426.0
+theme_override_colors/font_color = Color(0.15, 0.15, 0.15, 1)
+theme_override_font_sizes/font_size = 15
+text = "Recommended Target: PHP 0"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="QuickChipsHBox" type="HBoxContainer" parent="."]
+offset_left = 199.0
+offset_top = 542.0
+offset_right = 922.0
+offset_bottom = 581.0
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Plus500Button" type="Button" parent="QuickChipsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+₱500"
+
+[node name="Plus1000Button" type="Button" parent="QuickChipsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+₱1,000"
+
+[node name="FillTargetButton" type="Button" parent="QuickChipsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🎯 Fill Target (Sakto)"
+
+[node name="Minus500Button" type="Button" parent="QuickChipsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "-₱500"
+
 [node name="InsertMoney" type="TextEdit" parent="."]
 offset_left = 199.0
 offset_top = 589.0
@@ -63,5 +102,9 @@ offset_right = 922.0
 offset_bottom = 628.0
 text = "Kumuha"
 
+[connection signal="pressed" from="QuickChipsHBox/Plus500Button" to="." method="_on_plus_500_pressed"]
+[connection signal="pressed" from="QuickChipsHBox/Plus1000Button" to="." method="_on_plus_1000_pressed"]
+[connection signal="pressed" from="QuickChipsHBox/FillTargetButton" to="." method="_on_fill_target_pressed"]
+[connection signal="pressed" from="QuickChipsHBox/Minus500Button" to="." method="_on_minus_500_pressed"]
 [connection signal="pressed" from="SubmitMoney" to="." method="_on_submit_money_pressed"]
 [connection signal="pressed" from="WithdrawMoney" to="." method="_on_withdraw_money_pressed"]

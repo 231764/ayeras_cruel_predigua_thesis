@@ -20,10 +20,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -310.0
-offset_top = -235.0
-offset_right = 310.0
-offset_bottom = 235.0
+offset_left = -365.0
+offset_top = -280.0
+offset_right = 365.0
+offset_bottom = 280.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -33,12 +33,12 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 22.0
-offset_top = 18.0
+offset_top = 16.0
 offset_right = -22.0
-offset_bottom = -18.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 alignment = 1
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer"]
@@ -75,6 +75,54 @@ text = "Weekly savings, debt, and stat deltas..."
 [node name="HSeparator2" type="HSeparator" parent="Panel/VBoxContainer"]
 layout_mode = 2
 
+[node name="WeekendHeaderLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.88, 0.45, 1)
+theme_override_font_sizes/font_size = 15
+text = "🌟 Weekend Activity (🎉 Libangan Envelope: PHP 0) — Pumili ng Isa:"
+horizontal_alignment = 1
+
+[node name="WeekendRow1" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="RestButton" type="Button" parent="Panel/VBoxContainer/WeekendRow1"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "🧘 Pahinga sa Bahay (₱0 | +6 Happy)"
+
+[node name="BarkadaButton" type="Button" parent="Panel/VBoxContainer/WeekendRow1"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "☕ Labas w/ Barkada (₱400 Libangan | +7 Happy, +9 Social)"
+
+[node name="WeekendRow2" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="FamilyButton" type="Button" parent="Panel/VBoxContainer/WeekendRow2"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "🏠 Bonding sa Pamilya (₱600 Libangan | +5 Happy, +12 Social)"
+
+[node name="RaketButton" type="Button" parent="Panel/VBoxContainer/WeekendRow2"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "💻 Weekend Sideline (+₱1,200 Cash | -5 Happy, -3 Social)"
+
+[node name="HSeparator3" type="HSeparator" parent="Panel/VBoxContainer"]
+layout_mode = 2
+
 [node name="ActionRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 10
@@ -97,6 +145,10 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Tuloy sa Susunod na Linggo"
 
+[connection signal="pressed" from="Panel/VBoxContainer/WeekendRow1/RestButton" to="." method="_on_weekend_rest_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/WeekendRow1/BarkadaButton" to="." method="_on_weekend_barkada_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/WeekendRow2/FamilyButton" to="." method="_on_weekend_family_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/WeekendRow2/RaketButton" to="." method="_on_weekend_raket_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/ActionRow/BudgetPlanButton" to="." method="_on_budget_plan_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/ActionRow/PlannerPlanButton" to="." method="_on_planner_plan_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/ContinueButton" to="." method="_on_continue_pressed"]

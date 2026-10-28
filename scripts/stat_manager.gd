@@ -559,6 +559,169 @@ func set_envelope_amount(category_name: String, new_amount: int) -> void:
 		savings = clamped_val
 	on_stats_changed.emit()
 
+func get_envelope_recommended_target(category_name: String) -> int:
+	match category_name:
+		"Rent":
+			return monthly_rent
+		"Utilities":
+			return monthly_utilities + extra_utilities_this_month + get_total_monthly_installments() + monthly_family_support
+		"Food":
+			return get_daily_food_cost() * 15
+		"Transportation":
+			return get_daily_commute_cost() * 15
+		"Entertainment":
+			return 1000
+		"Credit Card":
+			return credit_balance
+		"Savings":
+			return get_goal_target()
+		_:
+			return 0
+
+func get_envelope_shortfall_to_target(category_name: String) -> int:
+	return max(0, get_envelope_recommended_target(category_name) - get_envelope_amount(category_name))
+
+func fill_envelope_to_target(category_name: String) -> int:
+	var needed := get_envelope_shortfall_to_target(category_name)
+	var to_add: int = min(current_balance, needed)
+	if to_add <= 0:
+		return 0
+	if category_name == "Savings":
+		deposit_savings(to_add)
+		return to_add
+	current_balance -= to_add
+	for envelope in envelopes:
+		if envelope["category"] == category_name:
+			envelope["amount"] += to_add
+			break
+	on_stats_changed.emit()
+	return to_add
+
+func fund_fixed_bills_envelopes() -> int:
+	var added_rent := fill_envelope_to_target("Rent")
+	var added_util := fill_envelope_to_target("Utilities")
+	return added_rent + added_util
+
+func _top_up_envelope_up_to(category_name: String, target_amt: int, reserve_cash: int = 0) -> int:
+	var cur := get_envelope_amount(category_name)
+	var needed: int = max(0, target_amt - cur)
+	var avail: int = max(0, current_balance - reserve_cash)
+	var to_add: int = min(avail, needed)
+	if to_add <= 0:
+		return 0
+	if category_name == "Savings":
+		deposit_savings(to_add)
+		return to_add
+	current_balance -= to_add
+	for envelope in envelopes:
+		if envelope["category"] == category_name:
+			envelope["amount"] += to_add
+			break
+	return to_add
+
+func auto_budget_paycheck() -> Dictionary:
+	var total_allocated := 0
+	var total_util_due := monthly_utilities + extra_utilities_this_month + get_total_monthly_installments() + monthly_family_support
+	# 1. Fund Rent & Utilities (50% on 1st half of month, 100% from Day 15 onward)
+	var bill_ratio := 1.0 if current_day >= 15 else 0.5
+	var rent_goal := int(ceil(float(monthly_rent) * bill_ratio))
+	var util_goal := int(ceil(float(total_util_due) * bill_ratio))
+	total_allocated += _top_up_envelope_up_to("Rent", rent_goal, 500)
+	total_allocated += _top_up_envelope_up_to("Utilities", util_goal, 500)
+	
+	# 2. Fund 15 days of Food & Transportation runway (or 7 days if cash is tight)
+	var food_15d := get_daily_food_cost() * 15
+	var trans_15d := get_daily_commute_cost() * 15
+	total_allocated += _top_up_envelope_up_to("Food", food_15d, 1000)
+	total_allocated += _top_up_envelope_up_to("Transportation", trans_15d, 800)
+	
+	# 3. If Credit Card has balance, set aside funds in Credit Card envelope
+	if credit_balance > 0:
+		total_allocated += _top_up_envelope_up_to("Credit Card", credit_balance, 1200)
+		
+	# 4. Fund Entertainment (Libangan) up to PHP 800 for Weekend Barkada/Pamilya well-being
+	total_allocated += _top_up_envelope_up_to("Entertainment", 800, 1500)
+	
+	# 5. If fixed bills aren't 100% topped up yet and we still have plenty of cash, top them up to 100%
+	total_allocated += _top_up_envelope_up_to("Rent", monthly_rent, 2500)
+	total_allocated += _top_up_envelope_up_to("Utilities", total_util_due, 2500)
+	
+	# 6. Deposit surplus into Savings (Ipon +2%/mo) while keeping a PHP 2,000 pocket cash buffer
+	if current_balance > 2500 and savings < get_goal_target():
+		var save_amt: int = min(2500, current_balance - 2000)
+		if save_amt > 0:
+			deposit_savings(save_amt)
+			total_allocated += save_amt
+			
+	on_stats_changed.emit()
+	return {"total_allocated": total_allocated}
+
+func perform_weekend_activity(activity_id: String) -> Dictionary:
+	var libangan_before := get_envelope_amount("Entertainment")
+	var result := {
+		"activity_id": activity_id,
+		"title": "",
+		"cost": 0,
+		"used_libangan_envelope": false,
+		"happy_delta": 0,
+		"social_delta": 0,
+		"credit_score_delta": 0,
+		"summary_text": ""
+	}
+	match activity_id:
+		"rest":
+			modify_happy(6)
+			result["title"] = "🧘 Pahinga at Self-Care sa Bahay"
+			result["happy_delta"] = 6
+			result["summary_text"] = "🧘 Nagpahinga ka sa bahay ngayong weekend (PHP 0, +6 Happy)!"
+		"barkada":
+			var covered := (libangan_before >= 400)
+			spend_from_category("Entertainment", 400)
+			var h_gain := 7 if covered else 5
+			var s_gain := 9 if covered else 7
+			modify_happy(h_gain)
+			modify_social(s_gain)
+			result["title"] = "☕ Kape at Bonding w/ Barkada"
+			result["cost"] = 400
+			result["used_libangan_envelope"] = covered
+			result["happy_delta"] = h_gain
+			result["social_delta"] = s_gain
+			var src_tag := "mula sa Libangan Envelope" if covered else "mula sa Pocket Cash"
+			result["summary_text"] = "☕ Nag-bonding ka kasama ang barkada (-PHP 400 " + src_tag + ", +" + str(h_gain) + " Happy, +" + str(s_gain) + " Social)!"
+		"family":
+			var covered := (libangan_before >= 600)
+			spend_from_category("Entertainment", 600)
+			var h_gain := 5 if covered else 4
+			var s_gain := 12 if covered else 10
+			var cs_gain := 1 if covered else 0
+			modify_happy(h_gain)
+			modify_social(s_gain)
+			if cs_gain > 0:
+				modify_credit_score(cs_gain)
+			result["title"] = "🏠 Kamustahin at Padalhan ang Pamilya"
+			result["cost"] = 600
+			result["used_libangan_envelope"] = covered
+			result["happy_delta"] = h_gain
+			result["social_delta"] = s_gain
+			result["credit_score_delta"] = cs_gain
+			var src_tag := "mula sa Libangan Envelope (+1 CS Bonus!)" if covered else "mula sa Pocket Cash"
+			result["summary_text"] = "🏠 Nakipag-bonding ka sa pamilya (-PHP 600 " + src_tag + ", +" + str(h_gain) + " Happy, +" + str(s_gain) + " Social)!"
+		"raket":
+			spend_direct(-1200)
+			modify_happy(-5)
+			modify_social(-3)
+			result["title"] = "💻 Weekend Sideline / Overtime Raket"
+			result["cost"] = -1200
+			result["happy_delta"] = -5
+			result["social_delta"] = -3
+			result["summary_text"] = "💻 Kumayod ka sa Weekend Sideline (+PHP 1,200 Cash, -5 Happy, -3 Social)!"
+		_:
+			return result
+			
+	PlannerManager.record_event(current_month, current_day, result["summary_text"])
+	on_stats_changed.emit()
+	return result
+
 func spend_direct(amount: int) -> void:
 	if amount > 0:
 		weekly_expenses += amount

@@ -1,22 +1,36 @@
 extends Node2D
 
+const UITheme = preload("res://scripts/ui_theme.gd")
+
+@onready var top_budget_bar: Panel = get_node_or_null("TopBudgetBar")
 @onready var available_cash_label: Label = get_node_or_null("TopBudgetBar/HBoxContainer/AvailableCashLabel")
 @onready var fund_bills_btn: Button = get_node_or_null("TopBudgetBar/HBoxContainer/FundBillsButton")
 @onready var auto_budget_btn: Button = get_node_or_null("TopBudgetBar/HBoxContainer/AutoBudgetButton")
+@onready var action_feedback_label: Label = get_node_or_null("ActionFeedbackLabel")
 @onready var category_tabs_hbox: HBoxContainer = get_node_or_null("CategoryTabsHBox")
+@onready var left_btn: Button = get_node_or_null("LeftButton")
+@onready var right_btn: Button = get_node_or_null("RightButton")
 
 var current_envelope = 0
 var _tab_buttons: Array[Button] = []
 
 const TAB_LABELS := {
-	"Food": "🍔 Pagkain",
-	"Transportation": "🚌 Byahe",
-	"Entertainment": "🎉 Libangan",
-	"Rent": "🏠 Upa",
-	"Utilities": "⚡ Bills",
-	"Credit Card": "💳 Credit",
-	"Savings": "🏺 Ipon"
+	"Food": "Pagkain",
+	"Transportation": "Byahe",
+	"Entertainment": "Libangan",
+	"Rent": "Upa",
+	"Utilities": "Bills",
+	"Credit Card": "Credit",
+	"Savings": "Ipon"
 }
+
+func _apply_budget_theme() -> void:
+	if top_budget_bar:
+		top_budget_bar.add_theme_stylebox_override("panel", UITheme.make_card_style(UITheme.PAPER_CREAM, UITheme.INK_BORDER, 10, 3, 5, 14.0, 6.0))
+	UITheme.style_Button(fund_bills_btn, UITheme.BTN_SAGE, 8, 4, 10.0, 5.0)
+	UITheme.style_Button(auto_budget_btn, UITheme.BTN_GOLD, 8, 4, 10.0, 5.0)
+	UITheme.style_Button(left_btn, UITheme.PAPER_CREAM, 10, 5, 10.0, 6.0)
+	UITheme.style_Button(right_btn, UITheme.PAPER_CREAM, 10, 5, 10.0, 6.0)
 
 func select_envelope(idx: int) -> void:
 	if idx >= 0 and idx < StatManager.envelopes.size():
@@ -53,7 +67,7 @@ func _build_category_tabs() -> void:
 	for i in range(StatManager.envelopes.size()):
 		var btn := Button.new()
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.add_theme_font_size_override("font_size", 12)
+		btn.add_theme_font_size_override("font_size", 14)
 		var idx := i
 		btn.pressed.connect(func(): select_envelope(idx))
 		category_tabs_hbox.add_child(btn)
@@ -61,15 +75,16 @@ func _build_category_tabs() -> void:
 
 func _refresh_top_bar_and_tabs() -> void:
 	if available_cash_label:
-		available_cash_label.text = "💵 Hawak na Cash: PHP " + str(StatManager.current_balance)
+		available_cash_label.text = "Hawak na Cash: PHP " + str(StatManager.current_balance)
 	if fund_bills_btn:
 		var bill_short := StatManager.get_envelope_shortfall_to_target("Rent") + StatManager.get_envelope_shortfall_to_target("Utilities")
 		if bill_short > 0:
-			fund_bills_btn.text = "🏠 Pondohan Upa & Bills (+₱" + str(min(StatManager.current_balance, bill_short)) + ")"
-			fund_bills_btn.disabled = (StatManager.current_balance <= 0)
+			var can_add: int = min(StatManager.current_balance, bill_short)
+			fund_bills_btn.text = "Pondohan Upa & Bills (+₱" + str(can_add) + ")"
+			fund_bills_btn.disabled = (can_add <= 0)
 		else:
-			fund_bills_btn.text = "✅ Upa & Bills Ready"
-			fund_bills_btn.disabled = true
+			fund_bills_btn.text = "Upa & Bills Ready (100%)"
+			fund_bills_btn.disabled = false
 	if auto_budget_btn:
 		auto_budget_btn.disabled = (StatManager.current_balance <= 0)
 		
@@ -82,11 +97,12 @@ func _refresh_top_bar_and_tabs() -> void:
 		var short_lbl: String = TAB_LABELS.get(cat, cat)
 		_tab_buttons[i].text = short_lbl + "\n₱" + str(amt)
 		if i == current_envelope:
-			_tab_buttons[i].modulate = Color(1.0, 0.92, 0.45, 1.0)
+			UITheme.style_Button(_tab_buttons[i], UITheme.BTN_GOLD, 8, 5, 8.0, 4.0)
 		else:
-			_tab_buttons[i].modulate = Color(1.0, 1.0, 1.0, 1.0)
+			UITheme.style_Button(_tab_buttons[i], UITheme.PAPER_CREAM, 8, 3, 8.0, 4.0)
 
 func _ready() -> void:
+	_apply_budget_theme()
 	_build_category_tabs()
 	StatManager.on_stats_changed.connect(update_envelope)
 	visibility_changed.connect(func():
@@ -96,12 +112,26 @@ func _ready() -> void:
 	update_envelope()
 
 func _on_fund_bills_pressed() -> void:
-	StatManager.fund_fixed_bills_envelopes()
-	update_envelope()
+	var added := StatManager.fund_fixed_bills_envelopes()
+	# Jump to Rent envelope (index 3) so the player immediately sees the funded Fixed Bill envelope
+	select_envelope(3)
+	if action_feedback_label:
+		if added > 0:
+			action_feedback_label.text = "[OK] Naglaan ng +PHP " + str(added) + " sa Upa (Rent) at Kuryente/Tubig (Utilities) Envelopes!"
+		elif StatManager.get_envelope_shortfall_to_target("Rent") == 0 and StatManager.get_envelope_shortfall_to_target("Utilities") == 0:
+			action_feedback_label.text = "[OK] Kumpleto na ang pondo sa Upa (₱" + str(StatManager.monthly_rent) + ") at Bills Envelopes!"
+		else:
+			action_feedback_label.text = "[Paalala] Kulang ang Hawak na Cash para pondohan ang Upa at Bills."
 
 func _on_auto_budget_pressed() -> void:
-	StatManager.auto_budget_paycheck()
+	var res := StatManager.auto_budget_paycheck()
+	var alloc := int(res.get("total_allocated", 0))
 	update_envelope()
+	if action_feedback_label:
+		if alloc > 0:
+			action_feedback_label.text = "[Smart Split] Nag-allocate ng PHP " + str(alloc) + " sa Upa, Bills, 15d Pagkain/Byahe, Libangan, at Ipon!"
+		else:
+			action_feedback_label.text = "[OK] Naka-budget na ang lahat ng Envelopes o kulang na ang Hawak na Cash!"
 
 func _on_left_button_pressed() -> void:
 	previous_envelope()

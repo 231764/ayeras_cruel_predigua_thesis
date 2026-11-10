@@ -4,6 +4,48 @@
 [ext_resource type="Texture2D" uid="uid://b8aee5py4y07c" path="res://assets/happiness icon.png" id="2_equpc"]
 [ext_resource type="Texture2D" uid="uid://cenmloan3aswe" path="res://assets/social icon.png" id="3_g6avb"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_top_bar"]
+bg_color = Color(0.96, 0.94, 0.89, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.06, 0.05, 0.04, 0.22)
+shadow_size = 2
+shadow_offset = Vector2(2, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_runway_strip"]
+bg_color = Color(0.92, 0.89, 0.81, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.18, 0.15, 0.13, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dock_card"]
+bg_color = Color(0.96, 0.94, 0.89, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.06, 0.05, 0.04, 0.22)
+shadow_size = 2
+shadow_offset = Vector2(2, 3)
+
 [node name="Stat System" type="Node2D" unique_id=735355200 node_paths=PackedStringArray("happy_bar", "social_bar", "date_label")]
 z_index = 3
 script = ExtResource("1_uf86d")
@@ -11,72 +53,56 @@ happy_bar = NodePath("Happiness Bar")
 social_bar = NodePath("Sociability Bar")
 date_label = NodePath("DateLabel")
 
-[node name="Happiness Bar" type="ProgressBar" parent="." unique_id=1868663321]
-offset_left = 188.0
-offset_top = 527.0
-offset_right = 583.0
-offset_bottom = 554.0
-
-[node name="Icon" type="TextureRect" parent="Happiness Bar" unique_id=1157721619]
-layout_mode = 0
-offset_left = -69.0
-offset_top = -35.0
-offset_right = 29.0
-offset_bottom = 43.0
-texture = ExtResource("2_equpc")
-expand_mode = 1
-
-[node name="Sociability Bar" type="ProgressBar" parent="." unique_id=919939996]
-offset_left = 188.0
-offset_top = 585.0
-offset_right = 583.0
-offset_bottom = 612.0
-
-[node name="Icon" type="TextureRect" parent="Sociability Bar" unique_id=516258289]
-layout_mode = 0
-offset_left = -81.0
-offset_top = -27.0
-offset_right = 13.0
-offset_bottom = 51.0
-texture = ExtResource("3_g6avb")
-expand_mode = 1
-
-[node name="NextPhaseButton" type="Button" parent="." unique_id=1659805020]
-offset_left = 830.0
-offset_top = 18.0
-offset_right = 985.0
-offset_bottom = 60.0
-text = "▶ Next Day"
-
-[node name="AutoAdvanceButton" type="Button" parent="." unique_id=1659805021]
-offset_left = 993.0
-offset_top = 18.0
-offset_right = 1138.0
-offset_bottom = 60.0
-text = "⏩ Auto-Play"
+[node name="TopHeaderBackdrop" type="Panel" parent="." unique_id=1478174440]
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 442.0
+offset_bottom = 92.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_top_bar")
 
 [node name="DateLabel" type="Label" parent="." unique_id=1478174443]
-offset_left = 270.0
-offset_top = 12.0
-offset_right = 820.0
-offset_bottom = 46.0
-theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
-theme_override_font_sizes/font_size = 22
-text = "January 1 - Morning"
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 442.0
+offset_bottom = 44.0
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 15
+text = "HUW, JAN 1, 2026  •  MORNING"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="GoalButton" type="Button" parent="." unique_id=1478174444]
-offset_left = 390.0
-offset_top = 48.0
-offset_right = 760.0
-offset_bottom = 82.0
-text = "Goal: PHP 0 / PHP 40,000 (0%)"
+offset_left = 450.0
+offset_top = 102.0
+offset_right = 612.0
+offset_bottom = 136.0
+theme_override_font_sizes/font_size = 12
+text = "Goal: PHP 0 / 40k (0%)"
+
+[node name="NextPhaseButton" type="Button" parent="." unique_id=1659805020]
+offset_left = 816.0
+offset_top = 10.0
+offset_right = 974.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 15
+text = "Next Day >>"
+
+[node name="AutoAdvanceButton" type="Button" parent="." unique_id=1659805021]
+offset_left = 982.0
+offset_top = 10.0
+offset_right = 1138.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 14
+text = "Auto-Play >>"
 
 [node name="EnvelopeRunwayPanel" type="Panel" parent="." unique_id=1478174446]
-offset_left = 225.0
-offset_top = 86.0
-offset_right = 1138.0
-offset_bottom = 132.0
+offset_left = 22.0
+offset_top = 48.0
+offset_right = 434.0
+offset_bottom = 86.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_runway_strip")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="EnvelopeRunwayPanel" unique_id=1478174447]
 layout_mode = 1
@@ -84,88 +110,137 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
-offset_top = 4.0
-offset_right = -10.0
-offset_bottom = -4.0
+offset_top = 3.0
+offset_right = -8.0
+offset_bottom = -3.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="EnvelopeRunwayLabel" type="RichTextLabel" parent="EnvelopeRunwayPanel/HBoxContainer" unique_id=1478174448]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
+theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/bold_font_size = 12
 bbcode_enabled = true
-text = "🍔 Pagkain: PHP 0 | 🚌 Pamasahe: PHP 0 | 🏠 Upa: PHP 0/6000 | ⚡ Bills: PHP 0/2000"
+text = "Pagkain: 0d | Byahe: 0d | Bills: KULANG"
 fit_content = true
 scroll_active = false
 
 [node name="QuickBudgetButton" type="Button" parent="EnvelopeRunwayPanel/HBoxContainer" unique_id=1478174449]
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(106, 0)
 layout_mode = 2
-text = "📂 Budget Now"
+theme_override_font_sizes/font_size = 12
+text = "Mag-Budget"
 
 [node name="SavingsJarButton" type="Button" parent="." unique_id=1478174445]
-offset_left = 225.0
-offset_top = 155.0
-offset_right = 435.0
-offset_bottom = 225.0
-text = "Ipon / Savings (+2%/mo)\nClick to Manage"
+offset_left = 224.0
+offset_top = 214.0
+offset_right = 402.0
+offset_bottom = 246.0
+theme_override_font_sizes/font_size = 13
+text = "Ipon: PHP 0 (+2%/mo)"
+
+[node name="Happiness Bar" type="ProgressBar" parent="." unique_id=1868663321]
+offset_left = 96.0
+offset_top = 528.0
+offset_right = 428.0
+offset_bottom = 558.0
+show_percentage = false
+
+[node name="Icon" type="TextureRect" parent="Happiness Bar" unique_id=1157721619]
+layout_mode = 0
+offset_left = -48.0
+offset_top = -24.0
+offset_right = 24.0
+offset_bottom = 40.0
+mouse_filter = 2
+texture = ExtResource("2_equpc")
+expand_mode = 1
+
+[node name="Sociability Bar" type="ProgressBar" parent="." unique_id=919939996]
+offset_left = 96.0
+offset_top = 584.0
+offset_right = 428.0
+offset_bottom = 614.0
+show_percentage = false
+
+[node name="Icon" type="TextureRect" parent="Sociability Bar" unique_id=516258289]
+layout_mode = 0
+offset_left = -52.0
+offset_top = -18.0
+offset_right = 20.0
+offset_bottom = 46.0
+mouse_filter = 2
+texture = ExtResource("3_g6avb")
+expand_mode = 1
 
 [node name="BaldoToastPanel" type="Panel" parent="." unique_id=1478174450]
-offset_left = 445.0
-offset_top = 155.0
-offset_right = 1138.0
-offset_bottom = 225.0
+offset_left = 442.0
+offset_top = 522.0
+offset_right = 812.0
+offset_bottom = 636.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dock_card")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="BaldoToastPanel" unique_id=1478174451]
+[node name="HBoxContainer" type="VBoxContainer" parent="BaldoToastPanel" unique_id=1478174451]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 12.0
-offset_top = 6.0
+offset_top = 8.0
 offset_right = -12.0
-offset_bottom = -6.0
+offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 6
 
 [node name="BaldoToastLabel" type="RichTextLabel" parent="BaldoToastPanel/HBoxContainer" unique_id=1478174452]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 4
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
 bbcode_enabled = true
-text = "💬 [b]Baldo:[/b] Yow par! I-budget na natin ang unang sahod mo sa Cash Envelopes!"
+text = "[b]Baldo:[/b] Yow par! I-budget na natin ang unang sahod mo sa Cash Envelopes!"
 fit_content = true
 scroll_active = false
 
 [node name="AskBaldoButton" type="Button" parent="BaldoToastPanel/HBoxContainer" unique_id=1478174453]
-custom_minimum_size = Vector2(160, 0)
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
-text = "💬 Tanungin si Baldo"
+theme_override_font_sizes/font_size = 13
+text = "Tanungin si Baldo sa Phone"
 
 [node name="DailyRoutinePanel" type="Panel" parent="." unique_id=133159737]
-offset_left = 713.0
-offset_top = 508.0
-offset_right = 1073.0
-offset_bottom = 630.0
+offset_left = 824.0
+offset_top = 522.0
+offset_right = 1138.0
+offset_bottom = 636.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dock_card")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="DailyRoutinePanel" unique_id=2100639042]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = -12.0
+offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 6
 
 [node name="Title" type="Label" parent="DailyRoutinePanel/VBoxContainer" unique_id=1135881508]
 layout_mode = 2
-text = "Pang-araw-araw na Gastos"
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 14
+text = "Pang-araw-araw na Routine"
 horizontal_alignment = 1
 
 [node name="FoodHBox" type="HBoxContainer" parent="DailyRoutinePanel/VBoxContainer" unique_id=1149981849]
@@ -173,12 +248,17 @@ layout_mode = 2
 alignment = 1
 
 [node name="Label" type="Label" parent="DailyRoutinePanel/VBoxContainer/FoodHBox" unique_id=69920204]
+custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.16, 0.13, 0.11, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 13
 text = "Pagkain:"
 
 [node name="FoodOption" type="OptionButton" parent="DailyRoutinePanel/VBoxContainer/FoodHBox" unique_id=1592662292]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
 selected = 0
 item_count = 2
 popup/item_0/text = "Magluto (PHP 200)"
@@ -191,12 +271,17 @@ layout_mode = 2
 alignment = 1
 
 [node name="Label" type="Label" parent="DailyRoutinePanel/VBoxContainer/CommuteHBox" unique_id=1604052568]
+custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.16, 0.13, 0.11, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 13
 text = "Byahe:"
 
 [node name="CommuteOption" type="OptionButton" parent="DailyRoutinePanel/VBoxContainer/CommuteHBox" unique_id=1788684461]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
 selected = 0
 item_count = 2
 popup/item_0/text = "Jeep/Bus (PHP 80)"

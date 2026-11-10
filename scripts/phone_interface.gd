@@ -1,17 +1,26 @@
 extends Control
 
-@onready var header_title: Label = $Header/Title
-@onready var notifications_container = $ScrollContainer/VBoxContainer/NotificationsContainer
-@onready var event_detail_panel = $EventDetailPanel
-@onready var event_title = $EventDetailPanel/VBoxContainer/EventTitle
-@onready var event_desc = $EventDetailPanel/VBoxContainer/EventDescription
-@onready var options_container = $EventDetailPanel/VBoxContainer/OptionsContainer
+const UITheme = preload("res://scripts/ui_theme.gd")
 
-@onready var chat_panel = $ChatPanel
-@onready var chat_history = $ChatPanel/VBoxContainer/ChatHistory
-@onready var chat_input = $ChatPanel/VBoxContainer/HBoxContainer/ChatInput
-@onready var send_button = $ChatPanel/VBoxContainer/HBoxContainer/SendButton
-@onready var ai_http_request = $AIHTTPRequest
+@onready var header_title: Label = $Header/Title
+@onready var home_scroll: ScrollContainer = $ScrollContainer
+@onready var baldo_btn: Button = $ScrollContainer/VBoxContainer/BaldoButton
+@onready var loans_app_btn: Button = $ScrollContainer/VBoxContainer/AppsRow/LoansAppButton
+@onready var invest_app_btn: Button = $ScrollContainer/VBoxContainer/AppsRow/InvestAppButton
+@onready var notifications_container: VBoxContainer = $ScrollContainer/VBoxContainer/NotificationsContainer
+
+@onready var event_detail_panel: Panel = $EventDetailPanel
+@onready var event_title: Label = $EventDetailPanel/VBoxContainer/EventTitle
+@onready var event_desc: Label = $EventDetailPanel/VBoxContainer/EventDescription
+@onready var options_container: VBoxContainer = $EventDetailPanel/VBoxContainer/OptionsContainer
+@onready var event_back_btn: Button = $EventDetailPanel/VBoxContainer/BackButton
+
+@onready var chat_panel: Panel = $ChatPanel
+@onready var chat_history: RichTextLabel = $ChatPanel/VBoxContainer/ChatHistory
+@onready var chat_input: LineEdit = $ChatPanel/VBoxContainer/HBoxContainer/ChatInput
+@onready var send_button: Button = $ChatPanel/VBoxContainer/HBoxContainer/SendButton
+@onready var close_chat_btn: Button = $ChatPanel/VBoxContainer/CloseChatButton
+@onready var ai_http_request: HTTPRequest = $AIHTTPRequest
 
 @onready var loans_panel: Panel = $LoansPanel
 @onready var loans_info_label: RichTextLabel = $LoansPanel/VBoxContainer/LoansInfoLabel
@@ -20,6 +29,7 @@ extends Control
 @onready var pay_loan_inst_btn: Button = $LoansPanel/VBoxContainer/PayLoanInstallmentButton
 @onready var pay_loan_full_btn: Button = $LoansPanel/VBoxContainer/PayLoanFullButton
 @onready var pay_overdue_debt_btn: Button = $LoansPanel/VBoxContainer/PayOverdueDebtButton
+@onready var close_loans_btn: Button = $LoansPanel/VBoxContainer/CloseLoansButton
 
 @onready var invest_panel: Panel = $InvestPanel
 @onready var invest_info_label: RichTextLabel = $InvestPanel/VBoxContainer/InvestInfoLabel
@@ -27,6 +37,7 @@ extends Control
 @onready var invest_high_btn: Button = $InvestPanel/VBoxContainer/InvestHighRiskButton
 @onready var withdraw_cash_btn: Button = $InvestPanel/VBoxContainer/WithdrawCashButton
 @onready var transfer_savings_btn: Button = $InvestPanel/VBoxContainer/TransferSavingsButton
+@onready var close_invest_btn: Button = $InvestPanel/VBoxContainer/CloseInvestButton
 
 var current_viewing_event_id: String = ""
 var chat_messages: Array = []
@@ -42,6 +53,9 @@ func _ready() -> void:
 	if chat_input and not chat_input.text_submitted.is_connected(_on_chat_input_submitted):
 		chat_input.text_submitted.connect(_on_chat_input_submitted)
 	
+	_apply_visual_styles()
+	_set_active_subpanel(null)
+	
 	# Initialize system prompt slot (dynamically refreshed with live context before every message)
 	chat_messages.append({
 		"role": "system",
@@ -52,6 +66,54 @@ func _ready() -> void:
 	_on_stats_updated()
 	refresh_notifications()
 
+func _style_button(btn: Button, bg: Color, radius: int = 8) -> void:
+	UITheme.style_Button(btn, bg, radius, 4)
+
+func _apply_visual_styles() -> void:
+	_style_button(baldo_btn, UITheme.BTN_SAGE, 10)
+	_style_button(loans_app_btn, UITheme.BTN_GOLD, 10)
+	_style_button(invest_app_btn, UITheme.BTN_BLUE, 10)
+	UITheme.style_header_banner(event_title, UITheme.BTN_GOLD, 7, 5.0)
+	UITheme.style_header_banner(get_node_or_null("ChatPanel/VBoxContainer/ChatTitle") as Label, UITheme.BTN_SAGE, 7, 5.0)
+	UITheme.style_header_banner(get_node_or_null("LoansPanel/VBoxContainer/LoansTitle") as Label, UITheme.BTN_GOLD, 7, 5.0)
+	UITheme.style_header_banner(get_node_or_null("InvestPanel/VBoxContainer/InvestTitle") as Label, UITheme.BTN_BLUE, 7, 5.0)
+	
+	for nav_btn in [event_back_btn, close_chat_btn, close_loans_btn, close_invest_btn]:
+		_style_button(nav_btn, UITheme.PAPER_CREAM, 8)
+		
+	_style_button(send_button, UITheme.BTN_SAGE, 8)
+	if chat_input:
+		var in_sb := UITheme.make_card_style(Color(0.98, 0.96, 0.91, 1.0), UITheme.INK_BORDER, 8, 2, 3, 8.0)
+		var foc_sb := UITheme.make_card_style(Color(1.0, 0.99, 0.95, 1.0), Color(0.18, 0.44, 0.25, 1.0), 8, 2, 3, 8.0)
+		chat_input.add_theme_stylebox_override("normal", in_sb)
+		chat_input.add_theme_stylebox_override("focus", foc_sb)
+		chat_input.add_theme_color_override("font_color", UITheme.INK_DARK)
+		chat_input.add_theme_color_override("font_placeholder_color", UITheme.INK_MUTED)
+		chat_input.add_theme_color_override("caret_color", UITheme.INK_DARK)
+	
+	for loan_btn in [borrow_5k_btn, borrow_10k_btn]:
+		_style_button(loan_btn, UITheme.BTN_GOLD, 8)
+	for pay_btn in [pay_loan_inst_btn, pay_loan_full_btn]:
+		_style_button(pay_btn, UITheme.BTN_SAGE, 8)
+	_style_button(pay_overdue_debt_btn, UITheme.BTN_CORAL, 8)
+		
+	for inv_btn in [invest_low_btn, invest_high_btn]:
+		_style_button(inv_btn, UITheme.BTN_BLUE, 8)
+	_style_button(withdraw_cash_btn, UITheme.PAPER_KRAFT, 8)
+	_style_button(transfer_savings_btn, UITheme.BTN_SAGE, 8)
+
+func _set_active_subpanel(panel: Control) -> void:
+	if event_detail_panel:
+		event_detail_panel.visible = (panel == event_detail_panel)
+	if chat_panel:
+		chat_panel.visible = (panel == chat_panel)
+	if loans_panel:
+		loans_panel.visible = (panel == loans_panel)
+	if invest_panel:
+		invest_panel.visible = (panel == invest_panel)
+	if home_scroll:
+		home_scroll.visible = (panel == null)
+
 func _on_stats_updated() -> void:
 	_update_header_status()
 	_refresh_loans_panel()
@@ -61,17 +123,17 @@ func _update_header_status() -> void:
 	if not header_title or is_lag_waiting:
 		return
 	if StatManager.phone_is_slow:
-		header_title.text = "Mga Text (🐢 Slow Phone - 2s Lag)"
+		header_title.text = "PaldoPhone  |  Slow Connection (2s Lag)"
 	elif StatManager.phone_upgraded:
-		header_title.text = "Mga Text (⚡ Upgraded 5G)"
+		header_title.text = "PaldoPhone  |  Upgraded 5G"
 	else:
-		header_title.text = "Mga Text"
+		header_title.text = "PaldoPhone  |  Mga Text"
 
 func _apply_phone_lag_if_needed() -> void:
 	if StatManager.phone_is_slow and StatManager.phone_lag_seconds > 0.0:
 		is_lag_waiting = true
 		if header_title:
-			header_title.text = "⏳ Loading... (Slow Phone 2s)"
+			header_title.text = "Loading... (Slow Phone 2s)"
 		await get_tree().create_timer(StatManager.phone_lag_seconds).timeout
 		is_lag_waiting = false
 		_update_header_status()
@@ -109,17 +171,36 @@ func _on_event_triggered(_event_data: Dictionary) -> void:
 
 func _on_event_resolved(_event_id: String) -> void:
 	refresh_notifications()
-	event_detail_panel.hide()
+	_set_active_subpanel(null)
 
 func refresh_notifications() -> void:
+	if not notifications_container:
+		return
 	for child in notifications_container.get_children():
 		notifications_container.remove_child(child)
 		child.queue_free()
 		
+	if EventManager.active_events.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.name = "EmptyInboxLabel"
+		empty_lbl.text = "Walang bagong text message ngayon."
+		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_lbl.custom_minimum_size = Vector2(0, 44)
+		empty_lbl.add_theme_color_override("font_color", UITheme.INK_MUTED)
+		empty_lbl.add_theme_font_size_override("font_size", 14)
+		notifications_container.add_child(empty_lbl)
+		return
+		
 	for event in EventManager.active_events:
-		var btn = Button.new()
-		btn.text = "New Message: " + event["title"]
-		btn.custom_minimum_size = Vector2(0, 50)
+		var btn := Button.new()
+		btn.text = "[BAGO] " + str(event["title"])
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.custom_minimum_size = Vector2(0, 56)
+		btn.add_theme_font_size_override("font_size", 14)
+		_style_button(btn, UITheme.PAPER_KRAFT, 8)
 		btn.pressed.connect(func(): _on_notification_clicked(event))
 		notifications_container.add_child(btn)
 
@@ -131,8 +212,8 @@ func _on_notification_clicked(event: Dictionary) -> void:
 
 func open_event_detail(event: Dictionary) -> void:
 	current_viewing_event_id = event["id"]
-	event_title.text = event["title"]
-	event_desc.text = event["description"]
+	event_title.text = str(event["title"])
+	event_desc.text = str(event["description"])
 	
 	for child in options_container.get_children():
 		options_container.remove_child(child)
@@ -140,69 +221,74 @@ func open_event_detail(event: Dictionary) -> void:
 		
 	var i = 0
 	for option in event["options"]:
-		var btn = Button.new()
-		var choice_text = option["choice_text"]
-		var can_select = EventManager.is_option_selectable(option)
-		btn.custom_minimum_size = Vector2(0, 62)
+		var btn := Button.new()
+		var choice_text := str(option["choice_text"])
+		var can_select := EventManager.is_option_selectable(option)
+		btn.custom_minimum_size = Vector2(0, 84)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.disabled = not can_select
+		_style_button(btn, UITheme.PAPER_CREAM, 8)
 		
-		var rtf = RichTextLabel.new()
+		var rtf := RichTextLabel.new()
 		rtf.bbcode_enabled = true
+		rtf.fit_content = true
+		rtf.scroll_active = false
+		rtf.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		rtf.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rtf.add_theme_color_override("default_color", UITheme.INK_DARK)
 		rtf.set_anchors_preset(Control.PRESET_FULL_RECT)
+		rtf.offset_left = 10.0
+		rtf.offset_top = 8.0
+		rtf.offset_right = -10.0
+		rtf.offset_bottom = -8.0
 		
-		var stats_text = EventManager.format_option_Preview_bbcode(option)
-		rtf.text = "[center]" + choice_text + "\n[font_size=14]" + stats_text + "[/font_size][/center]"
+		var stats_text := EventManager.format_option_Preview_bbcode(option)
+		rtf.text = "[center][b]" + choice_text + "[/b]\n[font_size=14]" + stats_text + "[/font_size][/center]"
 		btn.add_child(rtf)
 		btn.pressed.connect(func(idx = i): resolve_current_event(idx))
 		options_container.add_child(btn)
 		i += 1
 		
-	event_detail_panel.show()
+	_set_active_subpanel(event_detail_panel)
 
 func resolve_current_event(option_index: int) -> void:
 	if current_viewing_event_id != "":
 		EventManager.resolve_event(current_viewing_event_id, option_index)
 
 func _on_event_back_button_pressed() -> void:
-	event_detail_panel.hide()
+	_set_active_subpanel(null)
 
 func _on_baldo_button_pressed() -> void:
 	if is_lag_waiting:
 		return
 	await _apply_phone_lag_if_needed()
-	chat_panel.show()
+	_set_active_subpanel(chat_panel)
 
 func open_baldo_chat_direct() -> void:
-	event_detail_panel.hide()
-	if loans_panel:
-		loans_panel.hide()
-	if invest_panel:
-		invest_panel.hide()
-	chat_panel.show()
+	_set_active_subpanel(chat_panel)
 
 func _on_close_chat_button_pressed() -> void:
-	chat_panel.hide()
+	_set_active_subpanel(null)
 
 func _on_loans_app_button_pressed() -> void:
 	if is_lag_waiting:
 		return
 	await _apply_phone_lag_if_needed()
 	_refresh_loans_panel()
-	loans_panel.show()
+	_set_active_subpanel(loans_panel)
 
 func _on_close_loans_button_pressed() -> void:
-	loans_panel.hide()
+	_set_active_subpanel(null)
 
 func _on_invest_app_button_pressed() -> void:
 	if is_lag_waiting:
 		return
 	await _apply_phone_lag_if_needed()
 	_refresh_invest_panel()
-	invest_panel.show()
+	_set_active_subpanel(invest_panel)
 
 func _on_close_invest_button_pressed() -> void:
-	invest_panel.hide()
+	_set_active_subpanel(null)
 
 func _refresh_loans_panel() -> void:
 	if not loans_info_label:
@@ -224,11 +310,11 @@ func _refresh_loans_panel() -> void:
 	var mat_10k := str(StatManager.year[(StatManager.current_month + 3) % StatManager.year.size()].month)
 	
 	var txt := "[b]Credit Score:[/b] " + str(StatManager.credit_score) + "/100 | [b]Cash:[/b] PHP " + str(StatManager.current_balance) + "\n"
-	txt += "[b]Simple Interest Formula (I = P × r × t):[/b] Rate = [color=yellow]" + str(rate_pct) + "%/mo[/color]\n\n"
+	txt += "[b]Simple Interest Formula (I = P × r × t):[/b] Rate = [color=#94520d]" + str(rate_pct) + "%/mo[/color]\n\n"
 	txt += "[b]1. QuickCash Loan:[/b] Principal: PHP 5,000 | Term: 2 Mos | Simple Interest: PHP " + str(int_5k) + " | Total: PHP " + str(tot_5k) + " | Due: PHP " + str(mo_5k) + "/mo | Maturity: " + mat_5k + "\n"
-	txt += "[b]2. FlexiLoan:[/b] Principal: PHP 10,000 | Term: 3 Mos | Simple Interest: PHP " + str(int_10k) + " | Total: PHP " + str(tot_10k) + " | Due: PHP " + str(mo_10k) + "/mo | Maturity: " + mat_10k + "\n\n"
+	txt += "[b]2. FlexiLoan:[/b] Principal: PHP 10,000 | Term: 3 Mos | Simple Interest: PHP " + str(int_10k) + " | Total: PHP " + str(tot_10k) + " | Due: PHP " + str(mo_10k) + "/mo | Maturity: " + mat_5k.substr(0, 0) + mat_10k + "\n\n"
 	txt += "[b]Active Loans (" + str(StatManager.active_loans.size()) + "):[/b] " + StatManager.get_loans_summary_text() + "\n"
-	txt += "[b]Overdue Debt (5% Penalty/mo):[/b] [color=red]PHP " + str(StatManager.debt_balance) + "[/color]"
+	txt += "[b]Overdue Debt (5% Penalty/mo):[/b] [color=#a8261f]PHP " + str(StatManager.debt_balance) + "[/color]"
 	loans_info_label.text = txt
 	
 	if borrow_5k_btn:
@@ -313,13 +399,13 @@ func _refresh_invest_panel() -> void:
 	var total_inv := StatManager.get_total_investments()
 	var pnl := StatManager.total_investment_gains
 	var pnl_sign := "+" if pnl >= 0 else ""
-	var pnl_color := "green" if pnl >= 0 else "red"
+	var pnl_color := "#1c7033" if pnl >= 0 else "#a8261f"
 	
-	var txt := "[b]Available Cash:[/b] [color=green]PHP " + str(StatManager.current_balance) + "[/color] | [b]Ipon (Savings):[/b] [color=lightblue]PHP " + str(StatManager.savings) + "[/color]\n\n"
-	txt += "[b]1. Low-Risk Mutual Fund (Steady +3% to +5%/mo):[/b]\n   Current Value: [color=aqua]PHP " + str(StatManager.low_risk_investment) + "[/color]\n"
-	txt += "[b]2. High-Risk Stock Market (Volatile -15% to +25%):[/b]\n   Current Value: [color=yellow]PHP " + str(StatManager.high_risk_investment) + "[/color]\n\n"
+	var txt := "[b]Available Cash:[/b] [color=#1c7033]PHP " + str(StatManager.current_balance) + "[/color] | [b]Ipon (Savings):[/b] [color=#1a4b7c]PHP " + str(StatManager.savings) + "[/color]\n\n"
+	txt += "[b]1. Low-Risk Mutual Fund (Steady +3% to +5%/mo):[/b]\n   Current Value: [color=#1a4b7c]PHP " + str(StatManager.low_risk_investment) + "[/color]\n"
+	txt += "[b]2. High-Risk Stock Market (Volatile -15% to +25%):[/b]\n   Current Value: [color=#94520d]PHP " + str(StatManager.high_risk_investment) + "[/color]\n\n"
 	txt += "[b]Total Portfolio Value:[/b] PHP " + str(total_inv) + " | [b]Net P&L:[/b] [color=" + pnl_color + "]" + pnl_sign + "PHP " + str(pnl) + "[/color]\n"
-	txt += "[b]Side Hustle Status:[/b] " + ("[color=green]Active (+PHP 5,000/mo)[/color]" if StatManager.has_side_income else "Inactive")
+	txt += "[b]Side Hustle Status:[/b] " + ("[color=#1c7033]Active (+PHP 5,000/mo)[/color]" if StatManager.has_side_income else "Inactive")
 	invest_info_label.text = txt
 	
 	if invest_low_btn:
@@ -376,15 +462,15 @@ func _on_send_chat_button_pressed() -> void:
 	send_ai_request(text)
 
 func add_chat_bubble(sender: String, text: String) -> void:
-	var color = "white"
+	var color = "#211c1a"
 	if sender == "Baldo":
-		color = "lightblue"
+		color = "#1c7033"
 	elif sender == "System":
-		color = "gray"
+		color = "#5c4f45"
 		
 	if chat_history.text != "":
-		chat_history.text += "\n"
-	chat_history.text += "[color=" + color + "]" + sender + ":[/color] " + text
+		chat_history.text += "\n\n"
+	chat_history.text += "[b][color=" + color + "]" + sender + ":[/color][/b] " + text
 
 func send_ai_request(latest_user_text: String = "") -> void:
 	# Always refresh the system prompt at index 0 with the latest live StatManager & EventManager context

@@ -1,29 +1,72 @@
-[gd_scene load_steps=4 format=3 uid="uid://dvxndpnueep6j"]
+[gd_scene load_steps=6 format=3 uid="uid://dvxndpnueep6j"]
 
 [ext_resource type="Script" path="res://scripts/phone_interface.gd" id="1_phone_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.1, 0.1, 0.1, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
+bg_color = Color(0.95, 0.94, 0.9, 0.99)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 8
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
-bg_color = Color(0.2, 0.2, 0.2, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
+bg_color = Color(0.51, 0.71, 0.8, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 3
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_msg_bubble"]
+bg_color = Color(0.92, 0.89, 0.82, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.18, 0.15, 0.13, 0.95)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_subpanel"]
+bg_color = Color(0.95, 0.94, 0.9, 0.99)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 8
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
 
 [node name="Phone Interface" type="Control"]
+clip_contents = true
 layout_mode = 3
 anchors_preset = 0
-offset_left = 780.0
-offset_top = 20.0
-offset_right = 1130.0
-offset_bottom = 620.0
+offset_left = 684.0
+offset_top = 16.0
+offset_right = 1128.0
+offset_bottom = 632.0
 script = ExtResource("1_phone_script")
 
 [node name="Background" type="Panel" parent="."]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -36,7 +79,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 50.0
+offset_bottom = 54.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
@@ -45,19 +88,27 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 12.0
+offset_right = -12.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Mga Text"
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/font_size = 16
+text = "PaldoPhone  |  Mga Text"
 horizontal_alignment = 1
 vertical_alignment = 1
+autowrap_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 60.0
-offset_bottom = -10.0
+offset_left = 16.0
+offset_top = 64.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -68,54 +119,72 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
 [node name="BaldoButton" type="Button" parent="ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
-text = "Kausapin si Baldo"
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Kausapin si Baldo (Financial Coach)"
+autowrap_mode = 3
 
 [node name="AppsRow" type="HBoxContainer" parent="ScrollContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 8
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
 
 [node name="LoansAppButton" type="Button" parent="ScrollContainer/VBoxContainer/AppsRow"]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "🏦 Utang App"
+theme_override_font_sizes/font_size = 14
+text = "Utang App"
+autowrap_mode = 3
 
 [node name="InvestAppButton" type="Button" parent="ScrollContainer/VBoxContainer/AppsRow"]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "📈 Invest App"
+theme_override_font_sizes/font_size = 14
+text = "Invest App"
+autowrap_mode = 3
+
+[node name="InboxHeaderLabel" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.15, 0.13, 1)
+theme_override_font_sizes/font_size = 15
+text = "Inbox & Notifications"
 
 [node name="NotificationsContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
 [node name="EventDetailPanel" type="Panel" parent="."]
 visible = false
+clip_contents = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+theme_override_styles/panel = SubResource("StyleBoxFlat_subpanel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="EventDetailPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 10
 
 [node name="EventTitle" type="Label" parent="EventDetailPanel/VBoxContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_font_sizes/font_size = 18
 text = "Event Title"
 horizontal_alignment = 1
@@ -123,190 +192,249 @@ autowrap_mode = 3
 
 [node name="EventDescription" type="Label" parent="EventDetailPanel/VBoxContainer"]
 layout_mode = 2
-size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_msg_bubble")
 text = "Event Description here..."
 autowrap_mode = 3
 
+[node name="ReplyPromptLabel" type="Label" parent="EventDetailPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.2, 0.17, 1)
+theme_override_font_sizes/font_size = 14
+text = "Piliin ang iyong tugon:"
+
 [node name="OptionsContainer" type="VBoxContainer" parent="EventDetailPanel/VBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
 
 [node name="BackButton" type="Button" parent="EventDetailPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-text = "Bumalik sa Texts"
+theme_override_font_sizes/font_size = 14
+text = "< Bumalik sa Inbox"
 
 [node name="ChatPanel" type="Panel" parent="."]
 visible = false
+clip_contents = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+theme_override_styles/panel = SubResource("StyleBoxFlat_subpanel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ChatPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 8
 
 [node name="ChatTitle" type="Label" parent="ChatPanel/VBoxContainer"]
 layout_mode = 2
-text = "Baldo (Financial Coach)"
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/font_size = 17
+text = "Baldo  |  Financial Coach"
 horizontal_alignment = 1
 
 [node name="ChatHistory" type="RichTextLabel" parent="ChatPanel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_msg_bubble")
 bbcode_enabled = true
 scroll_following = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="ChatPanel/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="ChatInput" type="LineEdit" parent="ChatPanel/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "Mag-type rito..."
+theme_override_font_sizes/font_size = 14
+placeholder_text = "Magtanong kay Baldo..."
 
 [node name="SendButton" type="Button" parent="ChatPanel/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(76, 38)
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "I-send"
 
 [node name="CloseChatButton" type="Button" parent="ChatPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
-text = "I-close ang Chat"
+theme_override_font_sizes/font_size = 14
+text = "< Bumalik sa Home"
 
 [node name="LoansPanel" type="Panel" parent="."]
 visible = false
+clip_contents = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+theme_override_styles/panel = SubResource("StyleBoxFlat_subpanel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="LoansPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 6
 
 [node name="LoansTitle" type="Label" parent="LoansPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "🏦 Digital Lending Platform"
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/font_size = 17
+text = "Digital Lending Platform"
 horizontal_alignment = 1
 
 [node name="LoansInfoLabel" type="RichTextLabel" parent="LoansPanel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_msg_bubble")
 bbcode_enabled = true
 text = "Loan details..."
 
 [node name="Borrow5kButton" type="Button" parent="LoansPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "Borrow PHP 5,000 (2 Mos)"
+autowrap_mode = 3
 
 [node name="Borrow10kButton" type="Button" parent="LoansPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "Borrow PHP 10,000 (3 Mos)"
+autowrap_mode = 3
 
 [node name="PayLoanInstallmentButton" type="Button" parent="LoansPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "Pay Active Loan Monthly Due"
+autowrap_mode = 3
 
 [node name="PayLoanFullButton" type="Button" parent="LoansPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "Pay Full Active Loan (+2 CS)"
+autowrap_mode = 3
 
 [node name="PayOverdueDebtButton" type="Button" parent="LoansPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "Pay Overdue Debt Balance"
+autowrap_mode = 3
 
 [node name="CloseLoansButton" type="Button" parent="LoansPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-text = "Bumalik sa Home"
+theme_override_font_sizes/font_size = 14
+text = "< Bumalik sa Home"
 
 [node name="InvestPanel" type="Panel" parent="."]
 visible = false
+clip_contents = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+theme_override_styles/panel = SubResource("StyleBoxFlat_subpanel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="InvestPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 6
 
 [node name="InvestTitle" type="Label" parent="InvestPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "📈 Paldo Invest & Portfolio"
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/font_size = 17
+text = "Paldo Invest & Portfolio"
 horizontal_alignment = 1
 
 [node name="InvestInfoLabel" type="RichTextLabel" parent="InvestPanel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_msg_bubble")
 bbcode_enabled = true
 text = "Portfolio details..."
 
 [node name="InvestLowRiskButton" type="Button" parent="InvestPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "Invest PHP 3,000 -> Low-Risk Fund (+4%/mo)"
+autowrap_mode = 3
 
 [node name="InvestHighRiskButton" type="Button" parent="InvestPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "Invest PHP 3,000 -> High-Risk Stock (-15% to +25%)"
+autowrap_mode = 3
 
 [node name="WithdrawCashButton" type="Button" parent="InvestPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "Withdraw Investments to Cash"
+autowrap_mode = 3
 
 [node name="TransferSavingsButton" type="Button" parent="InvestPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "Transfer Investments to Ipon (Savings)"
+autowrap_mode = 3
 
 [node name="CloseInvestButton" type="Button" parent="InvestPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-text = "Bumalik sa Home"
+theme_override_font_sizes/font_size = 14
+text = "< Bumalik sa Home"
 
 [node name="AIHTTPRequest" type="HTTPRequest" parent="."]
 

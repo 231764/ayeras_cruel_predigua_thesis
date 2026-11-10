@@ -1,6 +1,37 @@
-[gd_scene load_steps=2 format=3 uid="uid://c_year_end_evaluation"]
+[gd_scene load_steps=4 format=3 uid="uid://c_year_end_evaluation"]
 
 [ext_resource type="Script" path="res://scripts/year_end_evaluation.gd" id="1_yee"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal_panel"]
+bg_color = Color(0.96, 0.94, 0.89, 0.99)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 6
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 10
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_report_bubble"]
+bg_color = Color(0.92, 0.89, 0.81, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.18, 0.15, 0.13, 0.95)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
 
 [node name="YearEndEvaluationCanvas" type="CanvasLayer"]
 layer = 110
@@ -12,21 +43,23 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.78)
+color = Color(0.06, 0.04, 0.03, 0.82)
 
 [node name="Panel" type="Panel" parent="Backdrop"]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -410.0
-offset_top = -275.0
-offset_right = 410.0
-offset_bottom = 275.0
+offset_left = -420.0
+offset_top = -285.0
+offset_right = 420.0
+offset_bottom = 285.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal_panel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Backdrop/Panel"]
 layout_mode = 1
@@ -43,13 +76,15 @@ theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "🏆 TUNAY NA PALDO!"
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/font_size = 23
+text = "TUNAY NA PALDO!"
 horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="SubtitleLabel" type="Label" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.24, 0.2, 1)
 theme_override_font_sizes/font_size = 15
 text = "Year-End Victory Conditions Met: 4 / 4"
 horizontal_alignment = 1
@@ -57,6 +92,9 @@ horizontal_alignment = 1
 [node name="ReportLabel" type="RichTextLabel" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/normal_font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_report_bubble")
 bbcode_enabled = true
 text = "Year-end report..."
 
@@ -68,13 +106,15 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "🔄 Maglaro Ulit (New 1-Year Run)"
+theme_override_font_sizes/font_size = 15
+text = "Maglaro Ulit (New 1-Year Run)"
 
 [node name="CloseButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsRow"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Tapusin ang Laro (Quit)"
+theme_override_font_sizes/font_size = 15
+text = "Isara ang Report"
 
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsRow/PlayAgainButton" to="." method="_on_play_again_button_pressed"]
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsRow/CloseButton" to="." method="_on_close_button_pressed"]

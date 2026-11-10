@@ -1,5 +1,7 @@
 extends Button
 
+const UITheme = preload("res://scripts/ui_theme.gd")
+
 var current_interface
 
 @onready var button = $"../Back Button"
@@ -21,6 +23,7 @@ func _on_pressed() -> void:
 			child.visible = true
 
 func _ready() -> void:
+	UITheme.style_Button(self, UITheme.BTN_GOLD, 10, 5)
 	if button and not button.pressed.is_connected(_on_pressed):
 		button.pressed.connect(_on_pressed)
 

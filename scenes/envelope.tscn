@@ -1,11 +1,19 @@
-[gd_scene load_steps=4 format=3 uid="uid://h0ak5v2xuij2"]
+[gd_scene load_steps=5 format=3 uid="uid://h0ak5v2xuij2"]
 
 [ext_resource type="Texture2D" uid="uid://bk0vjtj8jafi6" path="res://assets/envelope.png" id="1_8o8ra"]
 [ext_resource type="Script" uid="uid://beq5llxrawsny" path="res://scripts/envelope.gd" id="1_k4yme"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_8o8ra"]
-font_size = 25
-font_color = Color(0, 0, 0, 1)
+[sub_resource type="LabelSettings" id="LabelSettings_cat"]
+font_size = 24
+font_color = Color(0.12, 0.1, 0.06, 1)
+outline_size = 2
+outline_color = Color(1, 0.96, 0.82, 0.9)
+
+[sub_resource type="LabelSettings" id="LabelSettings_amt"]
+font_size = 32
+font_color = Color(0.08, 0.36, 0.16, 1)
+outline_size = 3
+outline_color = Color(1, 0.98, 0.88, 0.95)
 
 [node name="Envelope" type="Node2D" node_paths=PackedStringArray("category_label", "amount_label", "money_edit")]
 script = ExtResource("1_k4yme")
@@ -19,88 +27,111 @@ offset_top = 3.0
 offset_right = 4524.0
 offset_bottom = 3625.0
 scale = Vector2(0.16, 0.16)
+mouse_filter = 2
 texture = ExtResource("1_8o8ra")
 
 [node name="EnvelopCategory" type="Label" parent="."]
-offset_left = 474.0
-offset_top = 241.0
-offset_right = 729.0
-offset_bottom = 317.0
-text = "Label"
-label_settings = SubResource("LabelSettings_8o8ra")
+offset_left = 435.0
+offset_top = 225.0
+offset_right = 768.0
+offset_bottom = 295.0
+text = "Pagkain (Food)"
+label_settings = SubResource("LabelSettings_cat")
 horizontal_alignment = 1
-autowrap_mode = 1
+vertical_alignment = 1
+autowrap_mode = 2
 
 [node name="EnvelopBudget" type="Label" parent="."]
-offset_left = 473.0
-offset_top = 312.0
-offset_right = 728.0
-offset_bottom = 388.0
-text = "PHP"
-label_settings = SubResource("LabelSettings_8o8ra")
+offset_left = 435.0
+offset_top = 296.0
+offset_right = 768.0
+offset_bottom = 352.0
+text = "₱0"
+label_settings = SubResource("LabelSettings_amt")
 horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 1
 
 [node name="TargetInfoLabel" type="Label" parent="."]
-offset_left = 410.0
-offset_top = 372.0
-offset_right = 790.0
-offset_bottom = 426.0
-theme_override_colors/font_color = Color(0.15, 0.15, 0.15, 1)
+offset_left = 415.0
+offset_top = 356.0
+offset_right = 788.0
+offset_bottom = 406.0
+theme_override_colors/font_color = Color(0.16, 0.14, 0.1, 1)
 theme_override_font_sizes/font_size = 15
 text = "Recommended Target: PHP 0"
 horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 2
 
+[node name="TargetProgressBar" type="ProgressBar" parent="."]
+offset_left = 435.0
+offset_top = 410.0
+offset_right = 768.0
+offset_bottom = 434.0
+max_value = 100.0
+step = 1.0
+
 [node name="QuickChipsHBox" type="HBoxContainer" parent="."]
-offset_left = 199.0
-offset_top = 542.0
-offset_right = 922.0
-offset_bottom = 581.0
+z_index = 4
+offset_left = 205.0
+offset_top = 538.0
+offset_right = 945.0
+offset_bottom = 578.0
 theme_override_constants/separation = 10
 alignment = 1
 
 [node name="Plus500Button" type="Button" parent="QuickChipsHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
 text = "+₱500"
 
 [node name="Plus1000Button" type="Button" parent="QuickChipsHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
 text = "+₱1,000"
 
 [node name="FillTargetButton" type="Button" parent="QuickChipsHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "🎯 Fill Target (Sakto)"
+theme_override_font_sizes/font_size = 14
+text = "Fill Target (Sakto)"
 
 [node name="Minus500Button" type="Button" parent="QuickChipsHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
 text = "-₱500"
 
 [node name="InsertMoney" type="TextEdit" parent="."]
-offset_left = 199.0
-offset_top = 589.0
+z_index = 4
+offset_left = 205.0
+offset_top = 586.0
 offset_right = 575.0
-offset_bottom = 630.0
-placeholder_text = "(insert money)"
+offset_bottom = 628.0
+theme_override_font_sizes/font_size = 15
+placeholder_text = "I-type ang halaga (PHP)..."
 drag_and_drop_selection_enabled = false
 
 [node name="SubmitMoney" type="Button" parent="."]
-offset_left = 598.0
-offset_top = 589.0
-offset_right = 753.0
+z_index = 4
+offset_left = 590.0
+offset_top = 586.0
+offset_right = 760.0
 offset_bottom = 628.0
-text = "Maghulog"
+theme_override_font_sizes/font_size = 14
+text = "Maghulog (+)"
 
 [node name="WithdrawMoney" type="Button" parent="."]
-offset_left = 767.0
-offset_top = 589.0
-offset_right = 922.0
+z_index = 4
+offset_left = 775.0
+offset_top = 586.0
+offset_right = 945.0
 offset_bottom = 628.0
-text = "Kumuha"
+theme_override_font_sizes/font_size = 14
+text = "Kumuha (-)"
 
 [connection signal="pressed" from="QuickChipsHBox/Plus500Button" to="." method="_on_plus_500_pressed"]
 [connection signal="pressed" from="QuickChipsHBox/Plus1000Button" to="." method="_on_plus_1000_pressed"]

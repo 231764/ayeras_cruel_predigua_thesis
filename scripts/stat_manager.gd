@@ -121,6 +121,26 @@ var year := [
 	{"month": "December", "days": 31},
 ]
 
+# Standard Sunday-First (LIN..SAB) 2026 Calendar Weekday Helpers (Jan 1, 2026 = Thursday / index 4)
+const WEEKDAY_SHORT := ["LIN", "LUN", "MAR", "MIY", "HUW", "BIY", "SAB"]
+const WEEKDAY_FULL := ["Linggo", "Lunes", "Martes", "Miyerkules", "Huwebes", "Biyernes", "Sabado"]
+const JAN_1_2026_WEEKDAY: int = 4
+
+func get_month_start_weekday(month_idx: int) -> int:
+	var clamped_m: int = clamp(month_idx, 0, year.size() - 1)
+	var days_before: int = 0
+	for m in range(clamped_m):
+		days_before += int(year[m]["days"])
+	return (JAN_1_2026_WEEKDAY + days_before) % 7
+
+func get_weekday_index(month_idx: int, day_num: int) -> int:
+	return (get_month_start_weekday(month_idx) + max(0, day_num - 1)) % 7
+
+func get_weekday_name(month_idx: int, day_num: int, short_form: bool = false) -> String:
+	var idx: int = get_weekday_index(month_idx, day_num)
+	return str(WEEKDAY_SHORT[idx] if short_form else WEEKDAY_FULL[idx])
+
+
 # Weekly Tracking & Delta Snapshots (GDD Section 3.2)
 var weekly_income: int = 0
 var weekly_expenses: int = 0
@@ -677,9 +697,9 @@ func perform_weekend_activity(activity_id: String) -> Dictionary:
 	match activity_id:
 		"rest":
 			modify_happy(6)
-			result["title"] = "🧘 Pahinga at Self-Care sa Bahay"
+			result["title"] = "Pahinga at Self-Care sa Bahay"
 			result["happy_delta"] = 6
-			result["summary_text"] = "🧘 Nagpahinga ka sa bahay ngayong weekend (PHP 0, +6 Happy)!"
+			result["summary_text"] = "Nagpahinga ka sa bahay ngayong weekend (PHP 0, +6 Happy)!"
 		"barkada":
 			var covered := (libangan_before >= 400)
 			spend_from_category("Entertainment", 400)
@@ -687,13 +707,13 @@ func perform_weekend_activity(activity_id: String) -> Dictionary:
 			var s_gain := 9 if covered else 7
 			modify_happy(h_gain)
 			modify_social(s_gain)
-			result["title"] = "☕ Kape at Bonding w/ Barkada"
+			result["title"] = "Kape at Bonding w/ Barkada"
 			result["cost"] = 400
 			result["used_libangan_envelope"] = covered
 			result["happy_delta"] = h_gain
 			result["social_delta"] = s_gain
 			var src_tag := "mula sa Libangan Envelope" if covered else "mula sa Pocket Cash"
-			result["summary_text"] = "☕ Nag-bonding ka kasama ang barkada (-PHP 400 " + src_tag + ", +" + str(h_gain) + " Happy, +" + str(s_gain) + " Social)!"
+			result["summary_text"] = "Nag-bonding ka kasama ang barkada (-PHP 400 " + src_tag + ", +" + str(h_gain) + " Happy, +" + str(s_gain) + " Social)!"
 		"family":
 			var covered := (libangan_before >= 600)
 			spend_from_category("Entertainment", 600)
@@ -704,23 +724,23 @@ func perform_weekend_activity(activity_id: String) -> Dictionary:
 			modify_social(s_gain)
 			if cs_gain > 0:
 				modify_credit_score(cs_gain)
-			result["title"] = "🏠 Kamustahin at Padalhan ang Pamilya"
+			result["title"] = "Kamustahin at Padalhan ang Pamilya"
 			result["cost"] = 600
 			result["used_libangan_envelope"] = covered
 			result["happy_delta"] = h_gain
 			result["social_delta"] = s_gain
 			result["credit_score_delta"] = cs_gain
 			var src_tag := "mula sa Libangan Envelope (+1 CS Bonus!)" if covered else "mula sa Pocket Cash"
-			result["summary_text"] = "🏠 Nakipag-bonding ka sa pamilya (-PHP 600 " + src_tag + ", +" + str(h_gain) + " Happy, +" + str(s_gain) + " Social)!"
+			result["summary_text"] = "Nakipag-bonding ka sa pamilya (-PHP 600 " + src_tag + ", +" + str(h_gain) + " Happy, +" + str(s_gain) + " Social)!"
 		"raket":
 			spend_direct(-1200)
 			modify_happy(-5)
 			modify_social(-3)
-			result["title"] = "💻 Weekend Sideline / Overtime Raket"
+			result["title"] = "Weekend Sideline / Overtime Raket"
 			result["cost"] = -1200
 			result["happy_delta"] = -5
 			result["social_delta"] = -3
-			result["summary_text"] = "💻 Kumayod ka sa Weekend Sideline (+PHP 1,200 Cash, -5 Happy, -3 Social)!"
+			result["summary_text"] = "Kumayod ka sa Weekend Sideline (+PHP 1,200 Cash, -5 Happy, -3 Social)!"
 		_:
 			return result
 			
@@ -795,7 +815,7 @@ func snapshot_weekly_summary(week_num: int) -> Dictionary:
 		envelope_discipline_streak += 1
 		modify_happy(2)
 		modify_credit_score(1)
-		PlannerManager.record_event(current_month, current_day, "🏅 Disiplinadong Budgeter Streak (" + str(envelope_discipline_streak) + "w)! (+2 Happy, +1 Credit Score)")
+		PlannerManager.record_event(current_month, current_day, "[Disiplinadong Budgeter Streak: " + str(envelope_discipline_streak) + "w] (+2 Happy, +1 Credit Score)")
 	elif tot_days > 0:
 		envelope_discipline_streak = 0
 		
@@ -897,22 +917,22 @@ func evaluate_year_end() -> Dictionary:
 	
 	if is_full_paldo:
 		ending_id = "full_paldo"
-		ending_title = "🏆 TUNAY NA PALDO! (Full Breadwinner Mastery Victory)"
+		ending_title = "TUNAY NA PALDO! (Full Breadwinner Mastery Victory)"
 		ending_summary = "Nakamit mo ang iyong 1-Year Life Goal (\"" + str(goal["title"]) + "\"), nanatiling 100% debt-free, mataas ang Credit Score, at napangalagaan ang iyong Happiness at Relationships sa gitna ng layoff at mga krisis!"
 		baldo_verdict = "Omsim par, ISA KANG ALAMAT! Kahit dumaan sa layoff, inflation, at hospital emergencies, na-balance mo ang Cash Envelopes, Ipon, at mental health mo. Tunay na PALDO!"
 	elif goal_reached:
 		ending_id = "pyrrhic_goal"
-		ending_title = "⚠️ NATUPAD ANG GOAL PERO MAY KAPALIT (Partial Victory)"
+		ending_title = "NATUPAD ANG GOAL PERO MAY KAPALIT (Partial Victory)"
 		ending_summary = "Naabot mo ang target na PHP " + str(target) + " sa Ipon para sa \"" + str(goal["title"]) + "\", ngunit may naiwang utang/credit balance, bumaba ang Credit Score, o na-kompromiso ang iyong Happiness/Social."
 		baldo_verdict = "Congrats at naipon mo yung pang-\"" + str(goal["title"]) + "\" par! Pero tandaan: ang tunay na pag-paldo ay hindi lang malaking ipon—dapat debt-free rin at hindi nasasakripisyo ang sarili at pamilya."
 	elif debt_free and wellbeing_maintained:
 		ending_id = "debt_free_survivor"
-		ending_title = "🌱 MATATAG NA BREADWINNER (Debt-Free Survivor Ending)"
+		ending_title = "MATATAG NA BREADWINNER (Debt-Free Survivor Ending)"
 		ending_summary = "Nalampasan mo ang buong taon nang walang utang, maganda ang well-being, at nakabangon mula sa layoff, ngunit kinapos pa ang iyong Ipon (PHP " + str(savings) + " / PHP " + str(target) + ") para sa \"" + str(goal["title"]) + "\"."
 		baldo_verdict = "Proud pa rin ako sa'yo lods! Hindi biro ang ma-layoff at ma-ospital ang kapatid, pero tinapos mo ang taon nang walang utang at buo ang loob. Konting ipon at investment pa, papaldo ka na!"
 	else:
 		ending_id = "financial_struggle"
-		ending_title = "📉 KINAPOS SA TAONG ITO (Financial Struggle Ending)"
+		ending_title = "KINAPOS SA TAONG ITO (Financial Struggle Ending)"
 		ending_summary = "Natapos ang taon na kinapos sa Life Goal (PHP " + str(savings) + " / PHP " + str(target) + ") at may mabigat pang obligasyon o pagod na kalusugan/relasyon. Mahalagang aral ito sa pag-budget at paghahanda ng Emergency Fund."
 		baldo_verdict = "Hinga nang malalim par! Mabigat talaga ang unang taon bilang breadwinner lalo na kung sabay-sabay ang utang at emergency. Bawi tayo next run: unahin ang Emergency Fund at iwas sa minimum payment trap!"
 		

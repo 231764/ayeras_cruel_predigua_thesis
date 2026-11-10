@@ -23,109 +23,180 @@
 [ext_resource type="Texture2D" uid="uid://66485hc28cl4" path="res://assets/credit score icon.png" id="25_1hu6n"]
 [ext_resource type="Texture2D" uid="uid://df5dtlcwjcf8a" path="res://assets/debt icon.png" id="26_hssa7"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stat_pill"]
+bg_color = Color(0.96, 0.94, 0.89, 0.98)
+border_width_left = 8
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 34.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+shadow_color = Color(0.06, 0.05, 0.04, 0.22)
+shadow_size = 2
+shadow_offset = Vector2(2, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status_card"]
+bg_color = Color(0.96, 0.94, 0.89, 0.99)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 6
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.06, 0.05, 0.04, 0.28)
+shadow_size = 4
+shadow_offset = Vector2(3, 5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_btn"]
+bg_color = Color(0.95, 0.79, 0.36, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+
 [node name="Desk Node" type="Node2D" unique_id=1055119461]
 
 [node name="Desk" type="TextureRect" parent="." unique_id=1807765138]
-offset_right = 1147.0
-offset_bottom = 641.0
+offset_right = 1152.0
+offset_bottom = 648.0
+mouse_filter = 2
 texture = ExtResource("1_ajhct")
 
 [node name="CB Label" type="Label" parent="." unique_id=1657778106]
 z_index = 2
-offset_left = 80.0
-offset_top = 143.0
-offset_right = 180.0
-offset_bottom = 166.0
-theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
-text = "PHP 5000"
+offset_left = 44.0
+offset_top = 120.0
+offset_right = 216.0
+offset_bottom = 170.0
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
+text = "Hawak na Cash\nPHP 5,000"
 
 [node name="Icon" type="TextureRect" parent="CB Label" unique_id=2014212662]
 layout_mode = 0
-offset_left = -78.0
-offset_top = -34.0
-offset_right = 10.0
-offset_bottom = 44.0
+offset_left = -38.0
+offset_top = -10.0
+offset_right = 28.0
+offset_bottom = 54.0
+mouse_filter = 2
 texture = ExtResource("22_fkrf1")
 expand_mode = 1
 
 [node name="Savings Label" type="Label" parent="." unique_id=62962297]
 z_index = 2
-offset_left = 80.0
-offset_top = 229.0
-offset_right = 180.0
+offset_left = 44.0
+offset_top = 202.0
+offset_right = 216.0
 offset_bottom = 252.0
-theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
-text = "PHP 0"
+theme_override_colors/font_color = Color(0.11, 0.36, 0.2, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
+text = "Ipon sa Bangko\nPHP 0"
 
 [node name="Icon" type="TextureRect" parent="Savings Label" unique_id=253356462]
 layout_mode = 0
-offset_left = -78.0
-offset_top = -34.0
-offset_right = 10.0
-offset_bottom = 44.0
+offset_left = -38.0
+offset_top = -10.0
+offset_right = 28.0
+offset_bottom = 54.0
+mouse_filter = 2
 texture = ExtResource("23_w3f8m")
 expand_mode = 1
 
 [node name="CrB Label" type="Label" parent="." unique_id=262636439]
 z_index = 2
-offset_left = 80.0
-offset_top = 304.0
-offset_right = 180.0
-offset_bottom = 327.0
-theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
-text = "PHP 0"
+offset_left = 44.0
+offset_top = 284.0
+offset_right = 216.0
+offset_bottom = 334.0
+theme_override_colors/font_color = Color(0.48, 0.26, 0.06, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
+text = "Credit Balance\nPHP 0"
 
 [node name="Icon" type="TextureRect" parent="CrB Label" unique_id=172025542]
 layout_mode = 0
-offset_left = -78.0
-offset_top = -34.0
-offset_right = 10.0
-offset_bottom = 44.0
+offset_left = -38.0
+offset_top = -10.0
+offset_right = 28.0
+offset_bottom = 54.0
+mouse_filter = 2
 texture = ExtResource("24_0pe8i")
-expand_mode = 1
-
-[node name="CS Label" type="Label" parent="." unique_id=1375148180]
-z_index = 2
-offset_left = 80.0
-offset_top = 467.0
-offset_right = 180.0
-offset_bottom = 490.0
-theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
-text = "70"
-
-[node name="TextureRect" type="TextureRect" parent="CS Label" unique_id=1653339265]
-layout_mode = 0
-offset_left = -78.0
-offset_top = -29.0
-offset_right = 10.0
-offset_bottom = 49.0
-texture = ExtResource("25_1hu6n")
 expand_mode = 1
 
 [node name="Debt Label" type="Label" parent="." unique_id=1168069134]
 z_index = 2
-offset_left = 80.0
-offset_top = 392.0
-offset_right = 180.0
-offset_bottom = 415.0
-theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
-text = "PHP 0"
+offset_left = 44.0
+offset_top = 366.0
+offset_right = 216.0
+offset_bottom = 416.0
+theme_override_colors/font_color = Color(0.58, 0.14, 0.12, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
+text = "Utang / Loans\nPHP 0"
 
 [node name="Icon" type="TextureRect" parent="Debt Label" unique_id=1796424826]
 layout_mode = 0
-offset_left = -78.0
-offset_top = -34.0
-offset_right = 10.0
-offset_bottom = 44.0
+offset_left = -38.0
+offset_top = -10.0
+offset_right = 28.0
+offset_bottom = 54.0
+mouse_filter = 2
 texture = ExtResource("26_hssa7")
 expand_mode = 1
 
+[node name="CS Label" type="Label" parent="." unique_id=1375148180]
+z_index = 2
+offset_left = 44.0
+offset_top = 448.0
+offset_right = 216.0
+offset_bottom = 498.0
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
+text = "Credit Score\n70 / 100"
+
+[node name="TextureRect" type="TextureRect" parent="CS Label" unique_id=1653339265]
+layout_mode = 0
+offset_left = -38.0
+offset_top = -8.0
+offset_right = 28.0
+offset_bottom = 56.0
+mouse_filter = 2
+texture = ExtResource("25_1hu6n")
+expand_mode = 1
+
 [node name="Status Button" type="TextureButton" parent="." unique_id=1938895406 node_paths=PackedStringArray("button", "interface")]
-offset_left = 536.0
-offset_top = -64.0
-offset_right = 4787.0
-offset_bottom = 3558.0
-scale = Vector2(0.12, 0.12)
+offset_left = 612.0
+offset_top = 74.0
+offset_right = 4863.0
+offset_bottom = 3696.0
+scale = Vector2(0.068, 0.068)
 texture_normal = ExtResource("2_t0r63")
 texture_hover = ExtResource("3_f2wrt")
 script = ExtResource("4_2v8hh")
@@ -134,10 +205,10 @@ interface = NodePath("../Player Status")
 
 [node name="Planner Button" type="TextureButton" parent="." unique_id=1090948886 node_paths=PackedStringArray("button", "interface")]
 offset_left = 406.0
-offset_top = 235.0
+offset_top = 242.0
 offset_right = 4657.0
-offset_bottom = 3857.0
-scale = Vector2(0.085, 0.085)
+offset_bottom = 3864.0
+scale = Vector2(0.082, 0.082)
 texture_normal = ExtResource("2_d5uah")
 texture_hover = ExtResource("3_yler6")
 script = ExtResource("4_2v8hh")
@@ -145,11 +216,11 @@ button = NodePath(".")
 interface = NodePath("../Planner Node")
 
 [node name="Budget Button" type="TextureButton" parent="." unique_id=614230337 node_paths=PackedStringArray("button", "interface")]
-offset_left = 213.0
-offset_top = 258.0
-offset_right = 4464.0
-offset_bottom = 3880.0
-scale = Vector2(0.065, 0.065)
+offset_left = 215.0
+offset_top = 264.0
+offset_right = 4466.0
+offset_bottom = 3886.0
+scale = Vector2(0.064, 0.064)
 texture_normal = ExtResource("4_voptk")
 texture_hover = ExtResource("5_2v8hh")
 script = ExtResource("4_2v8hh")
@@ -158,9 +229,9 @@ interface = NodePath("../Budget Node")
 
 [node name="Phone Button" type="TextureButton" parent="." unique_id=244044386 node_paths=PackedStringArray("button", "interface")]
 offset_left = 757.0
-offset_top = 245.0
+offset_top = 252.0
 offset_right = 5008.0
-offset_bottom = 3867.0
+offset_bottom = 3874.0
 scale = Vector2(0.06, 0.06)
 texture_normal = ExtResource("6_3t3i8")
 texture_hover = ExtResource("7_6m418")
@@ -178,6 +249,7 @@ status_report_label = NodePath("../Player Status/StatusPanel/StatusReportLabel")
 
 [node name="Planner Node" type="Node2D" parent="." unique_id=517664976]
 visible = false
+z_index = 4
 
 [node name="Planner Interface" parent="Planner Node" unique_id=85062168 instance=ExtResource("11_pfkwn")]
 
@@ -188,20 +260,25 @@ z_index = 4
 [node name="TextureRect" type="TextureRect" parent="Player Status" unique_id=487821765]
 offset_right = 1154.0
 offset_bottom = 646.0
+mouse_filter = 2
 texture = ExtResource("1_ajhct")
 
 [node name="StatusPanel" type="Panel" parent="Player Status" unique_id=77889911]
-offset_left = 220.0
-offset_top = 85.0
-offset_right = 935.0
-offset_bottom = 560.0
+offset_left = 190.0
+offset_top = 80.0
+offset_right = 965.0
+offset_bottom = 575.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_status_card")
 
 [node name="StatusReportLabel" type="RichTextLabel" parent="Player Status/StatusPanel" unique_id=77889912]
 layout_mode = 0
-offset_left = 25.0
-offset_top = 20.0
-offset_right = 690.0
-offset_bottom = 455.0
+offset_left = 28.0
+offset_top = 22.0
+offset_right = 748.0
+offset_bottom = 472.0
+theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
 bbcode_enabled = true
 text = "Player Status Report"
 
@@ -218,18 +295,22 @@ z_index = 4
 [node name="TextureRect" type="TextureRect" parent="Budget Node" unique_id=112308524]
 offset_right = 1200.0
 offset_bottom = 654.0
+mouse_filter = 2
 texture = ExtResource("11_dppuc")
 
 [node name="BudgettingInterface" parent="Budget Node" unique_id=1552179863 instance=ExtResource("15_f2wrt")]
 
 [node name="Back Button" type="Button" parent="." unique_id=669270802]
 visible = false
-z_index = 5
-offset_left = 39.0
-offset_top = 26.0
-offset_right = 233.0
-offset_bottom = 68.0
-text = "Back to Desk"
+z_index = 10
+offset_left = 20.0
+offset_top = 14.0
+offset_right = 214.0
+offset_bottom = 56.0
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_back_btn")
+text = "< Bumalik sa Desk"
 script = ExtResource("2_4dx5e")
 
 [node name="EventPanel" parent="." unique_id=1131891414 instance=ExtResource("20_eventpanel")]

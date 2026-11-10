@@ -1,5 +1,7 @@
 extends Node2D
 
+const UITheme = preload("res://scripts/ui_theme.gd")
+
 @export var happy_bar: ProgressBar
 @export var social_bar: ProgressBar
 @export var current_balance: Label
@@ -50,6 +52,7 @@ func _ready() -> void:
 	auto_advance_timer.timeout.connect(_on_auto_advance_tick)
 	add_child(auto_advance_timer)
 	_setup_shortcut_tooltips()
+	_apply_hud_visual_theme()
 	
 	update_ui()
 	StatManager.on_stats_changed.connect(update_ui)
@@ -86,16 +89,16 @@ func _update_next_button_visibility() -> void:
 	if next_phase_button:
 		next_phase_button.visible = can_advance
 		if StatManager.current_phase > 0:
-			next_phase_button.text = "▶ Finish Day"
+			next_phase_button.text = "Tapusin Araw >>"
 		else:
-			next_phase_button.text = "▶ Next Day"
+			next_phase_button.text = "Next Day >>"
 	if auto_advance_button:
 		auto_advance_button.visible = can_advance
 		if is_auto_advancing:
-			auto_advance_button.text = "⏸ Pause"
-			auto_advance_button.modulate = Color(1.0, 0.9, 0.4, 1.0)
+			auto_advance_button.text = "[Pause]"
+			auto_advance_button.modulate = Color(1.0, 0.92, 0.55, 1.0)
 		else:
-			auto_advance_button.text = "⏩ Auto-Play"
+			auto_advance_button.text = "Auto-Play >>"
 			auto_advance_button.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func enqueue_modal(task: Callable) -> void:
@@ -120,6 +123,80 @@ func _run_next_modal() -> void:
 	_update_next_button_visibility()
 	var next_task: Callable = modal_queue.pop_front()
 	next_task.call()
+
+func _make_hud_btn_style(bg: Color, border: Color, radius: int = 8) -> StyleBoxFlat:
+	return UITheme.make_tactile_btn_style(bg, border, radius, 4, 10.0, 5.0)
+
+func _style_hud_button(btn: Button, bg: Color, _border: Color = UITheme.INK_BORDER) -> void:
+	UITheme.style_Button(btn, bg, 8, 4, 10.0, 5.0)
+
+func _apply_hud_visual_theme() -> void:
+	UITheme.style_Button(next_phase_button, UITheme.BTN_SAGE, 8, 5, 12.0, 6.0)
+	UITheme.style_Button(auto_advance_button, UITheme.BTN_GOLD, 8, 5, 12.0, 6.0)
+	UITheme.style_Button(goal_button, UITheme.BTN_GOLD, 7, 4, 8.0, 4.0)
+	UITheme.style_Button(savings_jar_button, UITheme.BTN_GOLD, 7, 4, 10.0, 4.0)
+	var qb_btn: Button = get_node_or_null("EnvelopeRunwayPanel/HBoxContainer/QuickBudgetButton")
+	UITheme.style_Button(qb_btn, UITheme.BTN_GOLD, 6, 3, 8.0, 3.0)
+	var ab_btn: Button = get_node_or_null("BaldoToastPanel/HBoxContainer/AskBaldoButton")
+	UITheme.style_Button(ab_btn, UITheme.BTN_SAGE, 7, 4, 10.0, 4.0)
+	
+	if date_label:
+		var hdr_sb := StyleBoxFlat.new()
+		hdr_sb.bg_color = UITheme.BTN_GOLD
+		hdr_sb.border_width_left = 3
+		hdr_sb.border_width_top = 3
+		hdr_sb.border_width_right = 3
+		hdr_sb.border_width_bottom = 3
+		hdr_sb.border_color = UITheme.INK_BORDER
+		hdr_sb.corner_radius_top_left = 10
+		hdr_sb.corner_radius_top_right = 10
+		hdr_sb.content_margin_left = 12.0
+		hdr_sb.content_margin_right = 12.0
+		date_label.add_theme_stylebox_override("normal", hdr_sb)
+		date_label.add_theme_color_override("font_color", UITheme.INK_DARK)
+	
+	var baldo_panel: Panel = get_node_or_null("BaldoToastPanel")
+	if baldo_panel:
+		var bp_sb := UITheme.make_card_style(UITheme.PAPER_STICKY, UITheme.INK_BORDER, 10, 3, 5, 12.0, 8.0)
+		bp_sb.border_width_top = 5
+		baldo_panel.add_theme_stylebox_override("panel", bp_sb)
+	var routine_panel: Panel = get_node_or_null("DailyRoutinePanel")
+	if routine_panel:
+		routine_panel.add_theme_stylebox_override("panel", UITheme.make_card_style(UITheme.PAPER_CREAM, UITheme.INK_BORDER, 10, 3, 5, 12.0, 8.0))
+	var routine_title: Label = get_node_or_null("DailyRoutinePanel/VBoxContainer/Title")
+	if routine_title:
+		UITheme.style_header_banner(routine_title, UITheme.BTN_GOLD, 6, 3.0)
+		
+	UITheme.style_stat_badge(current_balance, UITheme.BTN_SAGE)
+	UITheme.style_stat_badge(savings, UITheme.BTN_BLUE)
+	UITheme.style_stat_badge(credit_balance, UITheme.BTN_GOLD)
+	UITheme.style_stat_badge(debt_balance, UITheme.BTN_CORAL)
+	UITheme.style_stat_badge(credit_score, UITheme.BTN_GOLD)
+	
+	UITheme.style_option_button(food_option)
+	UITheme.style_option_button(commute_option)
+	UITheme.style_progress_bar(happy_bar, UITheme.BTN_SAGE, 9)
+	UITheme.style_progress_bar(social_bar, UITheme.BTN_GOLD, 9)
+	_ensure_bar_overlay_label(happy_bar, "BarTextLabel")
+	_ensure_bar_overlay_label(social_bar, "BarTextLabel")
+
+func _ensure_bar_overlay_label(bar: ProgressBar, lbl_name: String) -> void:
+	if not bar:
+		return
+	bar.show_percentage = false
+	var lbl := bar.get_node_or_null(lbl_name) as Label
+	if not lbl:
+		lbl = Label.new()
+		lbl.name = lbl_name
+		lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lbl.add_theme_font_size_override("font_size", 13)
+		lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
+		lbl.add_theme_color_override("font_outline_color", Color(1.0, 0.98, 0.94, 0.92))
+		lbl.add_theme_constant_override("outline_size", 3)
+		bar.add_child(lbl)
 
 func _setup_shortcut_tooltips() -> void:
 	if next_phase_button:
@@ -237,19 +314,14 @@ func _on_ask_baldo_pressed() -> void:
 	_open_desk_tool_by_name("baldo_chat")
 
 func spawn_dialog(dialog: AcceptDialog) -> void:
+	var title_str: String = dialog.title if dialog.title != "" else "Paalala"
+	var body_str: String = dialog.dialog_text
+	dialog.queue_free()
+	var banner_col: Color = UITheme.BTN_SAGE if ("Sahod" in title_str or "Auto-Paid" in title_str) else UITheme.BTN_GOLD
 	enqueue_modal(func():
-		add_child(dialog)
-		dialog.popup_centered()
-		var closed := false
-		var on_close = func():
-			if closed:
-				return
-			closed = true
-			dialog.hide()
-			dialog.queue_free()
+		UITheme.spawn_game_notice(self, title_str, body_str, banner_col, "OK, Tuloy!", func():
 			_run_next_modal()
-		dialog.confirmed.connect(on_close)
-		dialog.canceled.connect(on_close)
+		)
 	)
 
 func trigger_goal_selection() -> void:
@@ -285,33 +357,42 @@ func open_savings_and_goal_inspector() -> void:
 func update_ui() -> void:
 	if happy_bar:
 		happy_bar.value = StatManager.happy
+		var h_lbl := happy_bar.get_node_or_null("BarTextLabel") as Label
+		if h_lbl:
+			h_lbl.text = "HAPPINESS  •  " + str(StatManager.happy) + " / 100"
 	if social_bar:
 		social_bar.value = StatManager.social
+		var s_lbl := social_bar.get_node_or_null("BarTextLabel") as Label
+		if s_lbl:
+			s_lbl.text = "SOCIAL  •  " + str(StatManager.social) + " / 100"
 	if current_balance:
-		current_balance.text = "PHP " + str(StatManager.current_balance)
+		current_balance.text = "Hawak na Cash\nPHP " + UITheme.format_num(StatManager.current_balance)
 	if savings:
-		savings.text = "PHP " + str(StatManager.savings)
+		savings.text = "Ipon sa Bangko\nPHP " + UITheme.format_num(StatManager.savings)
 	if credit_balance:
-		credit_balance.text = "PHP " + str(StatManager.credit_balance)
+		credit_balance.text = "Credit Balance\nPHP " + UITheme.format_num(StatManager.credit_balance)
 	if credit_score:
-		credit_score.text = str(StatManager.credit_score)
+		credit_score.text = "Credit Score\n" + str(StatManager.credit_score) + " / 100"
 	if debt_balance:
-		debt_balance.text = "PHP " + str(StatManager.get_total_debt_and_loans())
+		debt_balance.text = "Utang / Loans\nPHP " + UITheme.format_num(StatManager.get_total_debt_and_loans())
 	
-	var phase_names = ["Morning", "Afternoon", "Evening"]
+	var phase_names = ["MORNING", "AFTERNOON", "EVENING"]
 	if date_label:
 		var notif_badge = ""
 		if EventManager.active_events.size() > 0:
-			notif_badge = "  [📱 " + str(EventManager.active_events.size()) + " Unread]"
-		date_label.text = StatManager.year[StatManager.current_month].month + " " + str(StatManager.current_day) + " - " + phase_names[StatManager.current_phase] + notif_badge
+			notif_badge = "  [" + str(EventManager.active_events.size()) + " TEXT]"
+		var wk_short: String = StatManager.get_weekday_name(StatManager.current_month, StatManager.current_day, true)
+		var m_upper: String = str(StatManager.year[StatManager.current_month].month).to_upper()
+		date_label.text = wk_short + ", " + m_upper + " " + str(StatManager.current_day) + "  •  " + phase_names[StatManager.current_phase] + notif_badge
 		
 	if goal_button:
 		var g = StatManager.get_current_goal()
 		var pct = StatManager.get_goal_progress_percent()
-		goal_button.text = "🎯 " + str(g["title"]) + ": PHP " + str(StatManager.savings) + " / " + str(g["cost"]) + " (" + str(pct) + "%)"
+		goal_button.text = "PHP " + UITheme.format_num(StatManager.savings) + " / " + str(int(int(g["cost"]) / 1000)) + "k (" + str(pct) + "%)"
+		goal_button.tooltip_text = "Goal: " + str(g["title"]) + " — PHP " + UITheme.format_num(StatManager.savings) + " / PHP " + UITheme.format_num(int(g["cost"])) + " (" + str(pct) + "%)"
 		
 	if savings_jar_button:
-		savings_jar_button.text = "🏺 Ipon: PHP " + str(StatManager.savings) + " (+2%/mo)\n[Maghulog / Kumuha]"
+		savings_jar_button.text = "Ipon: PHP " + UITheme.format_num(StatManager.savings) + " (+2%/mo)"
 		
 	if food_option:
 		var cook_cost = max(0, StatManager.food_costs[0] + StatManager.daily_food_modifier)
@@ -411,43 +492,36 @@ func _update_envelope_runway_ui() -> void:
 	var daily_food: int = max(1, StatManager.get_daily_food_cost())
 	var food_env: int = StatManager.get_envelope_amount("Food")
 	var food_days: int = int(food_env / daily_food)
-	var food_col := "green" if food_days >= 5 else ("yellow" if food_env > 0 else "red")
+	var food_col := "#1c7033" if food_days >= 5 else ("#94520d" if food_env > 0 else "#a8261f")
 	
 	var daily_trans: int = max(1, StatManager.get_daily_commute_cost())
 	var trans_env: int = StatManager.get_envelope_amount("Transportation")
 	var trans_days: int = int(trans_env / daily_trans)
-	var trans_col := "green" if trans_days >= 5 else ("yellow" if trans_env > 0 else "red")
+	var trans_col := "#1c7033" if trans_days >= 5 else ("#94520d" if trans_env > 0 else "#a8261f")
 	
-	var ent_env: int = StatManager.get_envelope_amount("Entertainment")
 	var rent_env: int = StatManager.get_envelope_amount("Rent")
-	var rent_ok: bool = (rent_env >= StatManager.monthly_rent)
-	var rent_col := "green" if rent_ok else "orange"
-	var rent_icon := "✅" if rent_ok else "⚠️"
-	
 	var total_util: int = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments() + StatManager.monthly_family_support
 	var util_env: int = StatManager.get_envelope_amount("Utilities")
-	var util_ok: bool = (util_env >= total_util)
-	var util_col := "green" if util_ok else "orange"
-	var util_icon := "✅" if util_ok else "⚠️"
+	var bills_ok: bool = (rent_env >= StatManager.monthly_rent and util_env >= total_util)
+	var bills_col := "#1c7033" if bills_ok else "#94520d"
+	var bills_tag := "[OK]" if bills_ok else "[KULANG]"
 	
 	envelope_runway_label.text = (
-		"🍔 Pagkain: [color=" + food_col + "]PHP " + str(food_env) + " (" + str(food_days) + "d)[/color] | " +
-		"🚌 Byahe: [color=" + trans_col + "]PHP " + str(trans_env) + " (" + str(trans_days) + "d)[/color] | " +
-		"🎉 Libangan: PHP " + str(ent_env) + " | " +
-		"🏠 Upa: [color=" + rent_col + "]PHP " + str(rent_env) + "/" + str(StatManager.monthly_rent) + " " + rent_icon + "[/color] | " +
-		"⚡ Bills: [color=" + util_col + "]PHP " + str(util_env) + "/" + str(total_util) + " " + util_icon + "[/color]"
+		"[b]Pagkain:[/b] [color=" + food_col + "][b]" + str(food_days) + "d[/b][/color]  |  " +
+		"[b]Byahe:[/b] [color=" + trans_col + "][b]" + str(trans_days) + "d[/b][/color]  |  " +
+		"[b]Upa & Bills:[/b] [color=" + bills_col + "][b]" + bills_tag + "[/b][/color]"
 	)
 
 func get_live_baldo_desk_tip() -> String:
 	if auto_pause_override_reason != "":
-		return "⏸️ [b][color=yellow]Baldo (Auto-Paused):[/color][/b] " + auto_pause_override_reason
+		return "[b][color=#94520d]Baldo (Auto-Paused):[/color][/b] " + auto_pause_override_reason
 		
 	if EventManager.active_events.size() > 0:
 		var ev_title := str(EventManager.active_events[0].get("title", "New Message"))
-		return "📱 [b][color=orange]Baldo:[/color][/b] Uy par, may unread notification ka sa Phone ([i]\"" + ev_title + "\"[/i])! Buksan ang Phone bago matapos ang araw."
+		return "[b][color=#a8261f]Baldo:[/color][/b] Uy par, may unread notification ka sa Phone ([i]\"" + ev_title + "\"[/i])! Buksan ang Phone bago matapos ang araw."
 		
 	if StatManager.happy < 40 or StatManager.social < 40:
-		return "⚠️ [b][color=red]Baldo:[/color][/b] Mababa na ang Happiness (" + str(StatManager.happy) + ") o Social (" + str(StatManager.social) + ") mo! Mag-Angkas/Mag-order muna para iwas Burnout!"
+		return "[b][color=#a8261f]Baldo:[/color][/b] Mababa na ang Happiness (" + str(StatManager.happy) + ") o Social (" + str(StatManager.social) + ") mo! Mag-Angkas/Mag-order muna para iwas Burnout!"
 		
 	var food_env := StatManager.get_envelope_amount("Food")
 	var trans_env := StatManager.get_envelope_amount("Transportation")
@@ -456,22 +530,22 @@ func get_live_baldo_desk_tip() -> String:
 	var total_util := StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments() + StatManager.monthly_family_support
 	
 	if StatManager.employment_status == "laid_off":
-		return "🛡️ [b][color=yellow]Baldo:[/color][/b] Laid Off tayo ngayon par—gamitin ang Severance/Emergency Fund sa Ipon at Todo Tipid Mode para di mabaon sa utang!"
+		return "[b][color=#94520d]Baldo:[/color][/b] Laid Off tayo ngayon par—gamitin ang Severance/Emergency Fund sa Ipon at Todo Tipid Mode para di mabaon sa utang!"
 		
 	if (StatManager.current_day == 1 or StatManager.current_day == 15) and (rent_env < StatManager.monthly_rent or food_env < StatManager.get_daily_food_cost() * 5):
-		return "💰 [b][color=lightblue]Baldo:[/color][/b] Sahod Day ngayon! I-click ang [b]'📂 Budget Now'[/b] para pondohan ang Upa, Bills, at 15-day Pagkain/Byahe envelopes!"
+		return "[b][color=#1c7033]Baldo:[/color][/b] Sahod Day ngayon! I-click ang [b]'Mag-Budget'[/b] para pondohan ang Upa, Bills, at 15-day Pagkain/Byahe envelopes!"
 		
 	if food_env == 0 or trans_env == 0:
-		return "🍔 [b][color=orange]Baldo:[/color][/b] Walang laman ang Pagkain o Byahe envelope mo! Bumabawas na tayo direkta sa Pocket Cash—mag-allocate sa Budget Envelopes."
+		return "[b][color=#94520d]Baldo:[/color][/b] Walang laman ang Pagkain o Byahe envelope mo! Bumabawas na tayo direkta sa Pocket Cash—mag-allocate sa Budget Envelopes."
 		
 	if StatManager.current_day >= 23 and (rent_env < StatManager.monthly_rent or util_env < total_util):
 		var short_amt: int = max(0, StatManager.monthly_rent - rent_env) + max(0, total_util - util_env)
-		return "🏠 [b][color=orange]Baldo:[/color][/b] Malapit na ang Katapusan! Kulang pa ng PHP " + str(short_amt) + " ang Upa/Bills envelopes mo para sa auto-pay (+2 Credit Score)."
+		return "[b][color=#94520d]Baldo:[/color][/b] Malapit na ang Katapusan! Kulang pa ng PHP " + str(short_amt) + " ang Upa/Bills envelopes mo para sa auto-pay (+2 Credit Score)."
 		
 	if StatManager.credit_balance > 0 and StatManager.current_day >= 20:
-		return "💳 [b][color=yellow]Baldo:[/color][/b] May PHP " + str(StatManager.credit_balance) + " Credit Card balance ka! Bayaran nang buo sa Statement (Day 25) para iwas 5% interest."
+		return "[b][color=#94520d]Baldo:[/color][/b] May PHP " + str(StatManager.credit_balance) + " Credit Card balance ka! Bayaran nang buo sa Statement (Day 25) para iwas 5% interest."
 		
-	return "🔥 [b][color=lightgreen]Baldo:[/color][/b] Solid ang envelope runway mo par! Pwede kang mag-[b]⏩ Auto-Play[/b] o maghulog ng sobrang cash sa Ipon (+2%/mo)!"
+	return "[b][color=#1c7033]Baldo:[/color][/b] Solid ang envelope runway mo par! Pwede kang mag-[b]Auto-Play[/b] o maghulog ng sobrang cash sa Ipon (+2%/mo)!"
 
 func _update_baldo_toast_ui() -> void:
 	if baldo_toast_label:
@@ -493,28 +567,28 @@ func _update_status_report() -> void:
 	var ent_env = StatManager.get_envelope_amount("Entertainment")
 	var total_debt_and_loans = StatManager.get_total_debt_and_loans()
 	
-	var goal_ok = "[color=green]REACHED (PHP " + str(StatManager.savings) + " / PHP " + str(target) + ")[/color]" if StatManager.savings >= target else "[color=yellow]PHP " + str(StatManager.savings) + " / PHP " + str(target) + " (" + str(pct) + "%)[/color]"
-	var happy_ok = "[color=green]GOOD (" + str(StatManager.happy) + "/100)[/color]" if StatManager.happy >= 50 else "[color=red]LOW (" + str(StatManager.happy) + "/100 - Need >=50)[/color]"
-	var social_ok = "[color=green]GOOD (" + str(StatManager.social) + "/100)[/color]" if StatManager.social >= 50 else "[color=red]LOW (" + str(StatManager.social) + "/100 - Need >=50)[/color]"
-	var credit_ok = "[color=green]GOOD (" + str(StatManager.credit_score) + "/100)[/color]" if StatManager.credit_score >= 70 else "[color=red]POOR (" + str(StatManager.credit_score) + "/100 - Need >=70)[/color]"
-	var debt_ok = "[color=green]DEBT-FREE (PHP 0)[/color]" if total_debt_and_loans == 0 and StatManager.credit_balance == 0 else "[color=red]HAS OBLIGATIONS (Debt/Loans: PHP " + str(total_debt_and_loans) + ", Credit: PHP " + str(StatManager.credit_balance) + ")[/color]"
+	var goal_ok = "[color=#1c7033][b]REACHED (PHP " + str(StatManager.savings) + " / PHP " + str(target) + ")[/b][/color]" if StatManager.savings >= target else "[color=#94520d][b]PHP " + str(StatManager.savings) + " / PHP " + str(target) + " (" + str(pct) + "%)[/b][/color]"
+	var happy_ok = "[color=#1c7033][b]GOOD (" + str(StatManager.happy) + "/100)[/b][/color]" if StatManager.happy >= 50 else "[color=#a8261f][b]LOW (" + str(StatManager.happy) + "/100 - Need >=50)[/b][/color]"
+	var social_ok = "[color=#1c7033][b]GOOD (" + str(StatManager.social) + "/100)[/b][/color]" if StatManager.social >= 50 else "[color=#a8261f][b]LOW (" + str(StatManager.social) + "/100 - Need >=50)[/b][/color]"
+	var credit_ok = "[color=#1c7033][b]GOOD (" + str(StatManager.credit_score) + "/100)[/b][/color]" if StatManager.credit_score >= 70 else "[color=#a8261f][b]POOR (" + str(StatManager.credit_score) + "/100 - Need >=70)[/b][/color]"
+	var debt_ok = "[color=#1c7033][b]DEBT-FREE (PHP 0)[/b][/color]" if total_debt_and_loans == 0 and StatManager.credit_balance == 0 else "[color=#a8261f][b]HAS OBLIGATIONS (Debt/Loans: PHP " + str(total_debt_and_loans) + ", Credit: PHP " + str(StatManager.credit_balance) + ")[/b][/color]"
 	
 	var txt = "[b][font_size=22]" + stage_info["name"] + "[/font_size][/b]\n"
-	txt += "[i]\"" + stage_info["theme"] + "\"[/i]\n\n"
+	txt += "[i][color=#5c4f45]\"" + stage_info["theme"] + "\"[/color][/i]\n\n"
 	txt += "[b]1. Year-End Victory Conditions Status:[/b]\n"
-	txt += "• Employment Status: [color=yellow]" + StatManager.get_employment_display_text() + "[/color]\n"
-	txt += "• Life Goal (" + str(g["title"]) + "): " + goal_ok + "\n"
-	txt += "• Well-Being (Happiness): " + happy_ok + "\n"
-	txt += "• Relationships (Sociability): " + social_ok + "\n"
-	txt += "• Credit Standing: " + credit_ok + "\n"
-	txt += "• Debt, Loans & Credit Status: " + debt_ok + "\n"
-	txt += "• Savings Interest Earned: [color=lightblue]PHP " + str(StatManager.total_savings_interest_earned) + "[/color] | Investments: [color=aqua]PHP " + str(StatManager.get_total_investments()) + "[/color] (P&L: PHP " + str(StatManager.total_investment_gains) + ")\n\n"
+	txt += "- Employment Status: [color=#94520d][b]" + StatManager.get_employment_display_text() + "[/b][/color]\n"
+	txt += "- Life Goal (" + str(g["title"]) + "): " + goal_ok + "\n"
+	txt += "- Well-Being (Happiness): " + happy_ok + "\n"
+	txt += "- Relationships (Sociability): " + social_ok + "\n"
+	txt += "- Credit Standing: " + credit_ok + "\n"
+	txt += "- Debt, Loans & Credit Status: " + debt_ok + "\n"
+	txt += "- Savings Interest Earned: [color=#1c7033][b]PHP " + str(StatManager.total_savings_interest_earned) + "[/b][/color] | Investments: [color=#1a4b7c][b]PHP " + str(StatManager.get_total_investments()) + "[/b][/color] (P&L: PHP " + str(StatManager.total_investment_gains) + ")\n\n"
 	txt += "[b]2. Monthly Bills, Loans, Installments & Allocated Envelopes:[/b]\n"
-	txt += "• Upa (Rent): PHP " + str(rent_env) + " / PHP " + str(StatManager.monthly_rent) + "\n"
-	txt += "• Utilities + Installments + Family Support: PHP " + str(util_env) + " / PHP " + str(total_util) + " (Installments: " + StatManager.get_installments_summary_text() + ", Family Padala: PHP " + str(StatManager.monthly_family_support) + "/mo)\n"
-	txt += "• Credit Card Envelope: PHP " + str(cc_env) + " (Card Balance: PHP " + str(StatManager.credit_balance) + " / Limit: PHP " + str(StatManager.credit_limit) + ")\n"
-	txt += "• Active Simple Interest Loans: " + StatManager.get_loans_summary_text() + "\n"
-	txt += "• Pagkain (Food): PHP " + str(food_env) + " | Pamasahe: PHP " + str(trans_env) + " | Libangan: PHP " + str(ent_env) + "\n"
+	txt += "- Upa (Rent): PHP " + str(rent_env) + " / PHP " + str(StatManager.monthly_rent) + "\n"
+	txt += "- Utilities + Installments + Family Support: PHP " + str(util_env) + " / PHP " + str(total_util) + " (Installments: " + StatManager.get_installments_summary_text() + ", Family Padala: PHP " + str(StatManager.monthly_family_support) + "/mo)\n"
+	txt += "- Credit Card Envelope: PHP " + str(cc_env) + " (Card Balance: PHP " + str(StatManager.credit_balance) + " / Limit: PHP " + str(StatManager.credit_limit) + ")\n"
+	txt += "- Active Simple Interest Loans: " + StatManager.get_loans_summary_text() + "\n"
+	txt += "- Pagkain (Food): PHP " + str(food_env) + " | Pamasahe: PHP " + str(trans_env) + " | Libangan: PHP " + str(ent_env) + "\n"
 	status_report_label.text = txt
 
 func happy_calc(amount: int) -> void:
@@ -583,10 +657,10 @@ func _on_auto_advance_tick() -> void:
 	advance_day(true)
 	# Smart Safety Auto-Pause Checks
 	if _auto_started_with_food_env and StatManager.get_envelope_amount("Food") == 0:
-		stop_auto_advance("Ubos na ang Pagkain Envelope mo! Mag-reload sa '📂 Budget Now' para di mabawasan ang Pocket Cash.")
+		stop_auto_advance("Ubos na ang Pagkain Envelope mo! Mag-reload sa 'Mag-Budget' para di mabawasan ang Pocket Cash.")
 		return
 	if _auto_started_with_trans_env and StatManager.get_envelope_amount("Transportation") == 0:
-		stop_auto_advance("Ubos na ang Byahe Envelope mo! Mag-reload sa '📂 Budget Now' para di mabawasan ang Pocket Cash.")
+		stop_auto_advance("Ubos na ang Byahe Envelope mo! Mag-reload sa 'Mag-Budget' para di mabawasan ang Pocket Cash.")
 		return
 	if (_auto_started_with_healthy_happy and StatManager.happy < 35) or (_auto_started_with_healthy_social and StatManager.social < 35):
 		stop_auto_advance("Bumaba na sa <35 ang Happiness o Social mo! Mag-order/Mag-Angkas muna para iwas Burnout.")
@@ -873,7 +947,7 @@ func trigger_monthly_bills() -> void:
 		if int(loan_res.get("paid_cash", 0)) > 0:
 			text += "\n\nNabayaran din ang Loan Installment: -PHP " + str(loan_res["paid_cash"])
 		if cc_interest > 0:
-			text += "\n\n⚠ Pumatong ang +PHP " + str(cc_interest) + " (5% Compounding Interest) sa hindi nabayarang Credit Card balance!"
+			text += "\n\n[Paalala] Pumatong ang +PHP " + str(cc_interest) + " (5% Compounding Interest) sa hindi nabayarang Credit Card balance!"
 			log_text += "\n[font_size=12][color=orange]Credit Card Interest +" + str(cc_interest) + " PHP[/color][/font_size]"
 		if debt_interest > 0:
 			text += "\n\nPero nadagdagan ng PHP " + str(debt_interest) + " (5% Interest) ang dati mong utang."
@@ -941,20 +1015,15 @@ func trigger_game_over(reason: String) -> void:
 	is_game_over = true
 	modal_queue.clear()
 	_update_next_button_visibility()
-	var dialog = ConfirmationDialog.new()
-	dialog.title = "GAME OVER"
-	dialog.dialog_text = reason + "\n\nGusto mo bang maglaro ulit (New 1-Year Run)?"
-	dialog.ok_button_text = "Maglaro Ulit (Restart)"
-	dialog.cancel_button_text = "Lumabas (Quit)"
-	add_child(dialog)
-	dialog.popup_centered()
-	dialog.confirmed.connect(func():
-		dialog.queue_free()
-		restart_new_year_run()
-	)
-	dialog.canceled.connect(func():
-		dialog.queue_free()
-		get_tree().quit()
+	UITheme.spawn_game_confirm(
+		self,
+		"GAME OVER",
+		reason + "\n\nGusto mo bang maglaro ulit (New 1-Year Run)?",
+		"Maglaro Ulit (Restart)",
+		"Lumabas (Quit)",
+		UITheme.BTN_CORAL,
+		func(): restart_new_year_run(),
+		func(): get_tree().quit()
 	)
 	
 func _on_food_option_selected(index: int) -> void:

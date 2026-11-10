@@ -61,14 +61,14 @@ func get_upcoming_milestones(month: int, day: int) -> String:
 	var last_day: int = int(StatManager.year[m_idx].days)
 	var lines: Array[String] = []
 	if day == 1 or day == 15:
-		lines.append("• [color=darkgreen]💰 Sahod Day (" + StatManager.get_employment_display_text() + ")[/color]")
+		lines.append("• [color=#1b5e20][b]Sahod Day[/b] (" + StatManager.get_employment_display_text() + ")[/color]")
 	if day == 7 or day == 14 or day == 21 or day == 28:
-		lines.append("• [color=darkblue]📊 Weekly Financial Summary (Week " + str(int(day / 7)) + ")[/color]")
+		lines.append("• [color=#1a3c6e][b]Weekly Financial Summary[/b] (Week " + str(int(day / 7)) + ")[/color]")
 	if day == 25 and m_idx >= 2 and StatManager.has_credit_card:
-		lines.append("• [color=darkorange]💳 Credit Card Statement Billing Date[/color]")
+		lines.append("• [color=#8b4513][b]Credit Card Statement Billing Date[/b][/color]")
 	if day == last_day:
 		var tot_util: int = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments() + StatManager.monthly_family_support
-		lines.append("• [color=darkred]🏠 Katapusan Bills Due: Upa (PHP " + str(StatManager.monthly_rent) + ") + Utilities/Installments (PHP " + str(tot_util) + ") + 2% Savings Interest[/color]")
+		lines.append("• [color=#8b1e1e][b]Katapusan Bills Due:[/b] Upa (PHP " + str(StatManager.monthly_rent) + ") + Utilities/Installments (PHP " + str(tot_util) + ") + 2% Savings Interest[/color]")
 	return "\n".join(lines)
 
 func reset_planner() -> void:

@@ -106,9 +106,9 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 	var credit_cost: int = int(opt.get("credit_cost", 0))
 	
 	if cost > 0:
-		stats_text += "[color=red]-" + str(cost) + " PHP[/color] "
+		stats_text += "[color=#a8261f]-" + str(cost) + " PHP[/color] "
 	elif cost < 0:
-		stats_text += "[color=green]+" + str(abs(cost)) + " PHP[/color] "
+		stats_text += "[color=#1c7033]+" + str(abs(cost)) + " PHP[/color] "
 		
 	if credit_cost > 0:
 		var can_use_cc := StatManager.can_use_credit_card(credit_cost)
@@ -116,17 +116,17 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 			var new_lim: int = max(StatManager.credit_limit, int(opt.get("credit_limit", 20000)))
 			can_use_cc = (StatManager.credit_balance + credit_cost) <= new_lim
 		if can_use_cc:
-			stats_text += "[color=aqua]💳 +" + str(credit_cost) + " PHP Credit[/color] "
+			stats_text += "[color=#1a4b7c]+" + str(credit_cost) + " PHP Credit[/color] "
 		else:
-			stats_text += "[color=gray]💳 " + str(credit_cost) + " PHP (No Credit/Limit)[/color] "
+			stats_text += "[color=#5c4f45]" + str(credit_cost) + " PHP (No Credit/Limit)[/color] "
 			
 	if opt.get("pay_credit_full", false):
-		stats_text += "[color=red]-" + str(StatManager.credit_balance) + " PHP (Full Bill)[/color] "
+		stats_text += "[color=#a8261f]-" + str(StatManager.credit_balance) + " PHP (Full Bill)[/color] "
 	elif opt.get("pay_credit_minimum", false):
-		stats_text += "[color=orange]-" + str(StatManager.get_credit_minimum_due()) + " PHP (Min Due)[/color] "
+		stats_text += "[color=#94520d]-" + str(StatManager.get_credit_minimum_due()) + " PHP (Min Due)[/color] "
 		
 	if opt.has("add_interest_to_balance") and int(opt["add_interest_to_balance"]) > 0:
-		stats_text += "[color=red]+" + str(opt["add_interest_to_balance"]) + " PHP Obligation[/color] "
+		stats_text += "[color=#a8261f]+" + str(int(opt["add_interest_to_balance"])) + " PHP Obligation[/color] "
 		
 	if opt.has("take_loan") and opt["take_loan"] is Dictionary:
 		var ln: Dictionary = opt["take_loan"]
@@ -134,77 +134,79 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 		var r: float = float(ln.get("monthly_rate", 0.20))
 		var t: int = int(ln.get("term_months", 2))
 		var tot_due: int = p + StatManager.calculate_simple_interest(p, r, t)
-		stats_text += "[color=orange]🏦 +" + str(p) + " PHP Cash (Repay " + str(tot_due) + " PHP)[/color] "
+		stats_text += "[color=#94520d]+" + str(p) + " PHP Cash (Repay " + str(tot_due) + " PHP)[/color] "
 		
 	if opt.has("invest_low_risk") and int(opt["invest_low_risk"]) > 0:
-		stats_text += "[color=aqua]📈 Invest " + str(opt["invest_low_risk"]) + " PHP (Low-Risk)[/color] "
+		stats_text += "[color=#1a4b7c]Invest " + str(int(opt["invest_low_risk"])) + " PHP (Low-Risk)[/color] "
 	if opt.has("invest_high_risk") and int(opt["invest_high_risk"]) > 0:
-		stats_text += "[color=yellow]📈 Invest " + str(opt["invest_high_risk"]) + " PHP (High-Risk)[/color] "
+		stats_text += "[color=#94520d]Invest " + str(int(opt["invest_high_risk"])) + " PHP (High-Risk)[/color] "
 	if opt.has("deposit_to_savings") and int(opt["deposit_to_savings"]) > 0:
-		stats_text += "[color=green]🏺 +" + str(opt["deposit_to_savings"]) + " PHP Savings[/color] "
+		stats_text += "[color=#1c7033]+" + str(int(opt["deposit_to_savings"])) + " PHP Savings[/color] "
 	if opt.has("savings_bonus") and int(opt["savings_bonus"]) > 0:
-		stats_text += "[color=green]🏺 +" + str(opt["savings_bonus"]) + " PHP Cashback sa Ipon[/color] "
+		stats_text += "[color=#1c7033]+" + str(int(opt["savings_bonus"])) + " PHP Cashback sa Ipon[/color] "
 	if opt.get("set_side_income", false):
-		stats_text += "[color=green]+5,000 PHP/mo Side Hustle[/color] "
+		stats_text += "[color=#1c7033]+5,000 PHP/mo Side Hustle[/color] "
 	if opt.has("monthly_family_support_mod") and int(opt["monthly_family_support_mod"]) > 0:
-		stats_text += "[color=orange]+" + str(opt["monthly_family_support_mod"]) + " PHP/mo Family Bill[/color] "
+		stats_text += "[color=#94520d]+" + str(int(opt["monthly_family_support_mod"])) + " PHP/mo Family Bill[/color] "
 	if opt.has("apply_investment_rates") and opt["apply_investment_rates"] is Dictionary:
 		var rates: Dictionary = opt["apply_investment_rates"]
 		var lr: int = int(round(float(rates.get("low_rate", 0.0)) * 100.0))
 		var hr: int = int(round(float(rates.get("high_rate", 0.0)) * 100.0))
 		var hr_sign: String = "+" if hr >= 0 else ""
-		stats_text += "[color=aqua]Low-Risk +" + str(lr) + "% / High-Risk " + hr_sign + str(hr) + "%[/color] "
+		stats_text += "[color=#1a4b7c]Low-Risk +" + str(lr) + "% / High-Risk " + hr_sign + str(hr) + "%[/color] "
 		
 	if opt.has("set_employment_status"):
 		var emp_st := str(opt["set_employment_status"])
 		if emp_st == "laid_off":
-			stats_text += "[color=orange]⚠️ Laid Off (PHP 0/mo)[/color] "
+			stats_text += "[color=#a8261f]Laid Off (PHP 0/mo)[/color] "
 		elif emp_st == "temporary_job":
-			stats_text += "[color=yellow]💼 Temp Job (PHP 15,000/mo)[/color] "
+			stats_text += "[color=#94520d]Temp Job (PHP 15,000/mo)[/color] "
 		elif emp_st == "new_stable_job":
-			stats_text += "[color=green]🎉 Stable Job (PHP 30,000/mo)[/color] "
+			stats_text += "[color=#1c7033]Stable Job (PHP 30,000/mo)[/color] "
 	if opt.has("withdraw_from_savings_for_event") and int(opt["withdraw_from_savings_for_event"]) > 0:
-		stats_text += "[color=orange]🏺 -" + str(opt["withdraw_from_savings_for_event"]) + " PHP from Savings[/color] "
+		stats_text += "[color=#94520d]-" + str(int(opt["withdraw_from_savings_for_event"])) + " PHP from Savings[/color] "
 	if opt.has("pay_debt_collector") and int(opt["pay_debt_collector"]) > 0:
-		stats_text += "[color=green]-" + str(opt["pay_debt_collector"]) + " PHP Debt/Credit[/color] "
+		stats_text += "[color=#1c7033]-" + str(int(opt["pay_debt_collector"])) + " PHP Debt/Credit[/color] "
 	if opt.has("set_monthly_rent") and int(opt["set_monthly_rent"]) > 0:
-		stats_text += "[color=aqua]🏠 Rent = PHP " + str(opt["set_monthly_rent"]) + "/mo[/color] "
+		stats_text += "[color=#1a4b7c]Rent = PHP " + str(int(opt["set_monthly_rent"])) + "/mo[/color] "
 	if opt.has("final_goal_consolidate") and int(opt["final_goal_consolidate"]) > 0:
-		stats_text += "[color=green]🏆 Consolidate + Save PHP " + str(opt["final_goal_consolidate"]) + "[/color] "
+		stats_text += "[color=#1c7033]Consolidate + Save PHP " + str(int(opt["final_goal_consolidate"])) + "[/color] "
 		
 	if opt.has("installment") and opt["installment"] is Dictionary:
 		var inst: Dictionary = opt["installment"]
-		stats_text += "[color=orange]📅 PHP " + str(inst.get("monthly_cost", 0)) + "/mo x " + str(inst.get("months_left", 0)) + " mos[/color] "
+		stats_text += "[color=#94520d]PHP " + str(int(inst.get("monthly_cost", 0))) + "/mo x " + str(int(inst.get("months_left", 0))) + " mos[/color] "
 		
 	if opt.has("extra_utilities") and int(opt["extra_utilities"]) != 0:
 		var eu_val := int(opt["extra_utilities"])
 		if eu_val > 0:
-			stats_text += "[color=orange]+" + str(eu_val) + " PHP Bill[/color] "
+			stats_text += "[color=#94520d]+" + str(eu_val) + " PHP Bill[/color] "
 		else:
-			stats_text += "[color=green]" + str(eu_val) + " PHP Bill Rebate[/color] "
+			stats_text += "[color=#1c7033]" + str(eu_val) + " PHP Bill Rebate[/color] "
 	if opt.has("daily_commute_mod") and int(opt["daily_commute_mod"]) != 0:
-		var dc_sign := "+" if int(opt["daily_commute_mod"]) > 0 else ""
-		stats_text += "[color=orange]" + dc_sign + str(opt["daily_commute_mod"]) + " PHP/day Commute[/color] "
+		var dc_val := int(opt["daily_commute_mod"])
+		var dc_sign := "+" if dc_val > 0 else ""
+		stats_text += "[color=#94520d]" + dc_sign + str(dc_val) + " PHP/day Commute[/color] "
 	if opt.has("daily_food_mod") and int(opt["daily_food_mod"]) != 0:
-		var df_sign := "+" if int(opt["daily_food_mod"]) > 0 else ""
-		stats_text += "[color=orange]" + df_sign + str(opt["daily_food_mod"]) + " PHP/day Food[/color] "
+		var df_val := int(opt["daily_food_mod"])
+		var df_sign := "+" if df_val > 0 else ""
+		stats_text += "[color=#94520d]" + df_sign + str(df_val) + " PHP/day Food[/color] "
 		
 	var happy_val: int = int(opt.get("happy_change", 0))
 	if happy_val != 0:
 		var sign_str = "+" if happy_val > 0 else ""
-		var color = "green" if happy_val > 0 else "red"
+		var color = "#1c7033" if happy_val > 0 else "#a8261f"
 		stats_text += "[color=" + color + "]" + sign_str + str(happy_val) + " Happy[/color] "
 		
 	var social_val: int = int(opt.get("social_change", 0))
 	if social_val != 0:
 		var sign_str = "+" if social_val > 0 else ""
-		var color = "green" if social_val > 0 else "red"
+		var color = "#1c7033" if social_val > 0 else "#a8261f"
 		stats_text += "[color=" + color + "]" + sign_str + str(social_val) + " Social[/color] "
 		
 	var cs_val: int = int(opt.get("credit_score_change", 0))
 	if cs_val != 0:
 		var sign_str = "+" if cs_val > 0 else ""
-		var color = "green" if cs_val > 0 else "red"
+		var color = "#1c7033" if cs_val > 0 else "#a8261f"
 		stats_text += "[color=" + color + "]" + sign_str + str(cs_val) + " Credit Score[/color] "
 		
 	return stats_text

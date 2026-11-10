@@ -1,6 +1,61 @@
-[gd_scene load_steps=2 format=3 uid="uid://c_goal_selection"]
+[gd_scene load_steps=6 format=3 uid="uid://c_goal_selection"]
 
 [ext_resource type="Script" path="res://scripts/goal_selection.gd" id="1_goalsel"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal_panel"]
+bg_color = Color(0.96, 0.94, 0.89, 0.99)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 6
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 10
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_desc_bubble"]
+bg_color = Color(0.92, 0.89, 0.81, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.18, 0.15, 0.13, 0.95)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_bg"]
+bg_color = Color(0.9, 0.87, 0.8, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_fill"]
+bg_color = Color(0.46, 0.78, 0.4, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="GoalSelectionCanvas" type="CanvasLayer"]
 layer = 100
@@ -12,21 +67,23 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
+color = Color(0.05, 0.03, 0.02, 0.76)
 
 [node name="Panel" type="Panel" parent="Backdrop"]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -350.0
-offset_top = -240.0
-offset_right = 350.0
-offset_bottom = 240.0
+offset_left = -380.0
+offset_top = -260.0
+offset_right = 380.0
+offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal_panel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Backdrop/Panel"]
 layout_mode = 1
@@ -43,21 +100,26 @@ theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_font_sizes/font_size = 22
-text = "Piliin ang Iyong 1-Year Life Goal!"
+text = "Piliin ang Iyong 1-Year Life Goal"
 horizontal_alignment = 1
 
 [node name="SubtitleLabel" type="RichTextLabel" parent="Backdrop/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 75)
 layout_mode = 2
+theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
+theme_override_font_sizes/normal_font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_desc_bubble")
 bbcode_enabled = true
 text = "Goal details here"
 fit_content = true
 
 [node name="GoalProgressBar" type="ProgressBar" parent="Backdrop/Panel/VBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(0, 28)
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_prog_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_prog_fill")
 max_value = 40000.0
 
 [node name="OptionsContainer" type="VBoxContainer" parent="Backdrop/Panel/VBoxContainer"]
@@ -79,16 +141,19 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="Dep500" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow"]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Mag-ipon +PHP 500"
 
 [node name="Dep1000" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow"]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Mag-ipon +PHP 1,000"
 
 [node name="Dep2500" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow"]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Mag-ipon +PHP 2,500"
@@ -99,11 +164,13 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="With500" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickWithdrawRow"]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Kumuha -PHP 500"
 
 [node name="With1000" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickWithdrawRow"]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Kumuha -PHP 1,000"
@@ -114,23 +181,27 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="AmountInput" type="LineEdit" parent="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow"]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "I-type ang halaga (PHP)..."
 
 [node name="CustomDepositBtn" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow"]
+custom_minimum_size = Vector2(160, 38)
 layout_mode = 2
 text = "Maghulog sa Ipon"
 
 [node name="CustomWithdrawBtn" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow"]
+custom_minimum_size = Vector2(160, 38)
 layout_mode = 2
 text = "Hugutin sa Ipon"
 
 [node name="CloseButton" type="Button" parent="Backdrop/Panel/VBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
-text = "Bumalik sa Desk"
+theme_override_font_sizes/font_size = 14
+text = "< Bumalik sa Desk"
 
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow/Dep500" to="." method="_on_quick_deposit" binds= [500]]
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow/Dep1000" to="." method="_on_quick_deposit" binds= [1000]]

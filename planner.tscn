@@ -1,17 +1,51 @@
-[gd_scene format=3 uid="uid://bp0qnom5c0h1s"]
+[gd_scene load_steps=6 format=3 uid="uid://bp0qnom5c0h1s"]
 
 [ext_resource type="Texture2D" uid="uid://bmsaxcb8lbchf" path="res://assets/planner face.png" id="1_1jp0f"]
-[ext_resource type="Script" uid="uid://cgleyvve5gm8h" path="res://planner.gd" id="1_nwike"]
+[ext_resource type="Script" path="res://planner.gd" id="1_nwike"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_xfher"]
-font_size = 30
-font_color = Color(0, 0, 0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_events_card"]
+bg_color = Color(0.97, 0.94, 0.88, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 4
+border_color = Color(0.16, 0.13, 0.11, 0.92)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
 
-[sub_resource type="LabelSettings" id="LabelSettings_nwike"]
-font_color = Color(0, 0, 0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_notes_card"]
+bg_color = Color(0.98, 0.96, 0.90, 0.97)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 4
+border_color = Color(0.16, 0.13, 0.11, 0.92)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
 
-[sub_resource type="LabelSettings" id="LabelSettings_khk4l"]
-font_color = Color(0, 0, 0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_btn"]
+bg_color = Color(0.95, 0.82, 0.42, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 4
+border_color = Color(0.15, 0.13, 0.11, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="Planner Interface" type="Node2D" unique_id=4427177]
 script = ExtResource("1_nwike")
@@ -19,79 +53,191 @@ script = ExtResource("1_nwike")
 [node name="Background" type="TextureRect" parent="." unique_id=1218954637]
 offset_right = 1152.0
 offset_bottom = 649.0
+mouse_filter = 2
 texture = ExtResource("1_1jp0f")
 expand_mode = 2
 
 [node name="Date Label" type="Label" parent="." unique_id=1302440788]
-offset_left = 232.0
-offset_top = 96.0
-offset_right = 533.0
-offset_bottom = 138.0
+offset_left = 216.0
+offset_top = 90.0
+offset_right = 524.0
+offset_bottom = 134.0
+theme_override_colors/font_color = Color(0.14, 0.11, 0.09, 1)
+theme_override_font_sizes/font_size = 25
 text = "Month"
-label_settings = SubResource("LabelSettings_xfher")
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="NextMonth" type="Button" parent="Date Label" unique_id=1787308168]
 layout_mode = 0
-offset_left = 269.0
-offset_top = 3.0
-offset_right = 300.0
-offset_bottom = 43.0
+offset_left = 264.0
+offset_top = 4.0
+offset_right = 304.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(0.14, 0.11, 0.09, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_btn")
 text = ">"
 
 [node name="PreviousMonth" type="Button" parent="Date Label" unique_id=2061339059]
 layout_mode = 0
-offset_left = -47.0
-offset_top = 2.0
-offset_right = -15.0
-offset_bottom = 42.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 44.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(0.14, 0.11, 0.09, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_btn")
 text = "<"
 
-[node name="Events" type="ColorRect" parent="." unique_id=1495749949]
-offset_left = 610.0
-offset_top = 104.0
-offset_right = 982.0
-offset_bottom = 222.0
-color = Color(0.427034, 0.372265, 0.354033, 1)
+[node name="WeekdayHeadersHBox" type="HBoxContainer" parent="."]
+offset_left = 176.0
+offset_top = 140.0
+offset_right = 564.0
+offset_bottom = 162.0
+theme_override_constants/separation = 4
+alignment = 1
 
-[node name="Event Label" type="RichTextLabel" parent="Events" unique_id=536199702]
-layout_mode = 0
-offset_left = 5.0
-offset_top = 5.0
-offset_right = 367.0
-offset_bottom = 113.0
-bbcode_enabled = true
-theme_override_colors/default_color = Color(0, 0, 0, 1)
-text = "Mga Ganap"
+[node name="Day1" type="Label" parent="WeekdayHeadersHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.68, 0.16, 0.14, 1)
+theme_override_font_sizes/font_size = 13
+text = "LIN"
+horizontal_alignment = 1
 
-[node name="Day Label" type="Label" parent="." unique_id=2041760759]
-offset_left = 609.0
-offset_top = 80.0
-offset_right = 649.0
-offset_bottom = 103.0
-text = "Day"
-label_settings = SubResource("LabelSettings_khk4l")
+[node name="Day2" type="Label" parent="WeekdayHeadersHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.16, 0.13, 0.1, 1)
+theme_override_font_sizes/font_size = 13
+text = "LUN"
+horizontal_alignment = 1
 
-[node name="Notes" type="TextEdit" parent="." unique_id=1271568026]
-offset_left = 611.0
-offset_top = 250.0
-offset_right = 982.0
-offset_bottom = 476.0
-placeholder_text = "<insert notes here>"
+[node name="Day3" type="Label" parent="WeekdayHeadersHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.16, 0.13, 0.1, 1)
+theme_override_font_sizes/font_size = 13
+text = "MAR"
+horizontal_alignment = 1
 
-[node name="Button" type="Button" parent="Notes" unique_id=199547150]
-layout_mode = 0
-offset_left = 317.0
-offset_top = 195.0
-offset_right = 372.0
-offset_bottom = 226.0
-text = "I-save"
+[node name="Day4" type="Label" parent="WeekdayHeadersHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.16, 0.13, 0.1, 1)
+theme_override_font_sizes/font_size = 13
+text = "MIY"
+horizontal_alignment = 1
+
+[node name="Day5" type="Label" parent="WeekdayHeadersHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.16, 0.13, 0.1, 1)
+theme_override_font_sizes/font_size = 13
+text = "HUW"
+horizontal_alignment = 1
+
+[node name="Day6" type="Label" parent="WeekdayHeadersHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.16, 0.13, 0.1, 1)
+theme_override_font_sizes/font_size = 13
+text = "BIY"
+horizontal_alignment = 1
+
+[node name="Day7" type="Label" parent="WeekdayHeadersHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.55, 0.30, 0.08, 1)
+theme_override_font_sizes/font_size = 13
+text = "SAB"
+horizontal_alignment = 1
 
 [node name="GridContainer" type="GridContainer" parent="." unique_id=2010161032]
 offset_left = 176.0
-offset_top = 163.0
+offset_top = 165.0
 offset_right = 564.0
-offset_bottom = 484.0
+offset_bottom = 488.0
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 3
 columns = 7
+
+[node name="Day Label" type="Label" parent="." unique_id=2041760759]
+offset_left = 608.0
+offset_top = 80.0
+offset_right = 982.0
+offset_bottom = 106.0
+theme_override_colors/font_color = Color(0.2, 0.14, 0.09, 1)
+theme_override_font_sizes/font_size = 16
+text = "Enero 1, 2026"
+vertical_alignment = 1
+
+[node name="Events" type="Panel" parent="." unique_id=1495749949]
+clip_contents = true
+offset_left = 608.0
+offset_top = 108.0
+offset_right = 982.0
+offset_bottom = 246.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_events_card")
+
+[node name="Event Label" type="RichTextLabel" parent="Events" unique_id=536199702]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 6.0
+offset_right = -8.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/default_color = Color(0.18, 0.13, 0.09, 1)
+theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
+bbcode_enabled = true
+text = "Mga Ganap"
+
+[node name="NotesHeaderLabel" type="Label" parent="."]
+offset_left = 608.0
+offset_top = 252.0
+offset_right = 982.0
+offset_bottom = 274.0
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Sariling Tala (Personal Notes):"
+vertical_alignment = 1
+
+[node name="Notes" type="TextEdit" parent="." unique_id=1271568026]
+clip_contents = true
+offset_left = 608.0
+offset_top = 276.0
+offset_right = 982.0
+offset_bottom = 490.0
+theme_override_colors/font_color = Color(0.18, 0.13, 0.09, 1)
+theme_override_colors/font_placeholder_color = Color(0.5, 0.42, 0.34, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_notes_card")
+theme_override_styles/focus = SubResource("StyleBoxFlat_notes_card")
+placeholder_text = "Magtala ng mga plano, paalala, o gastusin dito..."
+wrap_mode = 1
+
+[node name="Button" type="Button" parent="Notes" unique_id=199547150]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -118.0
+offset_top = -38.0
+offset_right = -10.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.98, 0.96, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "I-save Tala"
 
 [connection signal="pressed" from="Date Label/NextMonth" to="." method="_on_next_month_pressed"]
 [connection signal="pressed" from="Date Label/PreviousMonth" to="." method="_on_previous_month_pressed"]

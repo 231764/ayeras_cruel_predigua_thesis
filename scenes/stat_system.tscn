@@ -1,8 +1,6 @@
 [gd_scene format=3 uid="uid://dy3ox3hkpgguj"]
 
 [ext_resource type="Script" uid="uid://mji1exoq66b6" path="res://scripts/stat_system.gd" id="1_uf86d"]
-[ext_resource type="Texture2D" uid="uid://b8aee5py4y07c" path="res://assets/happiness icon.png" id="2_equpc"]
-[ext_resource type="Texture2D" uid="uid://cenmloan3aswe" path="res://assets/social icon.png" id="3_g6avb"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_top_bar"]
 bg_color = Color(0.96, 0.94, 0.89, 0.98)
@@ -157,7 +155,6 @@ offset_top = -24.0
 offset_right = 24.0
 offset_bottom = 40.0
 mouse_filter = 2
-texture = ExtResource("2_equpc")
 expand_mode = 1
 
 [node name="Sociability Bar" type="ProgressBar" parent="." unique_id=919939996]
@@ -174,7 +171,6 @@ offset_top = -18.0
 offset_right = 20.0
 offset_bottom = 46.0
 mouse_filter = 2
-texture = ExtResource("3_g6avb")
 expand_mode = 1
 
 [node name="BaldoToastPanel" type="Panel" parent="." unique_id=1478174450]
@@ -289,9 +285,9 @@ popup/item_0/id = 0
 popup/item_1/text = "Angkas/Joyride (PHP 180)"
 popup/item_1/id = 1
 
+[connection signal="pressed" from="GoalButton" to="." method="open_savings_and_goal_inspector"]
 [connection signal="pressed" from="NextPhaseButton" to="." method="advance_day"]
 [connection signal="pressed" from="AutoAdvanceButton" to="." method="toggle_auto_advance"]
-[connection signal="pressed" from="GoalButton" to="." method="open_savings_and_goal_inspector"]
 [connection signal="pressed" from="EnvelopeRunwayPanel/HBoxContainer/QuickBudgetButton" to="." method="_on_quick_budget_pressed"]
 [connection signal="pressed" from="SavingsJarButton" to="." method="open_savings_and_goal_inspector"]
 [connection signal="pressed" from="BaldoToastPanel/HBoxContainer/AskBaldoButton" to="." method="_on_ask_baldo_pressed"]

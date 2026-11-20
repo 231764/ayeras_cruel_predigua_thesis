@@ -1,29 +1,36 @@
 [gd_scene format=3 uid="uid://b11qqo1nag86y"]
 
-[ext_resource type="Texture2D" uid="uid://bah3bosvbua5r" path="res://assets/Screenshot 2026-08-23 222652.png" id="1_ajhct"]
+[ext_resource type="Texture2D" uid="uid://cfn1x6ffns2ut" path="res://assets/Screenshot 2026-08-23 222652.png" id="1_ajhct"]
+[ext_resource type="Texture2D" uid="uid://dq8yhnksfaw1t" path="res://assets/background_day.png" id="1_esoaw"]
 [ext_resource type="Script" uid="uid://dtj27omj1qyfc" path="res://scripts/close_interface.gd" id="2_4dx5e"]
-[ext_resource type="Texture2D" uid="uid://dmcuc2nrc3qlv" path="res://assets/planner button.png" id="2_d5uah"]
-[ext_resource type="Texture2D" uid="uid://csqs05aobw7vl" path="res://assets/status button.png" id="2_t0r63"]
-[ext_resource type="Texture2D" uid="uid://bxfwqpnu7tjuc" path="res://assets/status button hovered.png" id="3_f2wrt"]
-[ext_resource type="Texture2D" uid="uid://cbas7q7ys6u7h" path="res://assets/planner button hovered.png" id="3_yler6"]
+[ext_resource type="Texture2D" uid="uid://wa5k8ybav4qw" path="res://assets/cashonhand.png" id="2_uwjjl"]
+[ext_resource type="Texture2D" uid="uid://dwrtg7t82sepo" path="res://assets/bank.png" id="3_esoaw"]
 [ext_resource type="Script" uid="uid://cxrg1cxtd88lu" path="res://scripts/button_interface_changer.gd" id="4_2v8hh"]
-[ext_resource type="Texture2D" uid="uid://djc1rcdyfdhjk" path="res://assets/budget button.png" id="4_voptk"]
-[ext_resource type="Texture2D" uid="uid://ciy3ttgsq80ng" path="res://assets/budget button hovered.png" id="5_2v8hh"]
-[ext_resource type="Texture2D" uid="uid://cq4ocr7oo54v2" path="res://assets/phone button.png" id="6_3t3i8"]
-[ext_resource type="Texture2D" uid="uid://dh4miwxybt5lr" path="res://assets/phone button hovered.png" id="7_6m418"]
+[ext_resource type="Texture2D" uid="uid://e54amepsbvcf" path="res://assets/creditcard.png" id="4_qneri"]
+[ext_resource type="Texture2D" uid="uid://cm7auikukd6wt" path="res://assets/loan.png" id="5_v1jfx"]
+[ext_resource type="Texture2D" uid="uid://ffjnkhukjqf5" path="res://assets/creditscore.png" id="6_vo80j"]
+[ext_resource type="Texture2D" uid="uid://g6ao7lw34ke3" path="res://assets/laptop.png" id="7_uwjjl"]
+[ext_resource type="Texture2D" uid="uid://datgkw0qrjb4n" path="res://assets/laptop hover.png" id="8_uwjjl"]
 [ext_resource type="PackedScene" uid="uid://dy3ox3hkpgguj" path="res://scenes/stat_system.tscn" id="10_dppuc"]
-[ext_resource type="Texture2D" uid="uid://cjad8bkwqi2h1" path="res://assets/Screenshot 2026-08-27 001029.png" id="11_dppuc"]
+[ext_resource type="Texture2D" uid="uid://vjtn6dnvvxnv" path="res://assets/budget.png" id="10_uwjjl"]
+[ext_resource type="Texture2D" uid="uid://yyakhntg4r02" path="res://assets/Screenshot 2026-08-27 001029.png" id="11_dppuc"]
+[ext_resource type="Texture2D" uid="uid://ksogne2eqkmd" path="res://assets/budget hover.png" id="11_esoaw"]
 [ext_resource type="PackedScene" uid="uid://bp0qnom5c0h1s" path="res://planner.tscn" id="11_pfkwn"]
+[ext_resource type="Texture2D" uid="uid://c6f6ioj63clhr" path="res://assets/planner.png" id="12_esoaw"]
+[ext_resource type="Texture2D" uid="uid://bo1ixsobjkddt" path="res://assets/planner hover.png" id="13_qneri"]
+[ext_resource type="Texture2D" uid="uid://bjv253tdr376w" path="res://assets/phone.png" id="14_qneri"]
 [ext_resource type="PackedScene" uid="uid://di8f6k04t6b2s" path="res://scenes/budgeting.tscn" id="15_f2wrt"]
+[ext_resource type="Texture2D" uid="uid://b7nk7qpik03il" path="res://assets/phone hover.png" id="15_v1jfx"]
+[ext_resource type="Texture2D" uid="uid://frumms4dwi6v" path="res://assets/happy 60.png" id="17_sd045"]
+[ext_resource type="Texture2D" uid="uid://figcym0hbe1t" path="res://assets/social.png" id="18_spwqf"]
 [ext_resource type="PackedScene" uid="uid://cxrg1cxtd88lx" path="res://event_panel.tscn" id="20_eventpanel"]
 [ext_resource type="PackedScene" uid="uid://dvxndpnueep6j" path="res://scenes/phone_interface.tscn" id="21_phone"]
-[ext_resource type="Texture2D" uid="uid://crbsivkqss20a" path="res://assets/current balance icon.png" id="22_fkrf1"]
-[ext_resource type="Texture2D" uid="uid://cle32h2qcbj15" path="res://assets/savings icon.png" id="23_w3f8m"]
-[ext_resource type="Texture2D" uid="uid://ff7vku7yijp0" path="res://assets/credit balance icon.png" id="24_0pe8i"]
-[ext_resource type="Texture2D" uid="uid://66485hc28cl4" path="res://assets/credit score icon.png" id="25_1hu6n"]
-[ext_resource type="Texture2D" uid="uid://df5dtlcwjcf8a" path="res://assets/debt icon.png" id="26_hssa7"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stat_pill"]
+content_margin_left = 34.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
 bg_color = Color(0.96, 0.94, 0.89, 0.98)
 border_width_left = 8
 border_width_top = 2
@@ -34,10 +41,6 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
-content_margin_left = 34.0
-content_margin_top = 4.0
-content_margin_right = 10.0
-content_margin_bottom = 4.0
 shadow_color = Color(0.06, 0.05, 0.04, 0.22)
 shadow_size = 2
 shadow_offset = Vector2(2, 3)
@@ -58,6 +61,10 @@ shadow_size = 4
 shadow_offset = Vector2(3, 5)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_btn"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
 bg_color = Color(0.95, 0.79, 0.36, 1)
 border_width_left = 2
 border_width_top = 2
@@ -68,18 +75,17 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-content_margin_left = 12.0
-content_margin_top = 6.0
-content_margin_right = 12.0
-content_margin_bottom = 6.0
 
 [node name="Desk Node" type="Node2D" unique_id=1055119461]
 
-[node name="Desk" type="TextureRect" parent="." unique_id=1807765138]
-offset_right = 1152.0
-offset_bottom = 648.0
+[node name="Desk Background" type="TextureRect" parent="." unique_id=1807765138]
+offset_left = 6.9999995
+offset_top = -310.0
+offset_right = 6921.285
+offset_bottom = 6050.0
+scale = Vector2(0.175, 0.175)
 mouse_filter = 2
-texture = ExtResource("1_ajhct")
+texture = ExtResource("1_esoaw")
 
 [node name="CB Label" type="Label" parent="." unique_id=1657778106]
 z_index = 2
@@ -91,7 +97,8 @@ theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_constants/outline_size = 0
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
-text = "Hawak na Cash\nPHP 5,000"
+text = "Hawak na Cash
+PHP 5,000"
 
 [node name="Icon" type="TextureRect" parent="CB Label" unique_id=2014212662]
 layout_mode = 0
@@ -100,7 +107,7 @@ offset_top = -10.0
 offset_right = 28.0
 offset_bottom = 54.0
 mouse_filter = 2
-texture = ExtResource("22_fkrf1")
+texture = ExtResource("2_uwjjl")
 expand_mode = 1
 
 [node name="Savings Label" type="Label" parent="." unique_id=62962297]
@@ -113,7 +120,8 @@ theme_override_colors/font_color = Color(0.11, 0.36, 0.2, 1)
 theme_override_constants/outline_size = 0
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
-text = "Ipon sa Bangko\nPHP 0"
+text = "Ipon sa Bangko
+PHP 0"
 
 [node name="Icon" type="TextureRect" parent="Savings Label" unique_id=253356462]
 layout_mode = 0
@@ -122,7 +130,7 @@ offset_top = -10.0
 offset_right = 28.0
 offset_bottom = 54.0
 mouse_filter = 2
-texture = ExtResource("23_w3f8m")
+texture = ExtResource("3_esoaw")
 expand_mode = 1
 
 [node name="CrB Label" type="Label" parent="." unique_id=262636439]
@@ -135,7 +143,8 @@ theme_override_colors/font_color = Color(0.48, 0.26, 0.06, 1)
 theme_override_constants/outline_size = 0
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
-text = "Credit Balance\nPHP 0"
+text = "Credit Balance
+PHP 0"
 
 [node name="Icon" type="TextureRect" parent="CrB Label" unique_id=172025542]
 layout_mode = 0
@@ -144,7 +153,7 @@ offset_top = -10.0
 offset_right = 28.0
 offset_bottom = 54.0
 mouse_filter = 2
-texture = ExtResource("24_0pe8i")
+texture = ExtResource("4_qneri")
 expand_mode = 1
 
 [node name="Debt Label" type="Label" parent="." unique_id=1168069134]
@@ -157,16 +166,17 @@ theme_override_colors/font_color = Color(0.58, 0.14, 0.12, 1)
 theme_override_constants/outline_size = 0
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
-text = "Utang / Loans\nPHP 0"
+text = "Utang / Loans
+PHP 0"
 
 [node name="Icon" type="TextureRect" parent="Debt Label" unique_id=1796424826]
 layout_mode = 0
-offset_left = -38.0
-offset_top = -10.0
-offset_right = 28.0
-offset_bottom = 54.0
+offset_left = -45.0
+offset_top = -12.0
+offset_right = 33.0
+offset_bottom = 64.0
 mouse_filter = 2
-texture = ExtResource("26_hssa7")
+texture = ExtResource("5_v1jfx")
 expand_mode = 1
 
 [node name="CS Label" type="Label" parent="." unique_id=1375148180]
@@ -179,7 +189,8 @@ theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_constants/outline_size = 0
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
-text = "Credit Score\n70 / 100"
+text = "Credit Score
+70 / 100"
 
 [node name="TextureRect" type="TextureRect" parent="CS Label" unique_id=1653339265]
 layout_mode = 0
@@ -188,53 +199,57 @@ offset_top = -8.0
 offset_right = 28.0
 offset_bottom = 56.0
 mouse_filter = 2
-texture = ExtResource("25_1hu6n")
+texture = ExtResource("6_vo80j")
 expand_mode = 1
 
 [node name="Status Button" type="TextureButton" parent="." unique_id=1938895406 node_paths=PackedStringArray("button", "interface")]
-offset_left = 612.0
-offset_top = 74.0
-offset_right = 4863.0
-offset_bottom = 3696.0
+offset_left = 674.0
+offset_top = 40.000004
+offset_right = 7424.0
+offset_bottom = 5760.589
+rotation = 0.05235988
 scale = Vector2(0.068, 0.068)
-texture_normal = ExtResource("2_t0r63")
-texture_hover = ExtResource("3_f2wrt")
+texture_normal = ExtResource("7_uwjjl")
+texture_hover = ExtResource("8_uwjjl")
+stretch_mode = 0
 script = ExtResource("4_2v8hh")
 button = NodePath(".")
 interface = NodePath("../Player Status")
 
-[node name="Planner Button" type="TextureButton" parent="." unique_id=1090948886 node_paths=PackedStringArray("button", "interface")]
-offset_left = 406.0
-offset_top = 242.0
-offset_right = 4657.0
-offset_bottom = 3864.0
-scale = Vector2(0.082, 0.082)
-texture_normal = ExtResource("2_d5uah")
-texture_hover = ExtResource("3_yler6")
-script = ExtResource("4_2v8hh")
-button = NodePath(".")
-interface = NodePath("../Planner Node")
-
 [node name="Budget Button" type="TextureButton" parent="." unique_id=614230337 node_paths=PackedStringArray("button", "interface")]
-offset_left = 215.0
-offset_top = 264.0
-offset_right = 4466.0
-offset_bottom = 3886.0
+offset_left = 231.0
+offset_top = 176.0
+offset_right = 4606.0
+offset_bottom = 3798.0
 scale = Vector2(0.064, 0.064)
-texture_normal = ExtResource("4_voptk")
-texture_hover = ExtResource("5_2v8hh")
+texture_normal = ExtResource("10_uwjjl")
+texture_hover = ExtResource("11_esoaw")
+stretch_mode = 0
 script = ExtResource("4_2v8hh")
 button = NodePath(".")
 interface = NodePath("../Budget Node")
 
+[node name="Planner Button" type="TextureButton" parent="." unique_id=1090948886 node_paths=PackedStringArray("button", "interface")]
+offset_left = 344.0
+offset_top = 247.0
+offset_right = 4595.0
+offset_bottom = 3869.0
+scale = Vector2(0.077, 0.077)
+texture_normal = ExtResource("12_esoaw")
+texture_hover = ExtResource("13_qneri")
+stretch_mode = 0
+script = ExtResource("4_2v8hh")
+button = NodePath(".")
+interface = NodePath("../Planner Node")
+
 [node name="Phone Button" type="TextureButton" parent="." unique_id=244044386 node_paths=PackedStringArray("button", "interface")]
-offset_left = 757.0
-offset_top = 252.0
-offset_right = 5008.0
-offset_bottom = 3874.0
+offset_left = 882.0
+offset_top = 323.0
+offset_right = 5133.0
+offset_bottom = 3945.0
 scale = Vector2(0.06, 0.06)
-texture_normal = ExtResource("6_3t3i8")
-texture_hover = ExtResource("7_6m418")
+texture_normal = ExtResource("14_qneri")
+texture_hover = ExtResource("15_v1jfx")
 script = ExtResource("4_2v8hh")
 button = NodePath(".")
 interface = NodePath("../Phone Node")
@@ -246,6 +261,35 @@ credit_balance = NodePath("../CrB Label")
 credit_score = NodePath("../CS Label")
 debt_balance = NodePath("../Debt Label")
 status_report_label = NodePath("../Player Status/StatusPanel/StatusReportLabel")
+
+[node name="SavingsJarButton" parent="Stat System" index="6" unique_id=1478174445]
+visible = false
+
+[node name="Happiness Bar" parent="Stat System" index="7" unique_id=1868663321]
+offset_left = 58.0
+offset_top = 540.0
+offset_right = 390.0
+offset_bottom = 570.0
+
+[node name="Icon" parent="Stat System/Happiness Bar" index="0" unique_id=1157721619]
+offset_left = -49.0
+offset_top = -16.0
+offset_right = 23.0
+offset_bottom = 48.0
+texture = ExtResource("17_sd045")
+
+[node name="Sociability Bar" parent="Stat System" index="8" unique_id=919939996]
+offset_left = 66.0
+offset_top = 597.0
+offset_right = 398.0
+offset_bottom = 627.0
+
+[node name="Icon" parent="Stat System/Sociability Bar" index="0" unique_id=516258289]
+offset_left = -55.0
+offset_top = -13.0
+offset_right = 16.0
+offset_bottom = 48.0
+texture = ExtResource("18_spwqf")
 
 [node name="Planner Node" type="Node2D" parent="." unique_id=517664976]
 visible = false
@@ -314,6 +358,7 @@ text = "< Bumalik sa Desk"
 script = ExtResource("2_4dx5e")
 
 [node name="EventPanel" parent="." unique_id=1131891414 instance=ExtResource("20_eventpanel")]
+visible = false
 
 [connection signal="pressed" from="Back Button" to="Back Button" method="_on_pressed"]
 

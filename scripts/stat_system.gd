@@ -12,6 +12,15 @@ const UITheme = preload("res://scripts/ui_theme.gd")
 @export var date_label: Label
 @export var status_report_label: RichTextLabel
 
+@onready var happy_icon: TextureRect = $"Happiness Bar/Icon"
+
+# Preload happiness assets
+const JOYFUL = preload("res://assets/happy90.png")
+const HAPPY = preload("res://assets/happy 60.png")
+const NEUTRAL = preload("res://assets/neutral.png")
+const SAD = preload("res://assets/sad40.png")
+const DESPAIRED = preload("res://assets/sad10.png")
+
 @onready var next_phase_button: Button = $NextPhaseButton
 @onready var auto_advance_button: Button = get_node_or_null("AutoAdvanceButton")
 @onready var goal_button: Button = $GoalButton
@@ -357,6 +366,18 @@ func open_savings_and_goal_inspector() -> void:
 func update_ui() -> void:
 	if happy_bar:
 		happy_bar.value = StatManager.happy
+		
+		if StatManager.happy >= 90:
+			happy_icon.texture = JOYFUL
+		elif StatManager.happy > 60:
+			happy_icon.texture = HAPPY
+		elif StatManager.happy > 40:
+			happy_icon.texture = NEUTRAL
+		elif StatManager.happy > 10:
+			happy_icon.texture = SAD
+		else:
+			happy_icon.texture = DESPAIRED
+			
 		var h_lbl := happy_bar.get_node_or_null("BarTextLabel") as Label
 		if h_lbl:
 			h_lbl.text = "HAPPINESS  •  " + str(StatManager.happy) + " / 100"

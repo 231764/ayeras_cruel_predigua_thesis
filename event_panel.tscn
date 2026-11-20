@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://cxrg1cxtd88lx"]
+[gd_scene format=3 uid="uid://cxrg1cxtd88lx"]
 
-[ext_resource type="Script" path="res://scripts/event_panel.gd" id="1_eventpanel"]
+[ext_resource type="Script" uid="uid://cgb27r5pi3gpi" path="res://scripts/event_panel.gd" id="1_eventpanel"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal_panel"]
 bg_color = Color(0.96, 0.94, 0.89, 0.99)
@@ -18,6 +18,10 @@ shadow_size = 10
 shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_desc_box"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
 bg_color = Color(0.92, 0.89, 0.81, 0.98)
 border_width_left = 2
 border_width_top = 2
@@ -28,16 +32,12 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-content_margin_left = 16.0
-content_margin_top = 12.0
-content_margin_right = 16.0
-content_margin_bottom = 12.0
 
-[node name="EventPanelCanvas" type="CanvasLayer"]
+[node name="EventPanelCanvas" type="CanvasLayer" unique_id=1874056021]
 layer = 100
 script = ExtResource("1_eventpanel")
 
-[node name="EventPanelBackdrop" type="ColorRect" parent="."]
+[node name="EventPanelBackdrop" type="ColorRect" parent="." unique_id=415180536]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -45,7 +45,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.05, 0.03, 0.02, 0.76)
 
-[node name="Panel" type="Panel" parent="EventPanelBackdrop"]
+[node name="Panel" type="Panel" parent="EventPanelBackdrop" unique_id=503217329]
 clip_contents = true
 layout_mode = 1
 anchors_preset = 8
@@ -61,7 +61,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal_panel")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="EventPanelBackdrop/Panel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="EventPanelBackdrop/Panel" unique_id=1761875702]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -74,7 +74,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 14
 
-[node name="TitleLabel" type="Label" parent="EventPanelBackdrop/Panel/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="EventPanelBackdrop/Panel/VBoxContainer" unique_id=1533969355]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_font_sizes/font_size = 22
@@ -82,7 +82,7 @@ text = "Event Title"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="DescLabel" type="Label" parent="EventPanelBackdrop/Panel/VBoxContainer"]
+[node name="DescLabel" type="Label" parent="EventPanelBackdrop/Panel/VBoxContainer" unique_id=1750954762]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_font_sizes/font_size = 15
@@ -90,7 +90,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_desc_box")
 text = "Event Description goes here. It can be quite long, so we want it to wrap nicely."
 autowrap_mode = 3
 
-[node name="OptionsContainer" type="VBoxContainer" parent="EventPanelBackdrop/Panel/VBoxContainer"]
+[node name="OptionsContainer" type="VBoxContainer" parent="EventPanelBackdrop/Panel/VBoxContainer" unique_id=881711762]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 10

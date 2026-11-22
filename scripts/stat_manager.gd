@@ -16,6 +16,11 @@ var credit_limit: int = 0
 var credit_monthly_interest_rate: float = 0.05 # 5% monthly compounding interest on unpaid credit balance
 var total_credit_interest_incurred: int = 0
 
+# Preload goal icons
+const GOAL_KAPATID = preload("res://assets/goal_kapatid.png")
+const GOAL_BUSINESS = preload("res://assets/goal_business.png")
+const GOAL_HOUSE = preload("res://assets/goal_house.png")
+
 # Recurring Monthly Installments (GDD Sections 8.1, 8.2)
 var active_installments: Array = [] # Array of {"id": String, "name": String, "monthly_cost": int, "months_left": int}
 
@@ -47,21 +52,24 @@ var life_goals := [
 		"title": "Graduation Fund ng Kapatid",
 		"description": "Maipon ang pang-matrikula at graduation fees ng nakababatang kapatid.",
 		"cost": 40000,
-		"difficulty": "Balanced (Recommended)"
+		"difficulty": "Balanced (Recommended)",
+		"icon": GOAL_KAPATID
 	},
 	{
 		"id": "small_business",
 		"title": "Puhunan sa Maliit na Negosyo",
 		"description": "Makapagpatayo ng sari-sari store o food cart para sa pamilya.",
 		"cost": 60000,
-		"difficulty": "Challenging"
+		"difficulty": "Challenging",
+		"icon": GOAL_BUSINESS
 	},
 	{
 		"id": "home_repair",
 		"title": "Pagpapaayos ng Bahay sa Probinsya",
 		"description": "Maipa-renovate ang bubong at bahay ng pamilya sa probinsya.",
 		"cost": 80000,
-		"difficulty": "Hard (Paldo Master)"
+		"difficulty": "Hard (Paldo Master)",
+		"icon": GOAL_HOUSE
 	}
 ]
 var selected_goal_index: int = 0

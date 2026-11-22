@@ -24,6 +24,7 @@ const DESPAIRED = preload("res://assets/sad10.png")
 @onready var next_phase_button: Button = $NextPhaseButton
 @onready var auto_advance_button: Button = get_node_or_null("AutoAdvanceButton")
 @onready var goal_button: Button = $GoalButton
+@onready var goal_icon: TextureButton = $GoalIcon
 @onready var savings_jar_button: Button = $SavingsJarButton
 @onready var envelope_runway_label: RichTextLabel = get_node_or_null("EnvelopeRunwayPanel/HBoxContainer/EnvelopeRunwayLabel")
 @onready var baldo_toast_label: RichTextLabel = get_node_or_null("BaldoToastPanel/HBoxContainer/BaldoToastLabel")
@@ -347,7 +348,7 @@ func trigger_goal_selection() -> void:
 		)
 	)
 
-func open_savings_and_goal_inspector() -> void:
+func _on_goal_icon_pressed() -> void:
 	if is_modal_open or EventManager.is_direct_event_active or is_game_over:
 		return
 	enqueue_modal(func():
@@ -362,6 +363,7 @@ func open_savings_and_goal_inspector() -> void:
 			_run_next_modal()
 		)
 	)
+	pass # Replace with function body.
 
 func update_ui() -> void:
 	if happy_bar:
@@ -405,6 +407,11 @@ func update_ui() -> void:
 		var wk_short: String = StatManager.get_weekday_name(StatManager.current_month, StatManager.current_day, true)
 		var m_upper: String = str(StatManager.year[StatManager.current_month].month).to_upper()
 		date_label.text = wk_short + ", " + m_upper + " " + str(StatManager.current_day) + "  •  " + phase_names[StatManager.current_phase] + notif_badge
+	
+	if goal_icon:
+		var goal = StatManager.get_current_goal()
+		if goal and goal.has("icon"):
+			goal_icon.texture_normal = goal["icon"]
 		
 	if goal_button:
 		var g = StatManager.get_current_goal()
@@ -1060,3 +1067,14 @@ func _process(_delta: float) -> void:
 
 func _on_button_pressed() -> void:
 	happy_calc(5)
+
+#### Goal Icon Modulation based on mouse activity 
+
+func _on_goal_icon_mouse_entered() -> void:
+	# Slightly whiter/brighter on hover
+	goal_icon.self_modulate = Color(1.3, 1.3, 1.3, 1.0)
+
+
+func _on_goal_icon_mouse_exited() -> void:
+	# Reset back to normal
+	goal_icon.self_modulate = Color(1.0, 1.0, 1.0, 1.0)

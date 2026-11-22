@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://b11qqo1nag86y"]
 
-[ext_resource type="Texture2D" uid="uid://cfn1x6ffns2ut" path="res://assets/Screenshot 2026-08-23 222652.png" id="1_ajhct"]
 [ext_resource type="Texture2D" uid="uid://dq8yhnksfaw1t" path="res://assets/background_day.png" id="1_esoaw"]
 [ext_resource type="Script" uid="uid://dtj27omj1qyfc" path="res://scripts/close_interface.gd" id="2_4dx5e"]
 [ext_resource type="Texture2D" uid="uid://wa5k8ybav4qw" path="res://assets/cashonhand.png" id="2_uwjjl"]
@@ -13,7 +12,6 @@
 [ext_resource type="Texture2D" uid="uid://datgkw0qrjb4n" path="res://assets/laptop hover.png" id="8_uwjjl"]
 [ext_resource type="PackedScene" uid="uid://dy3ox3hkpgguj" path="res://scenes/stat_system.tscn" id="10_dppuc"]
 [ext_resource type="Texture2D" uid="uid://vjtn6dnvvxnv" path="res://assets/budget.png" id="10_uwjjl"]
-[ext_resource type="Texture2D" uid="uid://yyakhntg4r02" path="res://assets/Screenshot 2026-08-27 001029.png" id="11_dppuc"]
 [ext_resource type="Texture2D" uid="uid://ksogne2eqkmd" path="res://assets/budget hover.png" id="11_esoaw"]
 [ext_resource type="PackedScene" uid="uid://bp0qnom5c0h1s" path="res://planner.tscn" id="11_pfkwn"]
 [ext_resource type="Texture2D" uid="uid://c6f6ioj63clhr" path="res://assets/planner.png" id="12_esoaw"]
@@ -21,9 +19,11 @@
 [ext_resource type="Texture2D" uid="uid://bjv253tdr376w" path="res://assets/phone.png" id="14_qneri"]
 [ext_resource type="PackedScene" uid="uid://di8f6k04t6b2s" path="res://scenes/budgeting.tscn" id="15_f2wrt"]
 [ext_resource type="Texture2D" uid="uid://b7nk7qpik03il" path="res://assets/phone hover.png" id="15_v1jfx"]
+[ext_resource type="Texture2D" uid="uid://cp66d6mmkgxyp" path="res://assets/no_goal.png" id="17_esoaw"]
 [ext_resource type="Texture2D" uid="uid://frumms4dwi6v" path="res://assets/happy 60.png" id="17_sd045"]
 [ext_resource type="Texture2D" uid="uid://figcym0hbe1t" path="res://assets/social.png" id="18_spwqf"]
 [ext_resource type="PackedScene" uid="uid://cxrg1cxtd88lx" path="res://event_panel.tscn" id="20_eventpanel"]
+[ext_resource type="Texture2D" uid="uid://c5ohyag4exq27" path="res://assets/background_day_blur.png" id="20_uwjjl"]
 [ext_resource type="PackedScene" uid="uid://dvxndpnueep6j" path="res://scenes/phone_interface.tscn" id="21_phone"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stat_pill"]
@@ -262,10 +262,21 @@ credit_score = NodePath("../CS Label")
 debt_balance = NodePath("../Debt Label")
 status_report_label = NodePath("../Player Status/StatusPanel/StatusReportLabel")
 
-[node name="SavingsJarButton" parent="Stat System" index="6" unique_id=1478174445]
+[node name="GoalButton" parent="Stat System" index="2" unique_id=1478174444]
 visible = false
 
-[node name="Happiness Bar" parent="Stat System" index="7" unique_id=1868663321]
+[node name="GoalIcon" type="TextureButton" parent="Stat System" unique_id=180595154]
+offset_left = 475.99997
+offset_top = 35.0
+offset_right = 4727.0
+offset_bottom = 3657.0
+scale = Vector2(0.04, 0.04)
+texture_normal = ExtResource("17_esoaw")
+
+[node name="SavingsJarButton" parent="Stat System" index="7" unique_id=1478174445]
+visible = false
+
+[node name="Happiness Bar" parent="Stat System" index="8" unique_id=1868663321]
 offset_left = 58.0
 offset_top = 540.0
 offset_right = 390.0
@@ -278,7 +289,7 @@ offset_right = 23.0
 offset_bottom = 48.0
 texture = ExtResource("17_sd045")
 
-[node name="Sociability Bar" parent="Stat System" index="8" unique_id=919939996]
+[node name="Sociability Bar" parent="Stat System" index="9" unique_id=919939996]
 offset_left = 66.0
 offset_top = 597.0
 offset_right = 398.0
@@ -295,17 +306,29 @@ texture = ExtResource("18_spwqf")
 visible = false
 z_index = 4
 
+[node name="Desk Background" type="TextureRect" parent="Planner Node" unique_id=1651946296]
+offset_left = 6.9999995
+offset_top = -310.0
+offset_right = 6921.285
+offset_bottom = 6050.0
+scale = Vector2(0.175, 0.175)
+mouse_filter = 2
+texture = ExtResource("20_uwjjl")
+
 [node name="Planner Interface" parent="Planner Node" unique_id=85062168 instance=ExtResource("11_pfkwn")]
 
 [node name="Player Status" type="Node2D" parent="." unique_id=181458347]
 visible = false
 z_index = 4
 
-[node name="TextureRect" type="TextureRect" parent="Player Status" unique_id=487821765]
-offset_right = 1154.0
-offset_bottom = 646.0
+[node name="Desk Background" type="TextureRect" parent="Player Status" unique_id=1870122718]
+offset_left = 6.9999995
+offset_top = -310.0
+offset_right = 6921.285
+offset_bottom = 6050.0
+scale = Vector2(0.175, 0.175)
 mouse_filter = 2
-texture = ExtResource("1_ajhct")
+texture = ExtResource("20_uwjjl")
 
 [node name="StatusPanel" type="Panel" parent="Player Status" unique_id=77889911]
 offset_left = 190.0
@@ -330,17 +353,29 @@ text = "Player Status Report"
 visible = false
 z_index = 4
 
+[node name="Desk Background" type="TextureRect" parent="Phone Node" unique_id=393165523]
+offset_left = 6.9999995
+offset_top = -310.0
+offset_right = 6921.285
+offset_bottom = 6050.0
+scale = Vector2(0.175, 0.175)
+mouse_filter = 2
+texture = ExtResource("20_uwjjl")
+
 [node name="Phone Interface" parent="Phone Node" unique_id=1743309843 instance=ExtResource("21_phone")]
 
 [node name="Budget Node" type="Node2D" parent="." unique_id=2022530459]
 visible = false
 z_index = 4
 
-[node name="TextureRect" type="TextureRect" parent="Budget Node" unique_id=112308524]
-offset_right = 1200.0
-offset_bottom = 654.0
+[node name="Desk Background" type="TextureRect" parent="Budget Node" unique_id=1046949155]
+offset_left = 6.9999995
+offset_top = -310.0
+offset_right = 6921.285
+offset_bottom = 6050.0
+scale = Vector2(0.175, 0.175)
 mouse_filter = 2
-texture = ExtResource("11_dppuc")
+texture = ExtResource("20_uwjjl")
 
 [node name="BudgettingInterface" parent="Budget Node" unique_id=1552179863 instance=ExtResource("15_f2wrt")]
 
@@ -360,6 +395,9 @@ script = ExtResource("2_4dx5e")
 [node name="EventPanel" parent="." unique_id=1131891414 instance=ExtResource("20_eventpanel")]
 visible = false
 
+[connection signal="mouse_entered" from="Stat System/GoalIcon" to="Stat System" method="_on_goal_icon_mouse_entered"]
+[connection signal="mouse_exited" from="Stat System/GoalIcon" to="Stat System" method="_on_goal_icon_mouse_exited"]
+[connection signal="pressed" from="Stat System/GoalIcon" to="Stat System" method="_on_goal_icon_pressed"]
 [connection signal="pressed" from="Back Button" to="Back Button" method="_on_pressed"]
 
 [editable path="Stat System"]

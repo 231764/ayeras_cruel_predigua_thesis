@@ -1,22 +1,22 @@
-[gd_scene load_steps=3 format=3 uid="uid://di8f6k04t6b2s"]
+[gd_scene format=3 uid="uid://di8f6k04t6b2s"]
 
 [ext_resource type="Script" uid="uid://c84tj250rbjdt" path="res://scripts/budgeting.gd" id="1_a548u"]
 [ext_resource type="PackedScene" uid="uid://h0ak5v2xuij2" path="res://scenes/envelope.tscn" id="1_ktd5u"]
 
-[node name="Budgetting Interface" type="Node2D"]
+[node name="Budgetting Interface" type="Node2D" unique_id=430970921]
 script = ExtResource("1_a548u")
 
-[node name="Envelope" parent="." instance=ExtResource("1_ktd5u")]
+[node name="Envelope" parent="." unique_id=589970398 instance=ExtResource("1_ktd5u")]
 position = Vector2(-20, -39)
 
-[node name="TopBudgetBar" type="Panel" parent="."]
+[node name="TopBudgetBar" type="Panel" parent="." unique_id=9104215]
 z_index = 6
 offset_left = 244.0
 offset_top = 14.0
 offset_right = 1126.0
 offset_bottom = 66.0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="TopBudgetBar"]
+[node name="HBoxContainer" type="HBoxContainer" parent="TopBudgetBar" unique_id=1586604951]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -29,7 +29,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="AvailableCashLabel" type="Label" parent="TopBudgetBar/HBoxContainer"]
+[node name="AvailableCashLabel" type="Label" parent="TopBudgetBar/HBoxContainer" unique_id=671981505]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
@@ -37,19 +37,19 @@ theme_override_constants/outline_size = 0
 theme_override_font_sizes/font_size = 17
 text = "Hawak na Cash: PHP 5,000"
 
-[node name="FundBillsButton" type="Button" parent="TopBudgetBar/HBoxContainer"]
+[node name="FundBillsButton" type="Button" parent="TopBudgetBar/HBoxContainer" unique_id=1816185210]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "Pondohan Upa & Bills"
 
-[node name="AutoBudgetButton" type="Button" parent="TopBudgetBar/HBoxContainer"]
+[node name="AutoBudgetButton" type="Button" parent="TopBudgetBar/HBoxContainer" unique_id=1090211863]
 custom_minimum_size = Vector2(275, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "Auto-Budget Sahod (Smart Split)"
 
-[node name="ActionFeedbackLabel" type="Label" parent="."]
+[node name="ActionFeedbackLabel" type="Label" parent="." unique_id=1617824870]
 z_index = 6
 offset_left = 244.0
 offset_top = 68.0
@@ -63,7 +63,7 @@ text = "Tip: I-click ang 'Auto-Budget Sahod' tuwing payday o pumili ng Envelope 
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LeftButton" type="Button" parent="."]
+[node name="LeftButton" type="Button" parent="." unique_id=79191724]
 z_index = 6
 offset_left = 38.0
 offset_top = 210.0
@@ -72,7 +72,7 @@ offset_bottom = 390.0
 theme_override_font_sizes/font_size = 24
 text = "<"
 
-[node name="RightButton" type="Button" parent="."]
+[node name="RightButton" type="Button" parent="." unique_id=156078745]
 z_index = 6
 offset_left = 1058.0
 offset_top = 210.0
@@ -81,7 +81,7 @@ offset_bottom = 390.0
 theme_override_font_sizes/font_size = 24
 text = ">"
 
-[node name="CategoryTabsHBox" type="HBoxContainer" parent="."]
+[node name="CategoryTabsHBox" type="HBoxContainer" parent="." unique_id=527698480]
 z_index = 6
 offset_left = 185.0
 offset_top = 442.0

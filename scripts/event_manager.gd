@@ -234,6 +234,9 @@ func resolve_event(event_id: String, option_index: int) -> void:
 		print("Option requires unlocked Credit Card and available credit limit!")
 		return
 		
+	var before_snap := LedgerManager.capture_state_snapshot()
+	LedgerManager.begin_composite()
+	
 	var cost: int = int(chosen_option.get("cost", 0))
 	var credit_cost: int = int(chosen_option.get("credit_cost", 0))
 	var happy_delta: int = int(chosen_option.get("happy_change", 0))
@@ -414,6 +417,7 @@ func resolve_event(event_id: String, option_index: int) -> void:
 	if cs_delta != 0:
 		StatManager.modify_credit_score(cs_delta)
 		
+	LedgerManager.end_composite()
 	StatManager.on_stats_changed.emit()
 		
 	# Check if it was an active indirect event and remove it
@@ -429,6 +433,52 @@ func resolve_event(event_id: String, option_index: int) -> void:
 	var phase_name = phase_names[StatManager.current_phase]
 	var title = event["title"]
 	var choice_text = chosen_option["choice_text"]
+	
+	# Record structured Decision + Transaction + Tradeoff in Master Ledger
+	var after_snap := LedgerManager.capture_state_snapshot()
+	var exact_deltas := LedgerManager.compute_deltas(before_snap, after_snap)
+	var alts: Array = []
+	for opt_i in range(options.size()):
+		if opt_i != option_index:
+			alts.append(str(options[opt_i].get("choice_text", "")))
+	if chosen_option.get("pay_credit_full", false):
+		LedgerManager.totals["credit_paid_full_count"] = int(LedgerManager.totals.get("credit_paid_full_count", 0)) + 1
+	elif chosen_option.get("pay_credit_minimum", false):
+		LedgerManager.totals["credit_paid_min_count"] = int(LedgerManager.totals.get("credit_paid_min_count", 0)) + 1
+	var net_cash_impact: int = -(cost + paid_credit_amount)
+	if chosen_option.has("take_loan") and chosen_option["take_loan"] is Dictionary:
+		net_cash_impact += int(chosen_option["take_loan"].get("principal", 0))
+	var opp_parts: Array[String] = []
+	if net_cash_impact != 0:
+		opp_parts.append(("Gained +PHP " + str(net_cash_impact)) if net_cash_impact > 0 else ("Spent -PHP " + str(abs(net_cash_impact))))
+	if credit_cost > 0:
+		opp_parts.append("Charged +PHP " + str(credit_cost) + " Credit")
+	if happy_delta != 0:
+		opp_parts.append((("+" if happy_delta > 0 else "") + str(happy_delta) + " Happy"))
+	if social_delta != 0:
+		opp_parts.append((("+" if social_delta > 0 else "") + str(social_delta) + " Social"))
+	if cs_delta != 0:
+		opp_parts.append((("+" if cs_delta > 0 else "") + str(cs_delta) + " CS"))
+	var opp_note: String = "Chose \"" + choice_text + "\"" + (" (" + ", ".join(opp_parts) + ")" if not opp_parts.is_empty() else "")
+	if not alts.is_empty():
+		opp_note += " over " + str(alts.size()) + " alternative(s)."
+	LedgerManager.record_decision(
+		"Event",
+		"event_manager",
+		str(title),
+		"Selected: " + str(choice_text),
+		str(choice_text),
+		alts,
+		opp_note,
+		net_cash_impact,
+		exact_deltas,
+		{
+			"event_id": event_id,
+			"is_direct": bool(event.get("is_direct", false)),
+			"option_index": option_index,
+			"credit_cost": credit_cost
+		}
+	)
 	
 	# Record structured history for Baldo AI context
 	event_history.append({

@@ -145,7 +145,8 @@ func _build_system_prompt() -> String:
 	prompt += "- Keep responses concise (3 to 5 sentences max) and actionable.\n"
 	prompt += "- CRITICAL: You have LIVE access to the player's current financial stats, cash envelopes, active notifications, and past decisions below. ALWAYS tailor your advice specifically to their exact numbers, past choices, envelope shortfalls, and current situation!\n\n"
 	prompt += StatManager.get_live_summary_for_ai() + "\n"
-	prompt += EventManager.get_events_context_for_ai()
+	prompt += EventManager.get_events_context_for_ai() + "\n"
+	prompt += LedgerManager.get_ledger_summary_for_ai()
 	return prompt
 
 func _load_api_key() -> String:

@@ -100,21 +100,29 @@ text = "Year-end report..."
 
 [node name="ButtonsRow" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
+
+[node name="ExportLedgerButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsRow"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Download Ledger"
 
 [node name="PlayAgainButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsRow"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "Maglaro Ulit (New 1-Year Run)"
 
 [node name="CloseButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsRow"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "Isara ang Report"
 
+[connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsRow/ExportLedgerButton" to="." method="_on_export_ledger_button_pressed"]
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsRow/PlayAgainButton" to="." method="_on_play_again_button_pressed"]
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsRow/CloseButton" to="." method="_on_close_button_pressed"]

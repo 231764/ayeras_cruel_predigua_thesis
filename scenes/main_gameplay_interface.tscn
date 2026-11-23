@@ -25,6 +25,7 @@
 [ext_resource type="PackedScene" uid="uid://cxrg1cxtd88lx" path="res://event_panel.tscn" id="20_eventpanel"]
 [ext_resource type="Texture2D" uid="uid://c5ohyag4exq27" path="res://assets/background_day_blur.png" id="20_uwjjl"]
 [ext_resource type="PackedScene" uid="uid://dvxndpnueep6j" path="res://scenes/phone_interface.tscn" id="21_phone"]
+[ext_resource type="Script" path="res://scripts/status_ledger_panel.gd" id="22_statusledger"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stat_pill"]
 content_margin_left = 34.0
@@ -331,11 +332,12 @@ mouse_filter = 2
 texture = ExtResource("20_uwjjl")
 
 [node name="StatusPanel" type="Panel" parent="Player Status" unique_id=77889911]
-offset_left = 190.0
-offset_top = 80.0
-offset_right = 965.0
-offset_bottom = 575.0
+offset_left = 106.0
+offset_top = 66.0
+offset_right = 1046.0
+offset_bottom = 616.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_status_card")
+script = ExtResource("22_statusledger")
 
 [node name="StatusReportLabel" type="RichTextLabel" parent="Player Status/StatusPanel" unique_id=77889912]
 layout_mode = 0

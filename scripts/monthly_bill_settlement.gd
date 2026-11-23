@@ -102,11 +102,28 @@ func _deduct_covered_envelopes() -> void:
 func _on_pay_cash_pressed() -> void:
 	if StatManager.current_balance < _total_shortfall:
 		return
+	var before := LedgerManager.capture_state_snapshot()
+	LedgerManager.begin_composite()
 	_deduct_covered_envelopes()
 	StatManager.current_balance -= _total_shortfall
 	StatManager.modify_credit_score(1)
+	LedgerManager.end_composite()
 	
 	var total_bills := _rent_due + _util_due
+	LedgerManager.totals["bills_shortfall_count"] = int(LedgerManager.totals.get("bills_shortfall_count", 0)) + 1
+	LedgerManager.record_decision(
+		"Bills",
+		"monthly_settlement",
+		"Manual Bill Settlement (Paid via Cash)",
+		"Covered PHP " + str(_total_shortfall) + " shortfall using Pocket Cash (Total Bills: PHP " + str(total_bills) + ", +1 CS).",
+		"Pay shortfall via Available Cash (-PHP " + str(_total_shortfall) + ", +1 CS)",
+		["Pull shortfall from Bank Savings", "Roll shortfall into Overdue Debt (-5 CS, 5%/mo interest)"],
+		"Protected Savings (+2%/mo) and Credit Score (+1 CS) by using liquid Pocket Cash to cover envelope shortfall.",
+		-total_bills,
+		LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+		{"settlement_mode": "cash", "shortfall": _total_shortfall, "total_bills": total_bills}
+	)
+	LedgerManager.autosave_ledger()
 	var log_text := "Monthly Bills Settled via Cash [- PHP " + str(total_bills) + "] (+1 Credit Score)"
 	if _savings_interest > 0:
 		log_text += "\n[font_size=12][color=green]Savings Compounding Interest +" + str(_savings_interest) + " PHP[/color][/font_size]"
@@ -118,13 +135,30 @@ func _on_pay_cash_pressed() -> void:
 func _on_pay_savings_pressed() -> void:
 	if (StatManager.current_balance + StatManager.savings) < _total_shortfall:
 		return
+	var before := LedgerManager.capture_state_snapshot()
+	LedgerManager.begin_composite()
 	_deduct_covered_envelopes()
 	var needed_from_savings: int = max(0, _total_shortfall - StatManager.current_balance)
 	StatManager.current_balance = 0
 	StatManager.savings = max(0, StatManager.savings - needed_from_savings)
 	StatManager.sync_savings_envelope()
+	LedgerManager.end_composite()
 	
 	var total_bills := _rent_due + _util_due
+	LedgerManager.totals["bills_shortfall_count"] = int(LedgerManager.totals.get("bills_shortfall_count", 0)) + 1
+	LedgerManager.record_decision(
+		"Bills",
+		"monthly_settlement",
+		"Manual Bill Settlement (Cash + Savings)",
+		"Covered PHP " + str(_total_shortfall) + " shortfall using Cash + PHP " + str(needed_from_savings) + " from Ipon/Savings.",
+		"Use Cash + Withdraw PHP " + str(needed_from_savings) + " from Savings",
+		["Roll shortfall into Overdue Debt (-5 CS, 5%/mo interest)"],
+		"Tapped Emergency Savings to avoid 5%/mo overdue debt penalty and -5 Credit Score drop.",
+		-total_bills,
+		LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+		{"settlement_mode": "savings", "shortfall": _total_shortfall, "from_savings": needed_from_savings, "total_bills": total_bills}
+	)
+	LedgerManager.autosave_ledger()
 	var log_text := "Monthly Bills Settled via Cash + Savings [- PHP " + str(total_bills) + ", Hinugot sa Ipon: PHP " + str(needed_from_savings) + "]"
 	if _savings_interest > 0:
 		log_text += "\n[font_size=12][color=green]Savings Compounding Interest +" + str(_savings_interest) + " PHP[/color][/font_size]"
@@ -134,14 +168,31 @@ func _on_pay_savings_pressed() -> void:
 	settlement_completed.emit()
 
 func _on_incur_debt_pressed() -> void:
+	var before := LedgerManager.capture_state_snapshot()
+	LedgerManager.begin_composite()
 	_deduct_covered_envelopes()
 	var cash_used: int = min(StatManager.current_balance, _total_shortfall)
 	var new_debt: int = _total_shortfall - cash_used
 	StatManager.current_balance -= cash_used
 	StatManager.debt_balance += new_debt
 	StatManager.modify_credit_score(-5)
+	LedgerManager.end_composite()
 	
 	var total_bills := _rent_due + _util_due
+	LedgerManager.totals["bills_shortfall_count"] = int(LedgerManager.totals.get("bills_shortfall_count", 0)) + 1
+	LedgerManager.record_decision(
+		"Bills",
+		"monthly_settlement",
+		"Manual Bill Settlement (Incurred Overdue Debt)",
+		"Shortfall of PHP " + str(new_debt) + " rolled into Overdue Debt (-5 Credit Score, 5%/mo penalty).",
+		"Roll PHP " + str(new_debt) + " into Overdue Debt (-5 CS)",
+		["Pay via Cash or Savings to stay debt-free"],
+		"Incurred PHP " + str(new_debt) + " overdue debt (5%/mo interest + salary garnishment risk) and -5 CS.",
+		-(_rent_covered + _util_covered + cash_used),
+		LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+		{"settlement_mode": "debt", "shortfall": _total_shortfall, "new_debt": new_debt, "total_bills": total_bills}
+	)
+	LedgerManager.autosave_ledger()
 	var log_text := "Monthly Bills [- PHP " + str(total_bills) + "] (Kulang pondo, Utang +" + str(new_debt) + " PHP, -5 Credit Score)"
 	if _debt_interest > 0:
 		log_text += "\n[font_size=12][color=red]Debt Interest Penalty -" + str(_debt_interest) + " PHP[/color][/font_size]"

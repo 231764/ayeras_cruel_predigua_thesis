@@ -8,6 +8,7 @@ signal play_again_requested
 @onready var title_label: Label = $Backdrop/Panel/VBoxContainer/TitleLabel
 @onready var subtitle_label: Label = $Backdrop/Panel/VBoxContainer/SubtitleLabel
 @onready var report_label: RichTextLabel = $Backdrop/Panel/VBoxContainer/ReportLabel
+@onready var export_ledger_button: Button = get_node_or_null("Backdrop/Panel/VBoxContainer/ButtonsRow/ExportLedgerButton")
 @onready var play_again_button: Button = $Backdrop/Panel/VBoxContainer/ButtonsRow/PlayAgainButton
 @onready var close_button: Button = $Backdrop/Panel/VBoxContainer/ButtonsRow/CloseButton
 
@@ -22,6 +23,7 @@ func _style_btn(btn: Button, bg: Color, radius: int = 8) -> void:
 
 func _apply_visual_styles() -> void:
 	UITheme.style_header_banner(title_label, UITheme.BTN_GOLD, 8, 6.0)
+	_style_btn(export_ledger_button, UITheme.BTN_BLUE, 8)
 	_style_btn(play_again_button, UITheme.BTN_SAGE, 8)
 	_style_btn(close_button, UITheme.PAPER_CREAM, 8)
 
@@ -53,18 +55,33 @@ func show_year_end_evaluation() -> Dictionary:
 	txt += "- [b]Good Credit Standing (Need >=70):[/b] " + c3_badge + " — Credit Score: " + str(last_eval_data["credit_score"]) + "/100\n"
 	txt += "- [b]Completely Debt-Free (Need PHP 0):[/b] " + c4_badge + " — Unpaid Debt/Loans/Credit: PHP " + str(last_eval_data["total_obligations"]) + "\n\n"
 	
-	txt += "[b]2. Year-End Financial Literacy Report Card:[/b]\n"
-	txt += "- Final Employment: " + StatManager.get_employment_display_text() + " | Remaining Pocket Cash: PHP " + str(last_eval_data["current_balance"]) + "\n"
-	txt += "- Savings Compounding Interest Earned (+2%/mo): [color=#1c7033]+PHP " + str(StatManager.total_savings_interest_earned) + "[/color]\n"
-	txt += "- Credit & Loan Interest Incurred: [color=#94520d]PHP " + str(StatManager.total_credit_interest_incurred + StatManager.total_loan_interest_incurred) + "[/color] | Net Investment P&L: [color=#1a4b7c]PHP " + str(StatManager.total_investment_gains) + "[/color]\n\n"
+	var l_stats := LedgerManager.get_analytics_summary()
+	txt += "[b]2. Year-End Financial Literacy & Master Ledger Summary:[/b]\n"
+	txt += "- Final Employment: " + StatManager.get_employment_display_text() + " | Remaining Pocket Cash: PHP " + UITheme.format_num(int(last_eval_data["current_balance"])) + "\n"
+	txt += "- Ledger Cash Flow: Inflow [color=#1c7033]+PHP " + UITheme.format_num(int(l_stats["total_inflow"])) + "[/color] | Outflow [color=#a8261f]-PHP " + UITheme.format_num(int(l_stats["total_outflow"])) + "[/color] | Net Worth: [b]PHP " + UITheme.format_num(int(l_stats["net_worth"])) + "[/b] (Savings Rate: " + str(l_stats["savings_rate_pct"]) + "%)\n"
+	txt += "- Recorded History: [b]" + str(l_stats["entry_count"]) + "[/b] Ledger Records (" + str(l_stats["decisions_count"]) + " Decisions & Tradeoffs) | Badges: [color=#1a4b7c][b]" + str(l_stats["achievements_unlocked"]) + " / " + str(l_stats["achievements_total"]) + "[/b][/color]\n"
+	txt += "- Savings Compounding Interest Earned (+2%/mo): [color=#1c7033]+PHP " + UITheme.format_num(StatManager.total_savings_interest_earned) + "[/color] | Credit & Loan Interest: [color=#94520d]PHP " + UITheme.format_num(StatManager.total_credit_interest_incurred + StatManager.total_loan_interest_incurred) + "[/color] | Investment P&L: [color=#1a4b7c]PHP " + UITheme.format_num(StatManager.total_investment_gains) + "[/color]\n\n"
 	
 	txt += "[b]3. Narrative Outcome:[/b]\n" + str(last_eval_data["ending_summary"]) + "\n\n"
 	txt += "[b][color=#94520d]Mensahe ni Baldo (Financial Coach):[/color][/b]\n[i]\"" + str(last_eval_data["baldo_verdict"]) + "\"[/i]"
 	
 	report_label.text = txt
+	if export_ledger_button:
+		export_ledger_button.text = "Download Ledger"
+		export_ledger_button.disabled = false
 	visible = true
 	_animate_modal_in()
 	return last_eval_data
+
+func _on_export_ledger_button_pressed() -> void:
+	var res := LedgerManager.export_to_device_downloads()
+	if export_ledger_button:
+		if bool(res.get("ok", false)):
+			var folder_lbl: String = str(res.get("folder_label", "Downloads"))
+			export_ledger_button.text = "Saved to " + folder_lbl + "!"
+			report_label.text += "\n\n[color=#1c7033][b][DOWNLOADED TO " + folder_lbl.to_upper() + "][/b] " + str(res.get("csv_filename", "")) + " & .json (" + str(res["entry_count"]) + " rows)[/color]"
+		else:
+			export_ledger_button.text = "Download Failed"
 
 func _on_play_again_button_pressed() -> void:
 	visible = false

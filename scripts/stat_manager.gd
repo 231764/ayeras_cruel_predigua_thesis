@@ -223,12 +223,33 @@ func reset_for_new_run() -> void:
 	
 	EventManager.reset_events()
 	PlannerManager.reset_planner()
+	LedgerManager.reset_ledger()
 	on_stats_changed.emit()
 
 func select_life_goal(index: int) -> void:
+	var before := LedgerManager.capture_state_snapshot()
 	selected_goal_index = clamp(index, 0, life_goals.size() - 1)
 	has_selected_goal = true
 	on_stats_changed.emit()
+	var chosen: Dictionary = get_current_goal()
+	var alts: Array = []
+	for i in range(life_goals.size()):
+		if i != selected_goal_index:
+			alts.append(str(life_goals[i]["title"]) + " (PHP " + str(life_goals[i]["cost"]) + ", " + str(life_goals[i]["difficulty"]) + ")")
+	var after := LedgerManager.capture_state_snapshot()
+	LedgerManager.record_decision(
+		"Goal",
+		"goal_selection",
+		"1-Year Life Goal Selected: " + str(chosen["title"]),
+		"Pinili ang target na PHP " + str(chosen["cost"]) + " (" + str(chosen["difficulty"]) + ").",
+		str(chosen["title"]) + " (PHP " + str(chosen["cost"]) + ")",
+		alts,
+		"Target savings commitment of PHP " + str(chosen["cost"]) + " (" + str(chosen["difficulty"]) + ") over 12 months.",
+		0,
+		LedgerManager.compute_deltas(before, after),
+		{"goal_id": str(chosen["id"]), "goal_cost": int(chosen["cost"])}
+	)
+	LedgerManager.autosave_ledger()
 
 func get_current_goal() -> Dictionary:
 	return life_goals[clamp(selected_goal_index, 0, life_goals.size() - 1)]
@@ -337,6 +358,7 @@ func can_take_formal_loan() -> bool:
 	return credit_score >= 55 and active_loans.size() < 3
 
 func take_simple_interest_loan(loan_id: String, loan_name: String, principal: int, monthly_rate: float, term_months: int) -> Dictionary:
+	var before := LedgerManager.capture_state_snapshot()
 	var clean_term: int = max(1, term_months)
 	var total_interest: int = calculate_simple_interest(principal, monthly_rate, clean_term)
 	var total_repayment: int = principal + total_interest
@@ -362,6 +384,21 @@ func take_simple_interest_loan(loan_id: String, loan_name: String, principal: in
 	weekly_income += principal
 	total_loan_interest_incurred += total_interest
 	on_stats_changed.emit()
+	if not LedgerManager.is_in_composite():
+		var after := LedgerManager.capture_state_snapshot()
+		LedgerManager.totals["total_interest_paid"] = int(LedgerManager.totals.get("total_interest_paid", 0)) + total_interest
+		LedgerManager.record_decision(
+			"Loan",
+			"phone_loans",
+			"Borrowed " + loan_name,
+			"Principal: PHP " + str(principal) + " | Rate: " + str(int(round(monthly_rate * 100.0))) + "%/mo x " + str(clean_term) + " mos | Total Repayment: PHP " + str(total_repayment),
+			"Take " + loan_name + " (+PHP " + str(principal) + " Cash)",
+			["Avoid borrowing (keep zero loan obligation)"],
+			"Gained +PHP " + str(principal) + " liquidity now at a cost of PHP " + str(total_interest) + " simple interest (maturity: " + mat_month + ").",
+			principal,
+			LedgerManager.compute_deltas(before, after),
+			{"loan_id": loan_id, "principal": principal, "total_interest": total_interest, "term_months": clean_term}
+		)
 	return loan_entry
 
 func get_total_active_loan_balance() -> int:
@@ -385,7 +422,9 @@ func get_total_debt_and_loans() -> int:
 func pay_active_loan(loan_index: int, amount: int) -> int:
 	if loan_index < 0 or loan_index >= active_loans.size() or amount <= 0 or current_balance <= 0:
 		return 0
+	var before := LedgerManager.capture_state_snapshot()
 	var loan: Dictionary = active_loans[loan_index]
+	var loan_name: String = str(loan.get("name", "Loan"))
 	var rem: int = int(loan.get("remaining_balance", 0))
 	var actual_pay: int = min(amount, min(current_balance, rem))
 	if actual_pay <= 0:
@@ -393,24 +432,50 @@ func pay_active_loan(loan_index: int, amount: int) -> int:
 	current_balance -= actual_pay
 	weekly_expenses += actual_pay
 	loan["remaining_balance"] = rem - actual_pay
+	var cleared := false
 	if int(loan["remaining_balance"]) <= 0:
 		active_loans.remove_at(loan_index)
 		modify_credit_score(2)
+		cleared = true
 	on_stats_changed.emit()
+	if not LedgerManager.is_in_composite():
+		var after := LedgerManager.capture_state_snapshot()
+		LedgerManager.record_transaction(
+			"Loan",
+			"phone_loans",
+			("Loan Paid Off: " if cleared else "Loan Payment: ") + loan_name,
+			"Paid PHP " + str(actual_pay) + (" — Loan fully cleared (+2 Credit Score)!" if cleared else " towards " + loan_name),
+			-actual_pay,
+			LedgerManager.compute_deltas(before, after),
+			{"loan_name": loan_name, "cleared": cleared}
+		)
 	return actual_pay
 
 func pay_overdue_debt(amount: int) -> int:
 	if amount <= 0 or current_balance <= 0 or debt_balance <= 0:
 		return 0
+	var before := LedgerManager.capture_state_snapshot()
 	var actual_pay: int = min(amount, min(current_balance, debt_balance))
 	current_balance -= actual_pay
 	weekly_expenses += actual_pay
 	debt_balance -= actual_pay
-	if debt_balance == 0:
+	var cleared := (debt_balance == 0)
+	if cleared:
 		modify_credit_score(2)
 	else:
 		modify_credit_score(1)
 	on_stats_changed.emit()
+	if not LedgerManager.is_in_composite():
+		var after := LedgerManager.capture_state_snapshot()
+		LedgerManager.record_transaction(
+			"Debt",
+			"phone_loans",
+			"Overdue Debt Cleared" if cleared else "Overdue Debt Payment",
+			"Paid PHP " + str(actual_pay) + (" — Zero overdue debt (+2 Credit Score)!" if cleared else " (Remaining: PHP " + str(debt_balance) + ")"),
+			-actual_pay,
+			LedgerManager.compute_deltas(before, after),
+			{"cleared": cleared}
+		)
 	return actual_pay
 
 func process_monthly_loan_installments() -> Dictionary:
@@ -452,12 +517,26 @@ func get_total_investments() -> int:
 func invest_low_risk(amount: int, force_event: bool = false) -> bool:
 	if amount <= 0:
 		return false
+	var before := LedgerManager.capture_state_snapshot()
 	if current_balance >= amount:
 		current_balance -= amount
 		weekly_expenses += amount
 		low_risk_investment += amount
 		total_investment_principal += amount
 		on_stats_changed.emit()
+		if not LedgerManager.is_in_composite():
+			LedgerManager.record_decision(
+				"Investment",
+				"phone_invest",
+				"Invested in Low-Risk Mutual Fund",
+				"Allocated PHP " + str(amount) + " into Low-Risk Fund (+3% to +5%/mo steady).",
+				"Low-Risk Mutual Fund (PHP " + str(amount) + ")",
+				["High-Risk Stock (-15% to +25%)", "Keep liquid cash / deposit to Savings (+2%/mo)"],
+				"Chose steady low-volatility growth (+3–5%/mo) over high-risk stock upside or immediate cash liquidity.",
+				-amount,
+				LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+				{"tier": "low_risk", "amount": amount}
+			)
 		return true
 	elif force_event:
 		spend_direct(amount)
@@ -470,12 +549,26 @@ func invest_low_risk(amount: int, force_event: bool = false) -> bool:
 func invest_high_risk(amount: int, force_event: bool = false) -> bool:
 	if amount <= 0:
 		return false
+	var before := LedgerManager.capture_state_snapshot()
 	if current_balance >= amount:
 		current_balance -= amount
 		weekly_expenses += amount
 		high_risk_investment += amount
 		total_investment_principal += amount
 		on_stats_changed.emit()
+		if not LedgerManager.is_in_composite():
+			LedgerManager.record_decision(
+				"Investment",
+				"phone_invest",
+				"Invested in High-Risk Stock",
+				"Allocated PHP " + str(amount) + " into High-Risk Stock (-15% to +25% volatility).",
+				"High-Risk Stock (PHP " + str(amount) + ")",
+				["Low-Risk Mutual Fund (+3% to +5%/mo)", "Keep liquid cash / deposit to Savings (+2%/mo)"],
+				"Accepted potential -15% downside volatility in exchange for up to +25% return potential.",
+				-amount,
+				LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+				{"tier": "high_risk", "amount": amount}
+			)
 		return true
 	elif force_event:
 		spend_direct(amount)
@@ -503,22 +596,44 @@ func withdraw_investments_to_cash() -> int:
 	var total := get_total_investments()
 	if total <= 0:
 		return 0
+	var before := LedgerManager.capture_state_snapshot()
 	current_balance += total
 	weekly_income += total
 	low_risk_investment = 0
 	high_risk_investment = 0
 	on_stats_changed.emit()
+	if not LedgerManager.is_in_composite():
+		LedgerManager.record_transaction(
+			"Investment",
+			"phone_invest",
+			"Withdrew Investments to Cash",
+			"Liquidated PHP " + str(total) + " from investment portfolio to Pocket Cash.",
+			total,
+			LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+			{"destination": "cash", "amount": total}
+		)
 	return total
 
 func withdraw_investments_to_savings() -> int:
 	var total := get_total_investments()
 	if total <= 0:
 		return 0
+	var before := LedgerManager.capture_state_snapshot()
 	savings += total
 	low_risk_investment = 0
 	high_risk_investment = 0
 	sync_savings_envelope()
 	on_stats_changed.emit()
+	if not LedgerManager.is_in_composite():
+		LedgerManager.record_transaction(
+			"Investment",
+			"phone_invest",
+			"Transferred Investments to Ipon (Savings)",
+			"Moved PHP " + str(total) + " from investment portfolio directly into Bank Savings.",
+			0,
+			LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+			{"destination": "savings", "amount": total}
+		)
 	return total
 
 func sync_savings_envelope() -> void:
@@ -529,19 +644,43 @@ func sync_savings_envelope() -> void:
 
 func deposit_savings(amount: int) -> bool:
 	if amount > 0 and current_balance >= amount:
+		var before := LedgerManager.capture_state_snapshot()
 		current_balance -= amount
 		savings += amount
 		sync_savings_envelope()
 		on_stats_changed.emit()
+		if not LedgerManager.is_in_composite():
+			LedgerManager.totals["total_savings_deposited"] = int(LedgerManager.totals.get("total_savings_deposited", 0)) + amount
+			LedgerManager.record_transaction(
+				"Savings",
+				"savings_transfer",
+				"Deposited to Bank Savings (Ipon)",
+				"Transferred PHP " + str(amount) + " from Pocket Cash into Bank Savings (+2%/mo compounding).",
+				0,
+				LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+				{"direction": "deposit", "amount": amount}
+			)
 		return true
 	return false
 
 func withdraw_savings(amount: int) -> bool:
 	if amount > 0 and savings >= amount:
+		var before := LedgerManager.capture_state_snapshot()
 		savings -= amount
 		current_balance += amount
 		sync_savings_envelope()
 		on_stats_changed.emit()
+		if not LedgerManager.is_in_composite():
+			LedgerManager.totals["total_savings_withdrawn"] = int(LedgerManager.totals.get("total_savings_withdrawn", 0)) + amount
+			LedgerManager.record_transaction(
+				"Savings",
+				"savings_transfer",
+				"Withdrew from Bank Savings (Ipon)",
+				"Pulled PHP " + str(amount) + " from Bank Savings back to Pocket Cash.",
+				0,
+				LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+				{"direction": "withdraw", "amount": amount}
+			)
 		return true
 	return false
 
@@ -623,18 +762,48 @@ func fill_envelope_to_target(category_name: String) -> int:
 	if category_name == "Savings":
 		deposit_savings(to_add)
 		return to_add
+	var before := LedgerManager.capture_state_snapshot()
 	current_balance -= to_add
 	for envelope in envelopes:
 		if envelope["category"] == category_name:
 			envelope["amount"] += to_add
 			break
 	on_stats_changed.emit()
+	if not LedgerManager.is_in_composite():
+		LedgerManager.totals["total_envelope_allocations"] = int(LedgerManager.totals.get("total_envelope_allocations", 0)) + to_add
+		LedgerManager.record_transaction(
+			"Budgeting",
+			"budgeting",
+			"Filled Envelope Target: " + category_name,
+			"Allocated PHP " + str(to_add) + " into " + category_name + " envelope (Target Met).",
+			0,
+			LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+			{"envelope": category_name, "amount": to_add, "action": "fill_target"}
+		)
 	return to_add
 
 func fund_fixed_bills_envelopes() -> int:
+	var before := LedgerManager.capture_state_snapshot()
+	LedgerManager.begin_composite()
 	var added_rent := fill_envelope_to_target("Rent")
 	var added_util := fill_envelope_to_target("Utilities")
-	return added_rent + added_util
+	LedgerManager.end_composite()
+	var total_added := added_rent + added_util
+	if total_added > 0:
+		LedgerManager.totals["total_envelope_allocations"] = int(LedgerManager.totals.get("total_envelope_allocations", 0)) + total_added
+		LedgerManager.record_decision(
+			"Budgeting",
+			"budgeting",
+			"Funded Fixed Bills Envelopes (Upa & Bills)",
+			"Allocated PHP " + str(total_added) + " (Rent +PHP " + str(added_rent) + ", Utilities +PHP " + str(added_util) + ").",
+			"Prioritize Rent & Utilities Envelopes (PHP " + str(total_added) + ")",
+			["Keep cash unallocated in pocket"],
+			"Protected monthly Rent & Utilities bills upfront to qualify for Auto-Pay (+2 Credit Score) and prevent month-end debt.",
+			0,
+			LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+			{"rent_added": added_rent, "utilities_added": added_util}
+		)
+	return total_added
 
 func _top_up_envelope_up_to(category_name: String, target_amt: int, reserve_cash: int = 0) -> int:
 	var cur := get_envelope_amount(category_name)
@@ -654,6 +823,8 @@ func _top_up_envelope_up_to(category_name: String, target_amt: int, reserve_cash
 	return to_add
 
 func auto_budget_paycheck() -> Dictionary:
+	var before := LedgerManager.capture_state_snapshot()
+	LedgerManager.begin_composite()
 	var total_allocated := 0
 	var total_util_due := monthly_utilities + extra_utilities_this_month + get_total_monthly_installments() + monthly_family_support
 	# 1. Fund Rent & Utilities (50% on 1st half of month, 100% from Day 15 onward)
@@ -681,16 +852,35 @@ func auto_budget_paycheck() -> Dictionary:
 	total_allocated += _top_up_envelope_up_to("Utilities", total_util_due, 2500)
 	
 	# 6. Deposit surplus into Savings (Ipon +2%/mo) while keeping a PHP 2,000 pocket cash buffer
+	var saved_amt := 0
 	if current_balance > 2500 and savings < get_goal_target():
 		var save_amt: int = min(2500, current_balance - 2000)
 		if save_amt > 0:
 			deposit_savings(save_amt)
+			saved_amt = save_amt
 			total_allocated += save_amt
 			
+	LedgerManager.end_composite()
 	on_stats_changed.emit()
+	if total_allocated > 0:
+		LedgerManager.totals["total_envelope_allocations"] = int(LedgerManager.totals.get("total_envelope_allocations", 0)) + total_allocated
+		LedgerManager.totals["total_savings_deposited"] = int(LedgerManager.totals.get("total_savings_deposited", 0)) + saved_amt
+		LedgerManager.record_decision(
+			"Budgeting",
+			"budgeting",
+			"Auto-Budget Sahod (Smart Split)",
+			"Allocated PHP " + str(total_allocated) + " across Bills, 15d Food/Byahe, Libangan, and Ipon (+PHP " + str(saved_amt) + ").",
+			"Smart Split Paycheck Allocation (PHP " + str(total_allocated) + ")",
+			["Manual envelope allocation", "Leave cash unallocated"],
+			"Applied structured paycheck-first budgeting while retaining a liquid pocket cash buffer.",
+			0,
+			LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+			{"total_allocated": total_allocated, "savings_added": saved_amt}
+		)
 	return {"total_allocated": total_allocated}
 
 func perform_weekend_activity(activity_id: String) -> Dictionary:
+	var before := LedgerManager.capture_state_snapshot()
 	var libangan_before := get_envelope_amount("Entertainment")
 	var result := {
 		"activity_id": activity_id,
@@ -702,6 +892,7 @@ func perform_weekend_activity(activity_id: String) -> Dictionary:
 		"credit_score_delta": 0,
 		"summary_text": ""
 	}
+	LedgerManager.begin_composite()
 	match activity_id:
 		"rest":
 			modify_happy(6)
@@ -750,8 +941,43 @@ func perform_weekend_activity(activity_id: String) -> Dictionary:
 			result["social_delta"] = -3
 			result["summary_text"] = "Kumayod ka sa Weekend Sideline (+PHP 1,200 Cash, -5 Happy, -3 Social)!"
 		_:
+			LedgerManager.end_composite()
 			return result
-			
+	LedgerManager.end_composite()
+	
+	var all_weekend := {
+		"rest": "Pahinga sa Bahay (PHP 0 | +6 Happy)",
+		"barkada": "Labas w/ Barkada (-PHP 400 | +7 Happy, +9 Social)",
+		"family": "Bonding sa Pamilya (-PHP 600 | +5 Happy, +12 Social)",
+		"raket": "Weekend Sideline (+PHP 1,200 | -5 Happy, -3 Social)"
+	}
+	var alts: Array = []
+	for k in all_weekend.keys():
+		if k != activity_id:
+			alts.append(all_weekend[k])
+	var opp_note := ""
+	match activity_id:
+		"rest":
+			opp_note = "Preserved cash (PHP 0) and gained +6 Happy, foregoing +PHP 1,200 sideline income or Social boosts."
+		"barkada":
+			opp_note = "Spent PHP 400 (" + ("Libangan Envelope" if result["used_libangan_envelope"] else "Pocket Cash") + ") to boost Happy & Social instead of saving or working overtime."
+		"family":
+			opp_note = "Invested PHP 600 in Family Relationships (+12 Social) instead of earning +PHP 1,200 sideline cash."
+		"raket":
+			opp_note = "Earned +PHP 1,200 extra cash by trading away -5 Happy and -3 Social well-being."
+	
+	LedgerManager.record_tradeoff(
+		"Weekend",
+		"weekly_summary",
+		"Weekend Choice: " + str(result["title"]),
+		str(result["summary_text"]),
+		str(all_weekend.get(activity_id, result["title"])),
+		alts,
+		opp_note,
+		-int(result["cost"]),
+		LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+		{"activity_id": activity_id, "used_libangan_envelope": bool(result["used_libangan_envelope"])}
+	)
 	PlannerManager.record_event(current_month, current_day, result["summary_text"])
 	on_stats_changed.emit()
 	return result
@@ -857,6 +1083,16 @@ func snapshot_weekly_summary(week_num: int) -> Dictionary:
 	week_start_social = social
 	weekly_envelope_covered_days = 0
 	weekly_total_routine_days = 0
+	LedgerManager.record_milestone(
+		"Weekly Review",
+		"stat_system",
+		"Week " + str(week_num) + " Summary Logged",
+		"Income: +PHP " + str(summary_data["income"]) + " | Expenses: -PHP " + str(summary_data["expenses"]) + " | Net: PHP " + str(summary_data["net"]) + " | Discipline: " + str(cov_days) + "/" + str(tot_days) + "d (Streak: " + str(envelope_discipline_streak) + "w)",
+		0,
+		{},
+		{"week_num": week_num, "discipline_bonus": discipline_bonus, "streak": envelope_discipline_streak}
+	)
+	LedgerManager.autosave_ledger()
 	return summary_data
 
 func get_stage_info() -> Dictionary:
@@ -944,7 +1180,7 @@ func evaluate_year_end() -> Dictionary:
 		ending_summary = "Natapos ang taon na kinapos sa Life Goal (PHP " + str(savings) + " / PHP " + str(target) + ") at may mabigat pang obligasyon o pagod na kalusugan/relasyon. Mahalagang aral ito sa pag-budget at paghahanda ng Emergency Fund."
 		baldo_verdict = "Hinga nang malalim par! Mabigat talaga ang unang taon bilang breadwinner lalo na kung sabay-sabay ang utang at emergency. Bawi tayo next run: unahin ang Emergency Fund at iwas sa minimum payment trap!"
 		
-	return {
+	var eval_result := {
 		"goal_title": str(goal["title"]),
 		"goal_target": target,
 		"savings": savings,
@@ -968,6 +1204,19 @@ func evaluate_year_end() -> Dictionary:
 		"ending_summary": ending_summary,
 		"baldo_verdict": baldo_verdict
 	}
+	if is_full_paldo:
+		LedgerManager.unlock_achievement("tunay_na_paldo", "year_end_evaluation")
+	LedgerManager.record_milestone(
+		"Year-End",
+		"year_end_evaluation",
+		"Year-End Evaluation: " + ending_title,
+		"Conditions Met: " + str(met_count) + "/4 | Savings: PHP " + str(savings) + "/" + str(target) + " | Obligations: PHP " + str(total_obligations) + " | CS: " + str(credit_score),
+		0,
+		{},
+		{"ending_id": ending_id, "conditions_met": met_count, "is_full_paldo": is_full_paldo}
+	)
+	LedgerManager.autosave_ledger()
+	return eval_result
 
 func get_live_summary_for_ai() -> String:
 	var phase_names = ["Morning", "Afternoon", "Evening"]

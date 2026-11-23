@@ -98,6 +98,7 @@ func add_money(value: int) -> void:
 			update_display()
 			return
 			
+		var before := LedgerManager.capture_state_snapshot()
 		StatManager.current_balance -= value
 		for envelope in StatManager.envelopes:
 			if envelope["category"] == category:
@@ -106,6 +107,16 @@ func add_money(value: int) -> void:
 		amount += value
 		update_display()
 		StatManager.on_stats_changed.emit()
+		LedgerManager.totals["total_envelope_allocations"] = int(LedgerManager.totals.get("total_envelope_allocations", 0)) + value
+		LedgerManager.record_transaction(
+			"Budgeting",
+			"budgeting",
+			"Envelope Deposit: " + category,
+			"Allocated PHP " + str(value) + " from Pocket Cash into " + category + " envelope (New Balance: PHP " + str(amount) + ").",
+			0,
+			LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+			{"envelope": category, "amount": value, "direction": "deposit"}
+		)
 
 func remove_money(value: int) -> void:
 	if amount >= value and value > 0:
@@ -115,6 +126,7 @@ func remove_money(value: int) -> void:
 			update_display()
 			return
 			
+		var before := LedgerManager.capture_state_snapshot()
 		StatManager.current_balance += value
 		for envelope in StatManager.envelopes:
 			if envelope["category"] == category:
@@ -123,6 +135,15 @@ func remove_money(value: int) -> void:
 		amount -= value
 		update_display()
 		StatManager.on_stats_changed.emit()
+		LedgerManager.record_transaction(
+			"Budgeting",
+			"budgeting",
+			"Envelope Withdraw: " + category,
+			"Returned PHP " + str(value) + " from " + category + " envelope back to Pocket Cash (Remaining: PHP " + str(amount) + ").",
+			0,
+			LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+			{"envelope": category, "amount": value, "direction": "withdraw"}
+		)
 
 func _ready() -> void:
 	_apply_visual_styles()

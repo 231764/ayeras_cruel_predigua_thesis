@@ -54,6 +54,9 @@ var _prev_happy: int = 0
 var _prev_social: int = 0
 var recent_floating_popups_count: int = 0
 var last_floating_popup_text: String = ""
+var _ach_toast_queue: Array[Dictionary] = []
+var _is_showing_ach_toast: bool = false
+var _ach_toast_layer: CanvasLayer = null
 
 func _ready() -> void:
 	auto_advance_timer = Timer.new()
@@ -66,6 +69,7 @@ func _ready() -> void:
 	
 	update_ui()
 	StatManager.on_stats_changed.connect(update_ui)
+	LedgerManager.on_achievement_unlocked.connect(_on_achievement_unlocked)
 	
 	EventManager.on_direct_event_triggered.connect(func(_event_data):
 		stop_auto_advance()
@@ -217,7 +221,7 @@ func _setup_shortcut_tooltips() -> void:
 	if parent_desk:
 		var s_btn = parent_desk.get_node_or_null("Status Button")
 		if s_btn:
-			s_btn.tooltip_text = "Player Status & Victory Report [Shortcut: 1]"
+			s_btn.tooltip_text = "Player Status, Master Ledger & Achievements [Shortcut: 1]"
 		var p_btn = parent_desk.get_node_or_null("Planner Button")
 		if p_btn:
 			p_btn.tooltip_text = "Calendar Planner & Milestones [Shortcut: 2]"
@@ -513,6 +517,55 @@ func spawn_floating_delta(target_node: Control, text_str: String, color: Color) 
 	tw.tween_property(lbl, "global_position", base_pos + Vector2(0, -26), 0.75)
 	tw.tween_property(lbl, "modulate:a", 0.0, 0.75)
 	tw.chain().tween_callback(lbl.queue_free)
+
+func _on_achievement_unlocked(achievement: Dictionary) -> void:
+	_ach_toast_queue.append(achievement)
+	if not _is_showing_ach_toast:
+		_show_next_achievement_toast()
+
+func _show_next_achievement_toast() -> void:
+	if _ach_toast_queue.is_empty() or not is_inside_tree():
+		_is_showing_ach_toast = false
+		return
+	_is_showing_ach_toast = true
+	var ach: Dictionary = _ach_toast_queue.pop_front()
+	
+	if not _ach_toast_layer:
+		_ach_toast_layer = CanvasLayer.new()
+		_ach_toast_layer.name = "AchievementToastLayer"
+		_ach_toast_layer.layer = 130
+		add_child(_ach_toast_layer)
+		
+	var banner := PanelContainer.new()
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	banner.offset_left = -220.0
+	banner.offset_right = 220.0
+	banner.offset_top = -60.0
+	banner.offset_bottom = -8.0
+	banner.add_theme_stylebox_override("panel", UITheme.make_card_style(UITheme.BTN_GOLD, UITheme.INK_BORDER, 10, 3, 5, 14.0, 8.0))
+	
+	var rtf := RichTextLabel.new()
+	rtf.bbcode_enabled = true
+	rtf.fit_content = true
+	rtf.scroll_active = false
+	rtf.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rtf.add_theme_color_override("default_color", UITheme.INK_DARK)
+	rtf.add_theme_font_size_override("normal_font_size", 12)
+	rtf.add_theme_font_size_override("bold_font_size", 13)
+	rtf.text = "[center][b]ACHIEVEMENT UNLOCKED: " + str(ach.get("title", "")) + "[/b]\n[color=#3b2f24]" + str(ach.get("subtitle", "")) + " — Check STATUS Laptop Ledger[/color][/center]"
+	banner.add_child(rtf)
+	_ach_toast_layer.add_child(banner)
+	
+	var tw := create_tween()
+	tw.tween_property(banner, "offset_top", 12.0, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(2.8)
+	tw.tween_property(banner, "modulate:a", 0.0, 0.25)
+	tw.tween_callback(func():
+		if is_instance_valid(banner):
+			banner.queue_free()
+		_show_next_achievement_toast()
+	)
 
 func _update_envelope_runway_ui() -> void:
 	if not envelope_runway_label:
@@ -849,12 +902,15 @@ func restart_new_year_run() -> void:
 	is_game_over = false
 	pending_desk_tool_to_open = ""
 	_stats_baseline_initialized = false
+	_ach_toast_queue.clear()
+	_is_showing_ach_toast = false
 	StatManager.reset_for_new_run()
 	update_ui()
 	_update_next_button_visibility()
 	_start_initial_day()
 	
 func receive_salary() -> void:
+	var before := LedgerManager.capture_state_snapshot()
 	var base_salary = StatManager.base_biweekly_salary
 	var side_bonus = StatManager.side_income_biweekly if StatManager.has_side_income else 0
 	var total_gross = base_salary + side_bonus
@@ -874,6 +930,25 @@ func receive_salary() -> void:
 	StatManager.current_balance += salary_amount
 	StatManager.weekly_income += salary_amount
 	StatManager.on_stats_changed.emit()
+	
+	var after := LedgerManager.capture_state_snapshot()
+	var sal_title := "Sahod Day (" + StatManager.get_employment_display_text() + ")"
+	var sal_sum := "Gross: PHP " + str(total_gross) + " | Net Received: PHP " + str(salary_amount)
+	if side_bonus > 0:
+		sal_sum += " (includes +PHP " + str(side_bonus) + " Side Hustle)"
+	if garnished_amount > 0:
+		sal_sum += " | Debt Garnished: -PHP " + str(garnished_amount)
+	LedgerManager.record_transaction(
+		"Income",
+		"stat_system",
+		sal_title,
+		sal_sum,
+		salary_amount,
+		LedgerManager.compute_deltas(before, after),
+		{"base_salary": base_salary, "side_bonus": side_bonus, "garnished_amount": garnished_amount, "employment_status": StatManager.employment_status}
+	)
+	if salary_amount > 0:
+		LedgerManager.unlock_achievement("first_paycheck", "stat_system")
 	
 	var salary_month = StatManager.current_month
 	var salary_day = StatManager.current_day
@@ -926,6 +1001,8 @@ func trigger_weekly_summary(week_num: int) -> void:
 func trigger_monthly_bills() -> void:
 	var bill_month = StatManager.current_month
 	var bill_day = StatManager.current_day
+	var before_month_end := LedgerManager.capture_state_snapshot()
+	LedgerManager.begin_composite()
 	
 	# 1. Apply 2% compounding monthly interest to Bank Savings (GDD Section 4.4)
 	var savings_interest = StatManager.apply_monthly_savings_interest()
@@ -955,11 +1032,44 @@ func trigger_monthly_bills() -> void:
 	var rent_env = StatManager.get_envelope_amount("Rent")
 	var util_env = StatManager.get_envelope_amount("Utilities")
 	
+	if savings_interest > 0:
+		LedgerManager.totals["total_interest_earned"] = int(LedgerManager.totals.get("total_interest_earned", 0)) + savings_interest
+	if (cc_interest + debt_interest) > 0:
+		LedgerManager.totals["total_interest_paid"] = int(LedgerManager.totals.get("total_interest_paid", 0)) + cc_interest + debt_interest
+	
 	# GDD Section 3.3: Auto-settle without touching current_balance if envelopes cover both bills!
 	if rent_env >= rent_amount and util_env >= utilities_amount:
 		StatManager.spend_from_category("Rent", rent_amount)
 		StatManager.spend_from_category("Utilities", utilities_amount)
 		StatManager.modify_credit_score(2)
+		LedgerManager.end_composite()
+		
+		LedgerManager.totals["bills_autopaid_count"] = int(LedgerManager.totals.get("bills_autopaid_count", 0)) + 1
+		var bill_summary := "Rent: PHP " + str(rent_amount) + " + Utilities/Installments: PHP " + str(utilities_amount) + " (Auto-Paid via Envelopes, +2 CS)"
+		if savings_interest > 0:
+			bill_summary += " | Savings Interest: +PHP " + str(savings_interest)
+		if inv_delta != 0:
+			bill_summary += " | Investment Return: " + ("+" if inv_delta > 0 else "") + "PHP " + str(inv_delta)
+		if (cc_interest + debt_interest) > 0:
+			bill_summary += " | Interest Penalty: +PHP " + str(cc_interest + debt_interest)
+		LedgerManager.record_transaction(
+			"Bills",
+			"stat_system",
+			"Monthly Bills Auto-Paid",
+			bill_summary,
+			-total_bills - int(loan_res.get("paid_cash", 0)),
+			LedgerManager.compute_deltas(before_month_end, LedgerManager.capture_state_snapshot()),
+			{
+				"auto_paid": true,
+				"rent_due": rent_amount,
+				"utilities_due": utilities_amount,
+				"savings_interest": savings_interest,
+				"cc_interest": cc_interest,
+				"debt_interest": debt_interest,
+				"investment_delta": inv_delta
+			}
+		)
+		LedgerManager.autosave_ledger()
 		
 		var dialog = AcceptDialog.new()
 		dialog.title = "Auto-Paid na ang Monthly Bills!"
@@ -984,6 +1094,17 @@ func trigger_monthly_bills() -> void:
 		PlannerManager.record_event(bill_month, bill_day, log_text)
 		spawn_dialog(dialog)
 	else:
+		LedgerManager.end_composite()
+		if savings_interest > 0 or (cc_interest + debt_interest) > 0 or inv_delta != 0:
+			LedgerManager.record_transaction(
+				"Interest & Returns",
+				"stat_system",
+				"Month-End Interest & Portfolio Update",
+				"Savings Interest: +PHP " + str(savings_interest) + " | Debt/CC Interest: +PHP " + str(cc_interest + debt_interest) + " | Investments: " + ("+" if inv_delta >= 0 else "") + "PHP " + str(inv_delta),
+				-int(loan_res.get("paid_cash", 0)),
+				LedgerManager.compute_deltas(before_month_end, LedgerManager.capture_state_snapshot()),
+				{"savings_interest": savings_interest, "cc_interest": cc_interest, "debt_interest": debt_interest, "investment_delta": inv_delta}
+			)
 		# GDD Section 3.3: Cost Mismatch or Unallocated Budget -> Prompt player to manually settle!
 		enqueue_modal(func():
 			var mbs_scene = preload("res://scenes/monthly_bill_settlement.tscn")
@@ -999,6 +1120,8 @@ func trigger_monthly_bills() -> void:
 		)
 	
 func process_daily_expenses() -> void:
+	var before := LedgerManager.capture_state_snapshot()
+	LedgerManager.begin_composite()
 	var food_idx = clamp(StatManager.daily_food_choice, 0, 1)
 	var food_cost = StatManager.get_daily_food_cost()
 	var food_happy = StatManager.food_happy_deltas[food_idx]
@@ -1011,8 +1134,23 @@ func process_daily_expenses() -> void:
 	var comm_env_before = StatManager.get_envelope_amount("Transportation")
 	StatManager.spend_from_category("Transportation", comm_cost)
 	
-	StatManager.record_daily_routine_envelope_coverage(food_env_before >= food_cost and comm_env_before >= comm_cost)
+	var fully_covered: bool = (food_env_before >= food_cost and comm_env_before >= comm_cost)
+	StatManager.record_daily_routine_envelope_coverage(fully_covered)
 	StatManager.modify_happy(food_happy + comm_happy)
+	LedgerManager.end_composite()
+	
+	var food_lbl := "Magluto" if food_idx == 0 else "Mag-order"
+	var comm_lbl := "Jeep/Bus" if comm_idx == 0 else "Angkas/Joyride"
+	var tot_cost: int = food_cost + comm_cost
+	LedgerManager.record_transaction(
+		"Daily Routine",
+		"stat_system",
+		"Daily Living: " + food_lbl + " + " + comm_lbl,
+		"Food: PHP " + str(food_cost) + " + Commute: PHP " + str(comm_cost) + " (" + ("Envelopes Covered" if fully_covered else "Tapped Cash/Debt") + ")",
+		-tot_cost,
+		LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
+		{"food_choice": food_idx, "commute_choice": comm_idx, "food_cost": food_cost, "commute_cost": comm_cost, "envelopes_covered": fully_covered}
+	)
 	
 func check_game_over_conditions() -> bool:
 	if StatManager.get_total_debt_and_loans() > 50000:
@@ -1043,6 +1181,16 @@ func trigger_game_over(reason: String) -> void:
 	is_game_over = true
 	modal_queue.clear()
 	_update_next_button_visibility()
+	LedgerManager.record_milestone(
+		"Game Over",
+		"stat_system",
+		"Game Over Triggered",
+		reason,
+		0,
+		{},
+		{"reason": reason}
+	)
+	LedgerManager.autosave_ledger()
 	UITheme.spawn_game_confirm(
 		self,
 		"GAME OVER",
@@ -1055,12 +1203,52 @@ func trigger_game_over(reason: String) -> void:
 	)
 	
 func _on_food_option_selected(index: int) -> void:
+	if index == StatManager.daily_food_choice:
+		return
 	StatManager.daily_food_choice = index
 	StatManager.on_stats_changed.emit()
+	var cook_c: int = max(0, StatManager.food_costs[0] + StatManager.daily_food_modifier)
+	var eat_c: int = max(0, StatManager.food_costs[1] + StatManager.daily_food_modifier)
+	var chosen := "Magluto (PHP " + str(cook_c) + "/day, 0 Happy)" if index == 0 else "Mag-order (PHP " + str(eat_c) + "/day, +1 Happy)"
+	var alt := "Mag-order (PHP " + str(eat_c) + "/day, +1 Happy)" if index == 0 else "Magluto (PHP " + str(cook_c) + "/day, 0 Happy)"
+	var opp := "Saves PHP " + str(abs(eat_c - cook_c)) + "/day by cooking instead of ordering out." if index == 0 else "Spends +PHP " + str(abs(eat_c - cook_c)) + "/day for +1 daily Happiness boost."
+	LedgerManager.totals["routine_changes_count"] = int(LedgerManager.totals.get("routine_changes_count", 0)) + 1
+	LedgerManager.record_tradeoff(
+		"Routine Setting",
+		"stat_system",
+		"Changed Daily Food Routine",
+		"Switched daily meal plan to " + chosen,
+		chosen,
+		[alt],
+		opp,
+		0,
+		{},
+		{"routine_type": "food", "choice_index": index}
+	)
 
 func _on_commute_option_selected(index: int) -> void:
+	if index == StatManager.daily_commute_choice:
+		return
 	StatManager.daily_commute_choice = index
 	StatManager.on_stats_changed.emit()
+	var pub_c: int = max(0, StatManager.commute_costs[0] + StatManager.daily_commute_modifier)
+	var moto_c: int = max(0, StatManager.commute_costs[1] + StatManager.daily_commute_modifier)
+	var chosen := "Jeep/Bus (PHP " + str(pub_c) + "/day, -1 Happy)" if index == 0 else "Angkas/Joyride (PHP " + str(moto_c) + "/day, +1 Happy)"
+	var alt := "Angkas/Joyride (PHP " + str(moto_c) + "/day, +1 Happy)" if index == 0 else "Jeep/Bus (PHP " + str(pub_c) + "/day, -1 Happy)"
+	var opp := "Saves PHP " + str(abs(moto_c - pub_c)) + "/day at the cost of -1 daily Happiness." if index == 0 else "Spends +PHP " + str(abs(moto_c - pub_c)) + "/day to avoid commute stress (+1 Happy vs -1 Happy)."
+	LedgerManager.totals["routine_changes_count"] = int(LedgerManager.totals.get("routine_changes_count", 0)) + 1
+	LedgerManager.record_tradeoff(
+		"Routine Setting",
+		"stat_system",
+		"Changed Daily Commute Routine",
+		"Switched daily commute to " + chosen,
+		chosen,
+		[alt],
+		opp,
+		0,
+		{},
+		{"routine_type": "commute", "choice_index": index}
+	)
 
 func _process(_delta: float) -> void:
 	pass

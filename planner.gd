@@ -24,8 +24,13 @@ func _ready() -> void:
 
 func _apply_save_btn_style() -> void:
 	UITheme.style_Button(save_note_btn, UITheme.BTN_SAGE, 6, 4, 10.0, 4.0)
+	UITheme.apply_type(save_note_btn, UITheme.TYPE_BODY, UITheme.FONT_UI)
 	UITheme.style_Button(next_month_btn, UITheme.BTN_GOLD, 6, 4, 8.0, 4.0)
+	UITheme.set_button_icon(next_month_btn, UITheme.ICON_ARROW_RIGHT, false, true)
 	UITheme.style_Button(prev_month_btn, UITheme.BTN_GOLD, 6, 4, 8.0, 4.0)
+	UITheme.set_button_icon(prev_month_btn, UITheme.ICON_ARROW_LEFT, false, true)
+	if dateLabel:
+		UITheme.apply_type(dateLabel, UITheme.TYPE_HEADING, UITheme.FONT_HEADING)
 	var headers_hbox := get_node_or_null("WeekdayHeadersHBox")
 	if headers_hbox:
 		for i in range(headers_hbox.get_child_count()):
@@ -35,9 +40,11 @@ func _apply_save_btn_style() -> void:
 				var is_sat: bool = (i == 6)
 				var pill_bg := Color(0.95, 0.76, 0.72, 1.0) if is_sun else (Color(0.94, 0.85, 0.62, 1.0) if is_sat else Color(0.92, 0.84, 0.64, 1.0))
 				lbl.add_theme_stylebox_override("normal", _make_day_style(pill_bg, UITheme.INK_BORDER, 1, 2, 4))
+				UITheme.apply_type(lbl, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
 				lbl.add_theme_color_override("font_color", Color(0.58, 0.12, 0.10, 1.0) if is_sun else UITheme.INK_DARK)
 	if dayLabel:
 		dayLabel.add_theme_stylebox_override("normal", UITheme.make_card_style(UITheme.BTN_GOLD, UITheme.INK_BORDER, 6, 2, 3, 8.0, 4.0))
+		UITheme.apply_type(dayLabel, UITheme.TYPE_SUBHEAD, UITheme.FONT_UI)
 		dayLabel.add_theme_color_override("font_color", UITheme.INK_DARK)
 
 func _on_visibility_changed() -> void:
@@ -179,6 +186,7 @@ func make_buttons_for_month() -> void:
 			button.add_theme_stylebox_override("hover", _make_day_style(Color(1.0, 0.98, 0.94, 1.0), ink_border, 2, 3, 5))
 			button.add_theme_stylebox_override("pressed", _make_day_style(Color(0.90, 0.86, 0.78, 1.0), ink_border, 2, 1, 5))
 			
+		button.mouse_entered.connect(func(): AudioManager.play_sfx("hover"))
 		button.pressed.connect(_on_day_pressed.bind(day))
 		grid.add_child(button)
 		
@@ -188,6 +196,7 @@ func make_buttons_for_month() -> void:
 		grid.add_child(_create_empty_calendar_slot())
 
 func _on_day_pressed(day: int) -> void:
+	AudioManager.play_sfx("click")
 	_auto_save_current_note()
 	day_of_entry = day
 	update_ui()
@@ -218,6 +227,7 @@ func replace_events() -> void:
 		event_label.text = "\n\n".join(parts)
 
 func finish_notes() -> void:
+	AudioManager.play_sfx("soft_chime")
 	var date: int = day_of_entry
 	var month: int = month_of_entry
 	var current_notes: String = notes.text
@@ -226,6 +236,7 @@ func finish_notes() -> void:
 
 func _on_previous_month_pressed() -> void:
 	if month_of_entry > 0:
+		AudioManager.play_sfx("paper")
 		_auto_save_current_note()
 		month_picker -= 1
 		day_of_entry = 1
@@ -233,6 +244,7 @@ func _on_previous_month_pressed() -> void:
 
 func _on_next_month_pressed() -> void:
 	if month_of_entry < 11:
+		AudioManager.play_sfx("paper")
 		_auto_save_current_note()
 		month_picker += 1
 		day_of_entry = 1

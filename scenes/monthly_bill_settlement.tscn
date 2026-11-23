@@ -53,10 +53,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -380.0
-offset_top = -260.0
-offset_right = 380.0
-offset_bottom = 260.0
+offset_left = -405.0
+offset_top = -270.0
+offset_right = 405.0
+offset_bottom = 270.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal_panel")
@@ -67,50 +67,58 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = 20.0
+offset_top = 18.0
 offset_right = -24.0
-offset_bottom = -20.0
+offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
-theme_override_font_sizes/font_size = 21
-text = "KATAPUSAN NG BUWAN — MANUAL BILL SETTLEMENT"
+theme_override_font_sizes/font_size = 20
+text = "Katapusan ng Buwan — Bill Settlement"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="DetailsLabel" type="RichTextLabel" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_details_bubble")
 bbcode_enabled = true
 text = "Bill details..."
 
 [node name="ButtonsContainer" type="VBoxContainer" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="PayCashButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
 text = "1. Bayaran gamit ang Available Cash"
+autowrap_mode = 3
 
 [node name="PaySavingsButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
-text = "2. Gamitin ang Cash + Hugutin sa Ipon/Savings"
+text = "2. Gamitin ang Cash + Hugutin sa Ipon"
+autowrap_mode = 3
 
 [node name="IncurDebtButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
 text = "3. Ilista ang Kulang bilang Utang"
+autowrap_mode = 3
 
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsContainer/PayCashButton" to="." method="_on_pay_cash_pressed"]
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsContainer/PaySavingsButton" to="." method="_on_pay_savings_pressed"]

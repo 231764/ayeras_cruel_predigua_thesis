@@ -10,6 +10,7 @@ func set_interface(interface) -> void:
 	current_interface = interface
 
 func _on_pressed() -> void:
+	AudioManager.play_sfx("tool_close")
 	if current_interface:
 		current_interface.visible = false
 	button.visible = false
@@ -23,7 +24,10 @@ func _on_pressed() -> void:
 			child.visible = true
 
 func _ready() -> void:
+	text = "Bumalik sa Desk"
+	UITheme.apply_type(self, UITheme.TYPE_BODY, UITheme.FONT_UI)
 	UITheme.style_Button(self, UITheme.BTN_GOLD, 10, 5)
+	UITheme.set_button_icon(self, UITheme.ICON_ARROW_LEFT, false)
 	if button and not button.pressed.is_connected(_on_pressed):
 		button.pressed.connect(_on_pressed)
 

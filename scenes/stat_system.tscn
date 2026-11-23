@@ -54,7 +54,7 @@ date_label = NodePath("DateLabel")
 [node name="TopHeaderBackdrop" type="Panel" parent="." unique_id=1478174440]
 offset_left = 14.0
 offset_top = 8.0
-offset_right = 442.0
+offset_right = 468.0
 offset_bottom = 92.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_top_bar")
@@ -62,12 +62,12 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_top_bar")
 [node name="DateLabel" type="Label" parent="." unique_id=1478174443]
 offset_left = 14.0
 offset_top = 8.0
-offset_right = 442.0
+offset_right = 468.0
 offset_bottom = 44.0
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 15
-text = "HUW, JAN 1, 2026  •  MORNING"
+theme_override_font_sizes/font_size = 16
+text = "Huwebes, January 1  •  Morning"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -77,15 +77,15 @@ offset_top = 102.0
 offset_right = 612.0
 offset_bottom = 136.0
 theme_override_font_sizes/font_size = 12
-text = "Goal: PHP 0 / 40k (0%)"
+text = "Goal: ₱0 / 40k (0%)"
 
 [node name="NextPhaseButton" type="Button" parent="." unique_id=1659805020]
 offset_left = 816.0
 offset_top = 10.0
 offset_right = 974.0
 offset_bottom = 48.0
-theme_override_font_sizes/font_size = 15
-text = "Next Day >>"
+theme_override_font_sizes/font_size = 14
+text = "Susunod"
 
 [node name="AutoAdvanceButton" type="Button" parent="." unique_id=1659805021]
 offset_left = 982.0
@@ -93,12 +93,12 @@ offset_top = 10.0
 offset_right = 1138.0
 offset_bottom = 48.0
 theme_override_font_sizes/font_size = 14
-text = "Auto-Play >>"
+text = "Auto-Play"
 
 [node name="EnvelopeRunwayPanel" type="Panel" parent="." unique_id=1478174446]
 offset_left = 22.0
 offset_top = 48.0
-offset_right = 434.0
+offset_right = 460.0
 offset_bottom = 86.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_runway_strip")
 
@@ -123,12 +123,12 @@ theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_font_sizes/normal_font_size = 12
 theme_override_font_sizes/bold_font_size = 12
 bbcode_enabled = true
-text = "Pagkain: 0d | Byahe: 0d | Bills: KULANG"
+text = "Pagkain: 0 araw  |  Byahe: 0 araw  |  Bills: Kulang"
 fit_content = true
 scroll_active = false
 
 [node name="QuickBudgetButton" type="Button" parent="EnvelopeRunwayPanel/HBoxContainer" unique_id=1478174449]
-custom_minimum_size = Vector2(106, 0)
+custom_minimum_size = Vector2(104, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Mag-Budget"
@@ -139,7 +139,7 @@ offset_top = 214.0
 offset_right = 402.0
 offset_bottom = 246.0
 theme_override_font_sizes/font_size = 13
-text = "Ipon: PHP 0 (+2%/mo)"
+text = "Ipon: ₱0 • 6%/yr"
 
 [node name="Happiness Bar" type="ProgressBar" parent="." unique_id=1868663321]
 offset_left = 96.0
@@ -174,8 +174,8 @@ mouse_filter = 2
 expand_mode = 1
 
 [node name="BaldoToastPanel" type="Panel" parent="." unique_id=1478174450]
-offset_left = 442.0
-offset_top = 522.0
+offset_left = 414.0
+offset_top = 518.0
 offset_right = 812.0
 offset_bottom = 636.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_dock_card")
@@ -185,31 +185,55 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 12.0
+offset_left = 10.0
 offset_top = 8.0
-offset_right = -12.0
+offset_right = -10.0
 offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 6
 
-[node name="BaldoToastLabel" type="RichTextLabel" parent="BaldoToastPanel/HBoxContainer" unique_id=1478174452]
+[node name="TopRow" type="HBoxContainer" parent="BaldoToastPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="BaldoAvatar" type="TextureRect" parent="BaldoToastPanel/HBoxContainer/TopRow"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BaldoToastLabel" type="RichTextLabel" parent="BaldoToastPanel/HBoxContainer/TopRow" unique_id=1478174452]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 4
 theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
-theme_override_font_sizes/normal_font_size = 13
-theme_override_font_sizes/bold_font_size = 13
+theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
 bbcode_enabled = true
-text = "[b]Baldo:[/b] Yow par! I-budget na natin ang unang sahod mo sa Cash Envelopes!"
+text = "[b]Baldo:[/b] Yow par! I-budget na natin ang unang sahod mo sa Cash Envelopes."
 fit_content = true
 scroll_active = false
 
-[node name="AskBaldoButton" type="Button" parent="BaldoToastPanel/HBoxContainer" unique_id=1478174453]
+[node name="ActionRow" type="HBoxContainer" parent="BaldoToastPanel/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BaldoSmartActionButton" type="Button" parent="BaldoToastPanel/HBoxContainer/ActionRow"]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "Tanungin si Baldo sa Phone"
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Smart Split Sahod"
+
+[node name="AskBaldoButton" type="Button" parent="BaldoToastPanel/HBoxContainer/ActionRow" unique_id=1478174453]
+custom_minimum_size = Vector2(82, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Chat"
 
 [node name="DailyRoutinePanel" type="Panel" parent="." unique_id=133159737]
 offset_left = 824.0
@@ -235,7 +259,7 @@ theme_override_constants/separation = 6
 layout_mode = 2
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 16
 text = "Pang-araw-araw na Routine"
 horizontal_alignment = 1
 
@@ -248,18 +272,18 @@ custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.16, 0.13, 0.11, 1)
 theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 14
 text = "Pagkain:"
 
 [node name="FoodOption" type="OptionButton" parent="DailyRoutinePanel/VBoxContainer/FoodHBox" unique_id=1592662292]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 14
 selected = 0
 item_count = 2
-popup/item_0/text = "Magluto (PHP 200)"
+popup/item_0/text = "Magluto (₱200)"
 popup/item_0/id = 0
-popup/item_1/text = "Mag-order (PHP 450)"
+popup/item_1/text = "Mag-order (₱450)"
 popup/item_1/id = 1
 
 [node name="CommuteHBox" type="HBoxContainer" parent="DailyRoutinePanel/VBoxContainer" unique_id=987697042]
@@ -271,18 +295,18 @@ custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.16, 0.13, 0.11, 1)
 theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 14
 text = "Byahe:"
 
 [node name="CommuteOption" type="OptionButton" parent="DailyRoutinePanel/VBoxContainer/CommuteHBox" unique_id=1788684461]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 14
 selected = 0
 item_count = 2
-popup/item_0/text = "Jeep/Bus (PHP 80)"
+popup/item_0/text = "Public Transit (₱80)"
 popup/item_0/id = 0
-popup/item_1/text = "Angkas/Joyride (PHP 180)"
+popup/item_1/text = "Mototaxi (₱180)"
 popup/item_1/id = 1
 
 [connection signal="pressed" from="GoalButton" to="." method="open_savings_and_goal_inspector"]
@@ -290,6 +314,7 @@ popup/item_1/id = 1
 [connection signal="pressed" from="AutoAdvanceButton" to="." method="toggle_auto_advance"]
 [connection signal="pressed" from="EnvelopeRunwayPanel/HBoxContainer/QuickBudgetButton" to="." method="_on_quick_budget_pressed"]
 [connection signal="pressed" from="SavingsJarButton" to="." method="open_savings_and_goal_inspector"]
-[connection signal="pressed" from="BaldoToastPanel/HBoxContainer/AskBaldoButton" to="." method="_on_ask_baldo_pressed"]
+[connection signal="pressed" from="BaldoToastPanel/HBoxContainer/ActionRow/BaldoSmartActionButton" to="." method="_on_baldo_smart_action_pressed"]
+[connection signal="pressed" from="BaldoToastPanel/HBoxContainer/ActionRow/AskBaldoButton" to="." method="_on_ask_baldo_pressed"]
 [connection signal="item_selected" from="DailyRoutinePanel/VBoxContainer/FoodHBox/FoodOption" to="." method="_on_food_option_selected"]
 [connection signal="item_selected" from="DailyRoutinePanel/VBoxContainer/CommuteHBox/CommuteOption" to="." method="_on_commute_option_selected"]

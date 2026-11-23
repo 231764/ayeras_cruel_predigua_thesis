@@ -34,20 +34,24 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 17
-text = "Hawak na Cash: PHP 5,000"
+theme_override_font_sizes/font_size = 16
+text = "Hawak na Cash: ₱5,000"
+vertical_alignment = 1
+autowrap_mode = 3
 
 [node name="FundBillsButton" type="Button" parent="TopBudgetBar/HBoxContainer" unique_id=1816185210]
-custom_minimum_size = Vector2(240, 0)
+custom_minimum_size = Vector2(215, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "Pondohan Upa & Bills"
+text = "Pondohan Bills"
+autowrap_mode = 3
 
 [node name="AutoBudgetButton" type="Button" parent="TopBudgetBar/HBoxContainer" unique_id=1090211863]
-custom_minimum_size = Vector2(275, 0)
+custom_minimum_size = Vector2(225, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "Auto-Budget Sahod (Smart Split)"
+text = "Auto-Budget (Smart Split)"
+autowrap_mode = 3
 
 [node name="ActionFeedbackLabel" type="Label" parent="." unique_id=1617824870]
 z_index = 6
@@ -59,7 +63,7 @@ theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_colors/font_outline_color = Color(0.98, 0.96, 0.9, 0.95)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 14
-text = "Tip: I-click ang 'Auto-Budget Sahod' tuwing payday o pumili ng Envelope tab sa ibaba."
+text = "Tip: I-click ang Smart Split tuwing payday o pumili ng Envelope tab sa ibaba."
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -69,8 +73,7 @@ offset_left = 38.0
 offset_top = 210.0
 offset_right = 92.0
 offset_bottom = 390.0
-theme_override_font_sizes/font_size = 24
-text = "<"
+text = ""
 
 [node name="RightButton" type="Button" parent="." unique_id=156078745]
 z_index = 6
@@ -78,8 +81,7 @@ offset_left = 1058.0
 offset_top = 210.0
 offset_right = 1112.0
 offset_bottom = 390.0
-theme_override_font_sizes/font_size = 24
-text = ">"
+text = ""
 
 [node name="CategoryTabsHBox" type="HBoxContainer" parent="." unique_id=527698480]
 z_index = 6

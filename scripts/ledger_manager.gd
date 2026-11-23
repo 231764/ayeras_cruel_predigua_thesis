@@ -1,5 +1,7 @@
 extends Node
 
+const UITheme = preload("res://scripts/ui_theme.gd")
+
 signal on_entry_recorded(entry: Dictionary)
 signal on_achievement_unlocked(achievement: Dictionary)
 signal on_ledger_reset()
@@ -60,24 +62,24 @@ const ACHIEVEMENT_DEFINITIONS := [
 		"id": "first_savings_5k",
 		"icon": "bank",
 		"title": "Unang Pundar",
-		"subtitle": "PHP 5,000 Bank Savings",
-		"description": "Nakaipon ng PHP 5,000 sa bangko (+2%/mo).",
+		"subtitle": "₱5,000 Digital Bank Savings",
+		"description": "Nakaipon ng ₱5,000 sa Digital Bank (6% p.a.).",
 		"lesson": "Pay Yourself First para lumago ang ipon."
 	},
 	{
 		"id": "emergency_buffer_20k",
 		"icon": "bank",
 		"title": "Emergency Shield",
-		"subtitle": "PHP 20,000 Safety Net",
-		"description": "Nakaipon ng PHP 20,000 bilang Emergency Fund.",
+		"subtitle": "₱20,000 Safety Net",
+		"description": "Nakaipon ng ₱20,000 bilang Emergency Fund.",
 		"lesson": "Emergency Fund ang sumasalo sa sakit o layoff."
 	},
 	{
 		"id": "compounding_magic",
 		"icon": "cash",
 		"title": "Kapangyarihan ng Tubo",
-		"subtitle": "PHP 1,000+ Interest Earned",
-		"description": "Kumita ng PHP 1,000+ mula sa 2% bank interest.",
+		"subtitle": "₱300+ Interest Earned",
+		"description": "Kumita ng ₱300+ mula sa 0.5%/buwan (6% p.a.) Digital Bank interest.",
 		"lesson": "Maagang ipon = pera mismo ang nagtatrabaho."
 	},
 	{
@@ -432,7 +434,7 @@ func evaluate_achievements(trigger_source: String = "") -> Array[Dictionary]:
 		["discipline_streak_4", StatManager.envelope_discipline_streak >= 4],
 		["first_savings_5k", StatManager.savings >= 5000],
 		["emergency_buffer_20k", StatManager.savings >= 20000],
-		["compounding_magic", StatManager.total_savings_interest_earned >= 1000],
+		["compounding_magic", StatManager.total_savings_interest_earned >= 300],
 		["credit_responsible", StatManager.credit_score >= 80 and StatManager.debt_balance == 0],
 		["first_investor", StatManager.total_investment_principal > 0 or StatManager.get_total_investments() > 0],
 		["layoff_survivor", bool(totals.get("was_laid_off", false)) and StatManager.employment_status in ["temporary_job", "new_stable_job"] and StatManager.debt_balance == 0],
@@ -675,6 +677,132 @@ func build_csv_string() -> String:
 		lines.append(",".join(row))
 	return "\n".join(lines) + "\n"
 
+func build_csv_utf8_bom_bytes() -> PackedByteArray:
+	var out := PackedByteArray([0xEF, 0xBB, 0xBF])
+	out.append_array(build_csv_string().to_utf8_buffer())
+	return out
+
+func _html_escape(raw_val: Variant) -> String:
+	return str(raw_val).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;")
+
+func build_html_report_string() -> String:
+	var stats: Dictionary = get_analytics_summary()
+	var g: Dictionary = StatManager.get_current_goal()
+	var target: int = max(1, int(g.get("cost", StatManager.get_goal_target())))
+	var pct: int = StatManager.get_goal_progress_percent()
+	var avg_grade: String = StatManager.get_average_grade_text()
+	var snap: Dictionary = capture_state_snapshot()
+	var exported_iso: String = Time.get_datetime_string_from_system(false, true)
+
+	var h: Array[String] = []
+	h.append("<!DOCTYPE html>")
+	h.append("<html lang=\"en\">")
+	h.append("<head>")
+	h.append("<meta charset=\"UTF-8\">")
+	h.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">")
+	h.append("<title>Paldo Financial Statement — " + _html_escape(run_id) + "</title>")
+	h.append("<style>")
+	h.append(":root{--ink:#211c1a;--muted:#5c4f45;--cream:#f5f0e3;--warm:#ebe3cf;--gold:#f2c95c;--sage:#75c766;--coral:#e67a6b;--blue:#87bfdc;--green:#1c7033;--red:#a8261f;--amber:#94520d;}")
+	h.append("*{box-sizing:border-box;} body{margin:0;padding:24px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#e8dfca;color:var(--ink);line-height:1.45;}")
+	h.append(".sheet{max-width:1040px;margin:0 auto;background:var(--cream);border:3px solid var(--ink);border-radius:14px;padding:24px;box-shadow:0 8px 0 rgba(33,28,26,0.18);}")
+	h.append(".hdr{display:flex;justify-content:space-between;align-items:center;gap:16px;background:var(--gold);border:2px solid var(--ink);border-radius:10px;padding:16px 20px;margin-bottom:18px;}")
+	h.append(".hdr h1{margin:0;font-size:22px;} .hdr p{margin:4px 0 0;font-size:13px;color:var(--ink);}")
+	h.append(".print-btn{background:var(--sage);color:var(--ink);border:2px solid var(--ink);border-bottom-width:4px;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:13px;}")
+	h.append(".kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}")
+	h.append(".kpi{background:var(--warm);border:2px solid var(--ink);border-radius:10px;padding:12px 14px;}")
+	h.append(".kpi .lbl{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;}")
+	h.append(".kpi .val{font-size:20px;font-weight:800;margin-top:4px;}")
+	h.append(".kpi .sub{font-size:12px;color:var(--muted);margin-top:2px;}")
+	h.append(".sec-title{font-size:15px;font-weight:800;margin:18px 0 8px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--ink);padding-bottom:4px;}")
+	h.append(".grades{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;margin-bottom:16px;}")
+	h.append(".g-pill{background:var(--warm);border:2px solid var(--ink);border-radius:8px;padding:6px 4px;text-align:center;font-size:12px;font-weight:700;}")
+	h.append(".g-S{background:var(--gold);} .g-A{background:var(--sage);} .g-B{background:#ebdc94;} .g-C{background:var(--coral);}")
+	h.append(".badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}")
+	h.append(".badge{background:#fcf2c7;border:2px solid var(--ink);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;}")
+	h.append("table{width:100%;border-collapse:collapse;background:#fffdf7;border:2px solid var(--ink);font-size:13px;}")
+	h.append("th{background:var(--warm);text-align:left;padding:8px 10px;border-bottom:2px solid var(--ink);font-size:12px;}")
+	h.append("td{padding:7px 10px;border-bottom:1px solid #d7ceb9;vertical-align:top;}")
+	h.append(".num{text-align:right;font-weight:700;white-space:nowrap;} .pos{color:var(--green);} .neg{color:var(--red);} .muted{color:var(--muted);}")
+	h.append(".tag{display:inline-block;padding:2px 7px;border-radius:5px;border:1px solid var(--ink);font-size:11px;font-weight:700;background:var(--warm);}")
+	h.append(".tag-decision{background:#fcf2c7;} .tag-achievement{background:var(--gold);} .tag-milestone{background:var(--blue);}")
+	h.append("@media print{body{background:#fff;padding:0;} .sheet{border:none;box-shadow:none;padding:8px;} .print-btn{display:none;}}")
+	h.append("@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr);} .grades{grid-template-columns:repeat(6,1fr);}}")
+	h.append("</style>")
+	h.append("</head>")
+	h.append("<body><div class=\"sheet\">")
+
+	h.append("<div class=\"hdr\"><div>")
+	h.append("<h1>PALDO — Financial Statement &amp; Master Ledger</h1>")
+	h.append("<p>Life Goal: <strong>" + _html_escape(g.get("title", "Life Goal")) + "</strong> (₱" + UITheme.format_num(StatManager.savings) + " / ₱" + UITheme.format_num(target) + " — " + str(pct) + "%) &nbsp;|&nbsp; Status: <strong>" + _html_escape(StatManager.get_employment_display_text()) + "</strong></p>")
+	h.append("<p>Run ID: " + _html_escape(run_id) + " &nbsp;|&nbsp; Exported: " + _html_escape(exported_iso) + " &nbsp;|&nbsp; Avg Monthly Grade: <strong>" + _html_escape(avg_grade) + "</strong></p>")
+	h.append("</div><button class=\"print-btn\" onclick=\"window.print()\">Print / Save PDF</button></div>")
+
+	var nw: int = int(stats.get("net_worth", 0))
+	var inflow: int = int(stats.get("total_inflow", 0))
+	var outflow: int = int(stats.get("total_outflow", 0))
+	var sr: int = int(stats.get("savings_rate_pct", 0))
+	h.append("<div class=\"kpis\">")
+	h.append("<div class=\"kpi\"><div class=\"lbl\">Net Worth</div><div class=\"val " + ("pos" if nw >= 0 else "neg") + "\">₱" + UITheme.format_num(nw) + "</div><div class=\"sub\">Cash ₱" + UITheme.format_num(int(snap.get("cash", 0))) + " | Ipon ₱" + UITheme.format_num(int(snap.get("savings", 0))) + "</div></div>")
+	h.append("<div class=\"kpi\"><div class=\"lbl\">Total Inflow</div><div class=\"val pos\">+₱" + UITheme.format_num(inflow) + "</div><div class=\"sub\">Salary, Side Hustle &amp; Bonuses</div></div>")
+	h.append("<div class=\"kpi\"><div class=\"lbl\">Total Outflow</div><div class=\"val neg\">-₱" + UITheme.format_num(outflow) + "</div><div class=\"sub\">Bills, Daily Living &amp; Purchases</div></div>")
+	h.append("<div class=\"kpi\"><div class=\"lbl\">Savings Rate &amp; Credit</div><div class=\"val\">" + str(sr) + "% &nbsp;|&nbsp; CS " + str(StatManager.credit_score) + "</div><div class=\"sub\">Badges: " + str(stats["achievements_unlocked"]) + "/" + str(stats["achievements_total"]) + " | Records: " + str(stats["entry_count"]) + "</div></div>")
+	h.append("</div>")
+
+	h.append("<div class=\"sec-title\">Monthly Report Card (Jan – Dec)</div>")
+	h.append("<div class=\"grades\">")
+	var g_by_idx: Dictionary = {}
+	for rec in StatManager.monthly_grades_history:
+		if rec is Dictionary and int(rec.get("month_idx", -1)) >= 0:
+			g_by_idx[int(rec["month_idx"])] = rec
+	for m_idx in range(StatManager.year.size()):
+		var m_short: String = str(StatManager.year[m_idx]["month"]).substr(0, 3)
+		var gr: String = str((g_by_idx[m_idx] as Dictionary).get("grade", "—")) if g_by_idx.has(m_idx) else "—"
+		var g_cls: String = ("g-" + gr) if gr in ["S", "A", "B", "C"] else ""
+		h.append("<div class=\"g-pill " + g_cls + "\">" + _html_escape(m_short) + "<br>" + _html_escape(gr) + "</div>")
+	h.append("</div>")
+
+	var unlocked_list := get_unlocked_achievements_list()
+	h.append("<div class=\"sec-title\">Unlocked Financial Badges (" + str(unlocked_list.size()) + " / " + str(ACHIEVEMENT_DEFINITIONS.size()) + ")</div>")
+	h.append("<div class=\"badges\">")
+	if unlocked_list.is_empty():
+		h.append("<div class=\"badge muted\">Wala pang unlocked badges sa run na ito.</div>")
+	else:
+		for ach in unlocked_list:
+			h.append("<div class=\"badge\">" + _html_escape(ach.get("title", "")) + " — <span class=\"muted\">" + _html_escape(ach.get("subtitle", "")) + "</span></div>")
+	h.append("</div>")
+
+	h.append("<div class=\"sec-title\">Master Financial Ledger (" + str(entries.size()) + " Records)</div>")
+	h.append("<table><thead><tr><th>#</th><th>Game Date</th><th>Type</th><th>Title &amp; Details</th><th class=\"num\">Cash Flow</th><th class=\"num\">Net Worth</th></tr></thead><tbody>")
+	for e in entries:
+		var etype: String = str(e.get("entry_type", "transaction"))
+		var tag_cls: String = "tag-" + etype
+		var cd: int = int(e.get("cash_delta", 0))
+		var cd_str: String = "—"
+		var cd_cls: String = "muted"
+		if cd > 0:
+			cd_str = "+₱" + UITheme.format_num(cd)
+			cd_cls = "pos"
+		elif cd < 0:
+			cd_str = "-₱" + UITheme.format_num(abs(cd))
+			cd_cls = "neg"
+		var sp: Dictionary = e.get("snapshot_after", {})
+		var after_nw: int = int(sp.get("net_worth", 0))
+		var tf: Dictionary = e.get("tradeoff", {})
+		var details: String = _html_escape(e.get("summary", ""))
+		if not tf.is_empty() and str(tf.get("opportunity_cost_note", "")) != "":
+			details += "<br><span class=\"muted\"><strong>Tradeoff:</strong> " + _html_escape(tf.get("opportunity_cost_note", "")) + "</span>"
+		h.append("<tr>")
+		h.append("<td>" + str(int(e.get("seq_id", 0))) + "</td>")
+		h.append("<td>" + _html_escape(e.get("date_label", "")) + "</td>")
+		h.append("<td><span class=\"tag " + _html_escape(tag_cls) + "\">" + _html_escape(etype.capitalize()) + "</span><br><span class=\"muted\">" + _html_escape(e.get("category", "")) + "</span></td>")
+		h.append("<td><strong>" + _html_escape(e.get("title", "")) + "</strong><br>" + details + "</td>")
+		h.append("<td class=\"num " + cd_cls + "\">" + cd_str + "</td>")
+		h.append("<td class=\"num\">₱" + UITheme.format_num(after_nw) + "</td>")
+		h.append("</tr>")
+	h.append("</tbody></table>")
+	h.append("</div></body></html>")
+	return "\n".join(h)
+
 func autosave_ledger() -> bool:
 	var path := "user://ledger_latest.json"
 	var file := FileAccess.open(path, FileAccess.WRITE)
@@ -704,23 +832,23 @@ func resolve_device_downloads_dir() -> Dictionary:
 
 func export_to_device_downloads() -> Dictionary:
 	var stem := _build_friendly_export_stem()
+	var html_filename := stem + ".html"
 	var csv_filename := stem + ".csv"
-	var json_filename := stem + ".json"
-	var csv_str := build_csv_string()
-	var json_str := JSON.stringify(build_export_payload(), "\t")
+	var html_str := build_html_report_string()
+	var csv_bytes := build_csv_utf8_bom_bytes()
 	
 	# Web / HTML5 builds: trigger native browser file downloads directly!
 	if OS.has_feature("web") and ClassDB.class_exists("JavaScriptBridge"):
-		JavaScriptBridge.download_buffer(csv_str.to_utf8_buffer(), csv_filename, "text/csv")
-		JavaScriptBridge.download_buffer(json_str.to_utf8_buffer(), json_filename, "application/json")
+		JavaScriptBridge.download_buffer(html_str.to_utf8_buffer(), html_filename, "text/html;charset=utf-8")
+		JavaScriptBridge.download_buffer(csv_bytes, csv_filename, "text/csv;charset=utf-8")
 		autosave_ledger()
 		return {
 			"ok": true,
 			"folder_path": "",
 			"folder_label": "Browser Downloads",
-			"json_path": json_filename,
+			"html_path": html_filename,
 			"csv_path": csv_filename,
-			"json_filename": json_filename,
+			"html_filename": html_filename,
 			"csv_filename": csv_filename,
 			"entry_count": entries.size(),
 			"error": ""
@@ -730,27 +858,35 @@ func export_to_device_downloads() -> Dictionary:
 	var res := export_ledger_files(str(target_info["path"]), stem)
 	res["folder_path"] = str(target_info["path"])
 	res["folder_label"] = str(target_info["label"])
+	res["html_filename"] = html_filename
 	res["csv_filename"] = csv_filename
-	res["json_filename"] = json_filename
 	return res
 
 func export_single_file(absolute_path: String) -> Dictionary:
 	var clean_path := absolute_path.strip_edges()
 	if clean_path == "":
 		return {"ok": false, "path": "", "error": "Empty path"}
-	var is_json := clean_path.to_lower().ends_with(".json")
-	var content := JSON.stringify(build_export_payload(), "\t") if is_json else build_csv_string()
+	var low_path := clean_path.to_lower()
+	var fmt := "CSV"
 	var f := FileAccess.open(clean_path, FileAccess.WRITE)
 	if f == null:
 		return {"ok": false, "path": clean_path, "error": "Could not write file to selected location"}
-	f.store_string(content)
+	if low_path.ends_with(".html") or low_path.ends_with(".htm"):
+		fmt = "HTML"
+		f.store_string(build_html_report_string())
+	elif low_path.ends_with(".json"):
+		fmt = "JSON"
+		f.store_string(JSON.stringify(build_export_payload(), "\t"))
+	else:
+		fmt = "CSV"
+		f.store_buffer(build_csv_utf8_bom_bytes())
 	f.close()
 	autosave_ledger()
 	return {
 		"ok": true,
 		"path": clean_path,
 		"filename": clean_path.get_file(),
-		"format": "JSON" if is_json else "CSV",
+		"format": fmt,
 		"entry_count": entries.size(),
 		"error": ""
 	}
@@ -768,28 +904,28 @@ func export_ledger_files(custom_dir: String = "user://ledger_exports", custom_st
 			"ok": false,
 			"folder_path": "",
 			"folder_label": "",
-			"json_path": "",
+			"html_path": "",
 			"csv_path": "",
 			"entry_count": entries.size(),
 			"error": "Could not create export directory (err " + str(dir_err) + ")"
 		}
 	var base_name := custom_stem if custom_stem != "" else ("paldo_ledger_" + run_id)
-	var json_path := target_abs.path_join(base_name + ".json")
+	var html_path := target_abs.path_join(base_name + ".html")
 	var csv_path := target_abs.path_join(base_name + ".csv")
 	
-	var jf := FileAccess.open(json_path, FileAccess.WRITE)
-	if jf == null:
+	var hf := FileAccess.open(html_path, FileAccess.WRITE)
+	if hf == null:
 		return {
 			"ok": false,
 			"folder_path": target_abs,
 			"folder_label": "",
-			"json_path": "",
+			"html_path": "",
 			"csv_path": "",
 			"entry_count": entries.size(),
-			"error": "Failed to write JSON file"
+			"error": "Failed to write HTML Financial Report"
 		}
-	jf.store_string(JSON.stringify(build_export_payload(), "\t"))
-	jf.close()
+	hf.store_string(build_html_report_string())
+	hf.close()
 	
 	var cf := FileAccess.open(csv_path, FileAccess.WRITE)
 	if cf == null:
@@ -797,12 +933,12 @@ func export_ledger_files(custom_dir: String = "user://ledger_exports", custom_st
 			"ok": false,
 			"folder_path": target_abs,
 			"folder_label": "",
-			"json_path": json_path,
+			"html_path": html_path,
 			"csv_path": "",
 			"entry_count": entries.size(),
 			"error": "Failed to write CSV file"
 		}
-	cf.store_string(build_csv_string())
+	cf.store_buffer(build_csv_utf8_bom_bytes())
 	cf.close()
 	
 	autosave_ledger()
@@ -810,9 +946,9 @@ func export_ledger_files(custom_dir: String = "user://ledger_exports", custom_st
 		"ok": true,
 		"folder_path": target_abs,
 		"folder_label": "Downloads" if target_abs == OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS) else "Folder",
-		"json_path": json_path,
+		"html_path": html_path,
 		"csv_path": csv_path,
-		"json_filename": base_name + ".json",
+		"html_filename": base_name + ".html",
 		"csv_filename": base_name + ".csv",
 		"entry_count": entries.size(),
 		"error": ""

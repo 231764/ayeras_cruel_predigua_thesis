@@ -28,9 +28,9 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-content_margin_left = 16.0
+content_margin_left = 14.0
 content_margin_top = 10.0
-content_margin_right = 16.0
+content_margin_right = 14.0
 content_margin_bottom = 10.0
 
 [node name="YearEndEvaluationCanvas" type="CanvasLayer"]
@@ -53,10 +53,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -420.0
-offset_top = -285.0
-offset_right = 420.0
-offset_bottom = 285.0
+offset_left = -470.0
+offset_top = -294.0
+offset_right = 470.0
+offset_bottom = 294.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal_panel")
@@ -66,41 +66,92 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 20.0
-offset_right = -24.0
-offset_bottom = -20.0
+offset_left = 20.0
+offset_top = 16.0
+offset_right = -20.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="TitleLabel" type="Label" parent="Backdrop/Panel/VBoxContainer"]
+[node name="HeroCard" type="PanelContainer" parent="Backdrop/Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="HeroHBox" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer/HeroCard"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="GoalFrame" type="PanelContainer" parent="Backdrop/Panel/VBoxContainer/HeroCard/HeroHBox"]
+custom_minimum_size = Vector2(68, 68)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="GoalIcon" type="TextureRect" parent="Backdrop/Panel/VBoxContainer/HeroCard/HeroHBox/GoalFrame"]
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CenterVBox" type="VBoxContainer" parent="Backdrop/Panel/VBoxContainer/HeroCard/HeroHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+
+[node name="TitleLabel" type="Label" parent="Backdrop/Panel/VBoxContainer/HeroCard/HeroHBox/CenterVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 text = "TUNAY NA PALDO!"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="SubtitleLabel" type="Label" parent="Backdrop/Panel/VBoxContainer"]
+[node name="SubtitleLabel" type="Label" parent="Backdrop/Panel/VBoxContainer/HeroCard/HeroHBox/CenterVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.28, 0.24, 0.2, 1)
-theme_override_font_sizes/font_size = 15
-text = "Year-End Victory Conditions Met: 4 / 4"
+theme_override_font_sizes/font_size = 16
+text = "4 sa 4 na Layunin  •  Average Grade: S"
 horizontal_alignment = 1
+autowrap_mode = 3
 
-[node name="ReportLabel" type="RichTextLabel" parent="Backdrop/Panel/VBoxContainer"]
+[node name="MoodFrame" type="PanelContainer" parent="Backdrop/Panel/VBoxContainer/HeroCard/HeroHBox"]
+custom_minimum_size = Vector2(68, 68)
 layout_mode = 2
+size_flags_vertical = 4
+
+[node name="MoodIcon" type="TextureRect" parent="Backdrop/Panel/VBoxContainer/HeroCard/HeroHBox/MoodFrame"]
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PillarsRow" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GradesStripCard" type="PanelContainer" parent="Backdrop/Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="GradesStripHBox" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer/GradesStripCard"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StoryPanel" type="PanelContainer" parent="Backdrop/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_report_bubble")
+
+[node name="ReportLabel" type="RichTextLabel" parent="Backdrop/Panel/VBoxContainer/StoryPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_font_sizes/normal_font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_report_bubble")
+theme_override_font_sizes/bold_font_size = 14
 bbcode_enabled = true
 text = "Year-end report..."
 
 [node name="ButtonsRow" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="ExportLedgerButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsRow"]
 custom_minimum_size = Vector2(0, 44)
@@ -108,20 +159,23 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
 text = "Download Ledger"
+autowrap_mode = 3
 
 [node name="PlayAgainButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsRow"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
-text = "Maglaro Ulit (New 1-Year Run)"
+text = "Maglaro Muli"
+autowrap_mode = 3
 
 [node name="CloseButton" type="Button" parent="Backdrop/Panel/VBoxContainer/ButtonsRow"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
-text = "Isara ang Report"
+text = "Bumalik sa Main Menu"
+autowrap_mode = 3
 
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsRow/ExportLedgerButton" to="." method="_on_export_ledger_button_pressed"]
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/ButtonsRow/PlayAgainButton" to="." method="_on_play_again_button_pressed"]

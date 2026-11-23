@@ -28,6 +28,7 @@ var _last_export_folder: String = ""
 var _header_label: Label
 var _tab_overview_btn: Button
 var _tab_ledger_btn: Button
+var _tab_grades_btn: Button
 var _tab_achievements_btn: Button
 var _download_btn: Button
 
@@ -42,6 +43,7 @@ var _stage_title_lbl: Label
 var _stage_theme_lbl: Label
 var _employment_pill_lbl: Label
 var _victory_grid: GridContainer
+var _obligations_strip_lbl: Label
 var _env_strip: HBoxContainer
 
 var _ledger_container: VBoxContainer
@@ -51,6 +53,11 @@ var _cashflow_bar_lbl: Label
 var _filter_buttons: Dictionary = {}
 var _ledger_scroll: ScrollContainer
 var _ledger_list: VBoxContainer
+
+var _grades_container: VBoxContainer
+var _grades_avg_pill: Label
+var _grades_rubric_grid: GridContainer
+var _grades_months_grid: GridContainer
 
 var _achievements_container: VBoxContainer
 var _ach_progress_bar: ProgressBar
@@ -130,10 +137,9 @@ func _build_dashboard_ui() -> void:
 	# 1. Header Banner
 	_header_label = Label.new()
 	_header_label.name = "DashboardHeader"
-	_header_label.text = "PALDO STATUS & LEDGER"
+	_header_label.text = "Status at Ledger"
 	_header_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_header_label.add_theme_font_size_override("font_size", 17)
-	UITheme.style_header_banner(_header_label, UITheme.BTN_SAGE, 8, 5.0)
+	UITheme.style_header_banner(_header_label, UITheme.BTN_SAGE, 8, 5.0, UITheme.TYPE_HEADING)
 	root_vbox.add_child(_header_label)
 	
 	# 2. Tabs + Direct Download CTA Row
@@ -148,6 +154,9 @@ func _build_dashboard_ui() -> void:
 	_tab_ledger_btn = _create_nav_button("LedgerTabButton", "Ledger (0)", func(): _select_tab("ledger"))
 	nav_row.add_child(_tab_ledger_btn)
 	
+	_tab_grades_btn = _create_nav_button("GradesTabButton", "Report Card", func(): _select_tab("grades"))
+	nav_row.add_child(_tab_grades_btn)
+	
 	_tab_achievements_btn = _create_nav_button("AchievementsTabButton", "Badges (0/14)", func(): _select_tab("achievements"))
 	nav_row.add_child(_tab_achievements_btn)
 	
@@ -155,9 +164,10 @@ func _build_dashboard_ui() -> void:
 	_download_btn.name = "DownloadLedgerButton"
 	_download_btn.text = "Download Ledger"
 	_download_btn.tooltip_text = "Save CSV & JSON directly to your device Downloads folder"
-	_download_btn.custom_minimum_size = Vector2(174, 36)
-	_download_btn.add_theme_font_size_override("font_size", 13)
+	_download_btn.custom_minimum_size = Vector2(182, 36)
+	UITheme.apply_type(_download_btn, UITheme.TYPE_BODY, UITheme.FONT_UI)
 	UITheme.style_Button(_download_btn, UITheme.BTN_BLUE, 8, 4, 10.0, 5.0)
+	UITheme.set_button_icon(_download_btn, UITheme.ICON_DOWNLOAD, false)
 	_download_btn.pressed.connect(_on_download_pressed)
 	nav_row.add_child(_download_btn)
 	
@@ -184,7 +194,10 @@ func _build_dashboard_ui() -> void:
 	_open_folder_btn.custom_minimum_size = Vector2(104, 28)
 	_open_folder_btn.add_theme_font_size_override("font_size", 12)
 	UITheme.style_Button(_open_folder_btn, UITheme.BTN_GOLD, 6, 3, 8.0, 3.0)
-	_open_folder_btn.pressed.connect(func(): LedgerManager.open_export_folder(_last_export_folder))
+	_open_folder_btn.pressed.connect(func():
+		AudioManager.play_sfx("click")
+		LedgerManager.open_export_folder(_last_export_folder)
+	)
 	_export_bar.add_child(_open_folder_btn)
 	
 	_save_as_btn = Button.new()
@@ -193,7 +206,10 @@ func _build_dashboard_ui() -> void:
 	_save_as_btn.custom_minimum_size = Vector2(92, 28)
 	_save_as_btn.add_theme_font_size_override("font_size", 12)
 	UITheme.style_Button(_save_as_btn, UITheme.PAPER_CREAM, 6, 3, 8.0, 3.0)
-	_save_as_btn.pressed.connect(_on_save_as_pressed)
+	_save_as_btn.pressed.connect(func():
+		AudioManager.play_sfx("click")
+		_on_save_as_pressed()
+	)
 	_export_bar.add_child(_save_as_btn)
 	
 	# Native OS FileDialog for optional Save As...
@@ -202,8 +218,12 @@ func _build_dashboard_ui() -> void:
 	_save_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
 	_save_dialog.access = FileDialog.ACCESS_FILESYSTEM
 	_save_dialog.use_native_dialog = true
-	_save_dialog.title = "Save Paldo Ledger"
-	_save_dialog.filters = PackedStringArray(["*.csv ; CSV Spreadsheet", "*.json ; JSON Dataset"])
+	_save_dialog.title = "Save Paldo Financial Report or Dataset"
+	_save_dialog.filters = PackedStringArray([
+		"*.html ; Printable Financial Report (HTML)",
+		"*.csv ; Spreadsheet Data (CSV)",
+		"*.json ; Raw Data (JSON)"
+	])
 	_save_dialog.file_selected.connect(_on_save_dialog_file_selected)
 	add_child(_save_dialog)
 	
@@ -216,6 +236,7 @@ func _build_dashboard_ui() -> void:
 	
 	_build_overview_tab(content_stack)
 	_build_ledger_tab(content_stack)
+	_build_grades_tab(content_stack)
 	_build_achievements_tab(content_stack)
 
 func _create_nav_button(btn_name: String, label_txt: String, callback: Callable) -> Button:
@@ -224,7 +245,7 @@ func _create_nav_button(btn_name: String, label_txt: String, callback: Callable)
 	btn.text = label_txt
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn.custom_minimum_size = Vector2(0, 36)
-	btn.add_theme_font_size_override("font_size", 14)
+	UITheme.apply_type(btn, UITheme.TYPE_BODY, UITheme.FONT_UI)
 	btn.pressed.connect(callback)
 	return btn
 
@@ -251,13 +272,13 @@ func _build_overview_tab(parent_ctrl: Control) -> void:
 	
 	_stage_title_lbl = Label.new()
 	_stage_title_lbl.name = "StageTitleLabel"
-	_stage_title_lbl.add_theme_font_size_override("font_size", 15)
+	UITheme.apply_type(_stage_title_lbl, UITheme.TYPE_SUBHEAD, UITheme.FONT_HEADING)
 	_stage_title_lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
 	stage_vb.add_child(_stage_title_lbl)
 	
 	_stage_theme_lbl = Label.new()
 	_stage_theme_lbl.name = "StageThemeLabel"
-	_stage_theme_lbl.add_theme_font_size_override("font_size", 12)
+	UITheme.apply_type(_stage_theme_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_BODY)
 	_stage_theme_lbl.add_theme_color_override("font_color", Color(0.32, 0.25, 0.20, 1.0))
 	_stage_theme_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	stage_vb.add_child(_stage_theme_lbl)
@@ -275,9 +296,17 @@ func _build_overview_tab(parent_ctrl: Control) -> void:
 	_victory_grid.add_theme_constant_override("v_separation", 10)
 	_overview_container.add_child(_victory_grid)
 	
+	_obligations_strip_lbl = Label.new()
+	_obligations_strip_lbl.name = "ObligationsStripLabel"
+	_obligations_strip_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UITheme.apply_type(_obligations_strip_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
+	_obligations_strip_lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
+	_obligations_strip_lbl.add_theme_stylebox_override("normal", UITheme.make_card_style(UITheme.PAPER_STICKY, UITheme.INK_BORDER, 6, 1, 2, 10.0, 4.0))
+	_overview_container.add_child(_obligations_strip_lbl)
+	
 	var env_hdr := Label.new()
-	env_hdr.text = "CASH ENVELOPES AT A GLANCE"
-	env_hdr.add_theme_font_size_override("font_size", 12)
+	env_hdr.text = "Mga Cash Envelope"
+	UITheme.apply_type(env_hdr, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
 	env_hdr.add_theme_color_override("font_color", UITheme.INK_MUTED)
 	_overview_container.add_child(env_hdr)
 	
@@ -325,7 +354,7 @@ func _build_ledger_tab(parent_ctrl: Control) -> void:
 	_cashflow_bar_lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_cashflow_bar_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_cashflow_bar_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_cashflow_bar_lbl.add_theme_font_size_override("font_size", 11)
+	UITheme.apply_type(_cashflow_bar_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
 	_cashflow_bar_lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
 	_cashflow_bar_lbl.add_theme_color_override("font_outline_color", Color(1.0, 0.98, 0.94, 0.92))
 	_cashflow_bar_lbl.add_theme_constant_override("outline_size", 3)
@@ -351,8 +380,8 @@ func _build_ledger_tab(parent_ctrl: Control) -> void:
 		f_btn.name = "Filter_" + f_key
 		f_btn.text = f_lbl
 		f_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		f_btn.custom_minimum_size = Vector2(0, 30)
-		f_btn.add_theme_font_size_override("font_size", 12)
+		f_btn.custom_minimum_size = Vector2(0, 32)
+		UITheme.apply_type(f_btn, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
 		f_btn.pressed.connect(func(): _select_filter(f_key))
 		filter_row.add_child(f_btn)
 		_filter_buttons[f_key] = f_btn
@@ -377,6 +406,64 @@ func _build_ledger_tab(parent_ctrl: Control) -> void:
 	_ledger_list.add_theme_constant_override("separation", 6)
 	_ledger_scroll.add_child(_ledger_list)
 
+func _build_grades_tab(parent_ctrl: Control) -> void:
+	_grades_container = VBoxContainer.new()
+	_grades_container.name = "GradesContainer"
+	_grades_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_grades_container.add_theme_constant_override("separation", 8)
+	_grades_container.visible = false
+	parent_ctrl.add_child(_grades_container)
+	
+	var scale_card := PanelContainer.new()
+	scale_card.name = "RubricBannerCard"
+	scale_card.add_theme_stylebox_override("panel", UITheme.make_card_style(UITheme.PAPER_STICKY, UITheme.INK_BORDER, 8, 2, 3, 12.0, 6.0))
+	_grades_container.add_child(scale_card)
+	
+	var scale_hb := HBoxContainer.new()
+	scale_hb.add_theme_constant_override("separation", 10)
+	scale_card.add_child(scale_hb)
+	
+	var scale_lbl := Label.new()
+	scale_lbl.text = "Batayan ng Marka:   S = 4/4 (+3 Happy, +1 Credit Bonus)   •   A = 3/4   •   B = 2/4   •   C = 0–1/4"
+	scale_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scale_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UITheme.apply_type(scale_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
+	scale_lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
+	scale_hb.add_child(scale_lbl)
+	
+	_grades_avg_pill = _make_badge_pill("Avg: —", UITheme.BTN_GOLD, UITheme.INK_DARK)
+	_grades_avg_pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	scale_hb.add_child(_grades_avg_pill)
+	
+	var rub_hdr := Label.new()
+	rub_hdr.text = "Checklist Para sa Grade S Ngayong Buwan (4 Batayan)"
+	UITheme.apply_type(rub_hdr, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
+	rub_hdr.add_theme_color_override("font_color", UITheme.INK_MUTED)
+	_grades_container.add_child(rub_hdr)
+	
+	_grades_rubric_grid = GridContainer.new()
+	_grades_rubric_grid.name = "RubricGrid"
+	_grades_rubric_grid.columns = 2
+	_grades_rubric_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_grades_rubric_grid.add_theme_constant_override("h_separation", 8)
+	_grades_rubric_grid.add_theme_constant_override("v_separation", 6)
+	_grades_container.add_child(_grades_rubric_grid)
+	
+	var hist_hdr := Label.new()
+	hist_hdr.text = "Kasaysayan ng Buwanang Marka (Jan – Dec)"
+	UITheme.apply_type(hist_hdr, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
+	hist_hdr.add_theme_color_override("font_color", UITheme.INK_MUTED)
+	_grades_container.add_child(hist_hdr)
+	
+	_grades_months_grid = GridContainer.new()
+	_grades_months_grid.name = "MonthsGradeGrid"
+	_grades_months_grid.columns = 4
+	_grades_months_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_grades_months_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_grades_months_grid.add_theme_constant_override("h_separation", 8)
+	_grades_months_grid.add_theme_constant_override("v_separation", 8)
+	_grades_container.add_child(_grades_months_grid)
+
 func _build_achievements_tab(parent_ctrl: Control) -> void:
 	_achievements_container = VBoxContainer.new()
 	_achievements_container.name = "AchievementsContainer"
@@ -396,7 +483,7 @@ func _build_achievements_tab(parent_ctrl: Control) -> void:
 	bar_lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bar_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	bar_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	bar_lbl.add_theme_font_size_override("font_size", 13)
+	UITheme.apply_type(bar_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
 	bar_lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
 	_ach_progress_bar.add_child(bar_lbl)
 	_achievements_container.add_child(_ach_progress_bar)
@@ -416,18 +503,26 @@ func _build_achievements_tab(parent_ctrl: Control) -> void:
 	_ach_grid.add_theme_constant_override("v_separation", 8)
 	ach_scroll.add_child(_ach_grid)
 
+func _switch_tab(tab_id: String) -> void:
+	_select_tab(tab_id)
+
 func _select_tab(tab_id: String) -> void:
+	if _active_tab != tab_id:
+		AudioManager.play_sfx("toggle")
 	_active_tab = tab_id
 	if _overview_container:
 		_overview_container.visible = (tab_id == "overview")
 	if _ledger_container:
 		_ledger_container.visible = (tab_id == "ledger")
+	if _grades_container:
+		_grades_container.visible = (tab_id == "grades")
 	if _achievements_container:
 		_achievements_container.visible = (tab_id == "achievements")
 	_refresh_tab_styles()
 	refresh_all()
 
 func _select_filter(filter_id: String) -> void:
+	AudioManager.play_sfx("toggle")
 	_active_filter = filter_id
 	_ledger_card_limit = INITIAL_CARD_LIMIT
 	_refresh_filter_styles()
@@ -436,6 +531,7 @@ func _select_filter(filter_id: String) -> void:
 func _refresh_tab_styles() -> void:
 	UITheme.style_Button(_tab_overview_btn, UITheme.BTN_GOLD if _active_tab == "overview" else UITheme.PAPER_CREAM, 8, 5 if _active_tab == "overview" else 3, 10.0, 5.0)
 	UITheme.style_Button(_tab_ledger_btn, UITheme.BTN_GOLD if _active_tab == "ledger" else UITheme.PAPER_CREAM, 8, 5 if _active_tab == "ledger" else 3, 10.0, 5.0)
+	UITheme.style_Button(_tab_grades_btn, UITheme.BTN_GOLD if _active_tab == "grades" else UITheme.PAPER_CREAM, 8, 5 if _active_tab == "grades" else 3, 10.0, 5.0)
 	UITheme.style_Button(_tab_achievements_btn, UITheme.BTN_GOLD if _active_tab == "achievements" else UITheme.PAPER_CREAM, 8, 5 if _active_tab == "achievements" else 3, 10.0, 5.0)
 
 func _refresh_filter_styles() -> void:
@@ -457,9 +553,12 @@ func _on_stats_changed() -> void:
 func refresh_all() -> void:
 	var stats := LedgerManager.get_analytics_summary()
 	if _header_label:
-		_header_label.text = "PALDO STATUS & LEDGER  •  " + str(stats["entry_count"]) + " Records  •  " + str(stats["achievements_unlocked"]) + "/" + str(stats["achievements_total"]) + " Badges"
+		_header_label.text = "Status at Ledger"
 	if _tab_ledger_btn:
 		_tab_ledger_btn.text = "Ledger (" + str(stats["entry_count"]) + ")"
+	if _tab_grades_btn:
+		var avg_g := StatManager.get_average_grade_text()
+		_tab_grades_btn.text = "Report Card (" + avg_g + ")" if avg_g != "—" else "Report Card"
 	if _tab_achievements_btn:
 		_tab_achievements_btn.text = "Badges (" + str(stats["achievements_unlocked"]) + "/" + str(stats["achievements_total"]) + ")"
 	_refresh_tab_styles()
@@ -468,6 +567,8 @@ func refresh_all() -> void:
 		_refresh_overview_dashboard()
 	elif _active_tab == "ledger":
 		_refresh_ledger_cards()
+	elif _active_tab == "grades":
+		_refresh_grades_tab()
 	elif _active_tab == "achievements":
 		_refresh_achievements_grid()
 
@@ -479,7 +580,7 @@ func _clear_children(node: Node) -> void:
 func _make_badge_pill(text_val: String, bg_col: Color, fg_col: Color = UITheme.INK_DARK) -> Label:
 	var lbl := Label.new()
 	lbl.text = text_val
-	lbl.add_theme_font_size_override("font_size", 11)
+	UITheme.apply_type(lbl, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
 	lbl.add_theme_color_override("font_color", fg_col)
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = bg_col
@@ -527,14 +628,14 @@ func _make_victory_card(icon_tex: Texture2D, title_txt: String, status_txt: Stri
 	var t_lbl := Label.new()
 	t_lbl.text = title_txt
 	t_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	t_lbl.add_theme_font_size_override("font_size", 14)
+	UITheme.apply_type(t_lbl, UITheme.TYPE_SUBHEAD, UITheme.FONT_HEADING)
 	t_lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
 	top_row.add_child(t_lbl)
 	
 	top_row.add_child(_make_badge_pill(status_txt, UITheme.BTN_SAGE if is_ok else UITheme.BTN_CORAL))
 	
 	var bar := ProgressBar.new()
-	bar.custom_minimum_size = Vector2(0, 20)
+	bar.custom_minimum_size = Vector2(0, 22)
 	bar.max_value = max(1.0, bar_max)
 	bar.value = clamp(bar_val, 0.0, bar.max_value)
 	bar.show_percentage = false
@@ -544,14 +645,14 @@ func _make_victory_card(icon_tex: Texture2D, title_txt: String, status_txt: Stri
 	b_lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
 	b_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	b_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	b_lbl.add_theme_font_size_override("font_size", 11)
+	UITheme.apply_type(b_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
 	b_lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
 	bar.add_child(b_lbl)
 	vb.add_child(bar)
 	
 	var s_lbl := Label.new()
 	s_lbl.text = sub_txt
-	s_lbl.add_theme_font_size_override("font_size", 11)
+	UITheme.apply_type(s_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_BODY)
 	s_lbl.add_theme_color_override("font_color", UITheme.INK_MUTED)
 	s_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vb.add_child(s_lbl)
@@ -577,36 +678,36 @@ func _refresh_overview_dashboard() -> void:
 	_victory_grid.add_child(_make_victory_card(
 		g.get("icon", ICON_GOAL_DEFAULT),
 		str(g["title"]),
-		"REACHED" if goal_ok else str(pct) + "%",
+		"Reached" if goal_ok else str(pct) + "%",
 		goal_ok,
 		float(StatManager.savings),
 		float(target),
-		"PHP " + UITheme.format_num(StatManager.savings) + " / " + UITheme.format_num(target),
-		"Bank Interest Earned: +PHP " + UITheme.format_num(StatManager.total_savings_interest_earned) + "  •  Invest: PHP " + UITheme.format_num(StatManager.get_total_investments())
+		"₱" + UITheme.format_num(StatManager.savings) + " / ₱" + UITheme.format_num(target),
+		"Bank Interest: +₱" + UITheme.format_num(StatManager.total_savings_interest_earned) + "  •  Invest: ₱" + UITheme.format_num(StatManager.get_total_investments())
 	))
 	
 	var wb_ok: bool = (StatManager.happy >= 50 and StatManager.social >= 50)
 	_victory_grid.add_child(_make_victory_card(
 		ICON_HAPPY_MAX if StatManager.happy >= 65 else ICON_HAPPY,
-		"Well-Being & Social",
-		"HEALTHY" if wb_ok else "LOW",
+		"Well-Being at Social",
+		"Healthy" if wb_ok else "Low",
 		wb_ok,
 		float(min(StatManager.happy, StatManager.social)),
 		100.0,
 		"Happy " + str(StatManager.happy) + "  •  Social " + str(StatManager.social),
-		"Target: Keep both Happiness & Social >= 50 until Dec 31."
+		"Panatilihing 50 pataas ang Happiness at Social hanggang Dec 31."
 	))
 	
 	var cs_ok: bool = (StatManager.credit_score >= 70)
 	_victory_grid.add_child(_make_victory_card(
 		ICON_SCORE,
 		"Credit Standing",
-		"GOOD" if cs_ok else "BUILD UP",
+		"Good" if cs_ok else "Build Up",
 		cs_ok,
 		float(StatManager.credit_score),
 		100.0,
-		str(StatManager.credit_score) + " / 100 (Need >= 70)",
-		"Card: PHP " + UITheme.format_num(StatManager.credit_balance) + " / " + UITheme.format_num(StatManager.credit_limit)
+		str(StatManager.credit_score) + " / 100 (Need 70+)",
+		"Card: ₱" + UITheme.format_num(StatManager.credit_balance) + " / ₱" + UITheme.format_num(StatManager.credit_limit)
 	))
 	
 	var total_ob: int = StatManager.get_total_debt_and_loans() + StatManager.credit_balance
@@ -614,13 +715,27 @@ func _refresh_overview_dashboard() -> void:
 	_victory_grid.add_child(_make_victory_card(
 		ICON_LOAN,
 		"Debt-Free Goal",
-		"DEBT-FREE" if debt_ok else "HAS DEBT",
+		"Debt-Free" if debt_ok else "Has Debt",
 		debt_ok,
 		100.0 if debt_ok else max(0.0, 100.0 - float(total_ob) / 500.0),
 		100.0,
-		"PHP 0 Obligations" if debt_ok else "PHP " + UITheme.format_num(total_ob) + " Total Owed",
-		"Overdue: PHP " + UITheme.format_num(StatManager.debt_balance) + "  •  Loans: PHP " + UITheme.format_num(StatManager.get_total_active_loan_balance())
+		"₱0 Obligations" if debt_ok else "₱" + UITheme.format_num(total_ob) + " Total Owed",
+		"Overdue: ₱" + UITheme.format_num(StatManager.debt_balance) + "  •  Loans: ₱" + UITheme.format_num(StatManager.get_total_active_loan_balance())
 	))
+	
+	if _obligations_strip_lbl:
+		var inst_txt: String = StatManager.get_installments_summary_text()
+		var loan_txt: String = StatManager.get_loans_summary_text()
+		var fam_txt: String = "₱" + UITheme.format_num(StatManager.monthly_family_support) + "/buwan"
+		var m_info: Dictionary = StatManager.get_active_monthly_mission()
+		var m_name: String = str(StatManager.year[StatManager.current_month].month)
+		var m_prog: String = "DONE" if bool(m_info.get("completed", false)) else str(int(m_info.get("pct", 0))) + "%"
+		var m_tag: String = str(m_info.get("title", "Mission")) + " — " + m_prog
+		var grade_tag := ""
+		if not StatManager.monthly_grades_history.is_empty():
+			var last_g: Dictionary = StatManager.monthly_grades_history[StatManager.monthly_grades_history.size() - 1]
+			grade_tag = "   •   " + str(last_g.get("month", "")) + " Grade: " + str(last_g.get("grade", ""))
+		_obligations_strip_lbl.text = "Buwanang Bayarin — Installments: " + inst_txt + "   •   Family: " + fam_txt + "   •   Loans: " + loan_txt + "\n" + m_name + " Mission: " + m_tag + grade_tag
 	
 	# Compact Envelope Mini-Tiles
 	_clear_children(_env_strip)
@@ -636,11 +751,112 @@ func _refresh_overview_dashboard() -> void:
 		tile.add_theme_stylebox_override("panel", UITheme.make_card_style(bg_c, UITheme.INK_BORDER, 7, 2, 3, 6.0, 5.0))
 		var lbl := Label.new()
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 11)
+		UITheme.apply_type(lbl, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
 		lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
 		lbl.text = short_n + "\n₱" + UITheme.format_num(amt)
 		tile.add_child(lbl)
 		_env_strip.add_child(tile)
+
+func _refresh_grades_tab() -> void:
+	if not _grades_rubric_grid or not _grades_months_grid:
+		return
+	if _grades_avg_pill:
+		_grades_avg_pill.text = "Avg: " + StatManager.get_average_grade_text()
+	_clear_children(_grades_rubric_grid)
+	var rubric := StatManager.get_monthly_grade_rubric_status()
+	for crit in rubric:
+		var met: bool = bool(crit.get("met", false))
+		var c_card := PanelContainer.new()
+		c_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var bg_col := Color(0.88, 0.95, 0.85, 1.0) if met else UITheme.PAPER_WARM
+		c_card.add_theme_stylebox_override("panel", UITheme.make_card_style(bg_col, UITheme.INK_BORDER, 8, 2, 3, 10.0, 6.0))
+		var hb := HBoxContainer.new()
+		hb.add_theme_constant_override("separation", 8)
+		c_card.add_child(hb)
+		var vb := VBoxContainer.new()
+		vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vb.add_theme_constant_override("separation", 1)
+		hb.add_child(vb)
+		var t_lbl := Label.new()
+		t_lbl.text = str(crit.get("title", ""))
+		UITheme.apply_type(t_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
+		t_lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
+		vb.add_child(t_lbl)
+		var d_lbl := Label.new()
+		d_lbl.text = str(crit.get("detail", ""))
+		d_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UITheme.apply_type(d_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_BODY)
+		d_lbl.add_theme_color_override("font_color", UITheme.INK_MUTED)
+		vb.add_child(d_lbl)
+		var pill := _make_badge_pill("Handa" if met else "Kulang pa", UITheme.BTN_SAGE if met else UITheme.PAPER_STICKY, UITheme.INK_DARK)
+		pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		hb.add_child(pill)
+		_grades_rubric_grid.add_child(c_card)
+
+	_clear_children(_grades_months_grid)
+	var grade_by_idx: Dictionary = {}
+	var grade_by_name: Dictionary = {}
+	for entry in StatManager.monthly_grades_history:
+		if entry is Dictionary:
+			var mi: int = int(entry.get("month_idx", -1))
+			if mi >= 0:
+				grade_by_idx[mi] = entry
+			grade_by_name[str(entry.get("month", ""))] = entry
+	for m_idx in range(StatManager.year.size()):
+		var m_name: String = str(StatManager.year[m_idx]["month"])
+		var short_m: String = m_name.substr(0, 3)
+		var rec: Dictionary = {}
+		if grade_by_idx.has(m_idx):
+			rec = grade_by_idx[m_idx]
+		elif grade_by_name.has(m_name):
+			rec = grade_by_name[m_name]
+		var m_card := PanelContainer.new()
+		m_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		m_card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		var bg := UITheme.PAPER_WARM
+		var grade_str := "—"
+		var badge_bg := Color(0.84, 0.81, 0.75, 1.0)
+		var sub_str := "Kasama ngayon" if m_idx == StatManager.current_month else "Wala pa"
+		if not rec.is_empty():
+			grade_str = str(rec.get("grade", "B"))
+			if grade_str == "S":
+				bg = Color(0.99, 0.94, 0.75, 1.0)
+				badge_bg = UITheme.BTN_GOLD
+			elif grade_str == "A":
+				bg = Color(0.87, 0.95, 0.84, 1.0)
+				badge_bg = UITheme.BTN_SAGE
+			elif grade_str == "B":
+				bg = Color(0.95, 0.91, 0.78, 1.0)
+				badge_bg = UITheme.PAPER_KRAFT
+			else:
+				bg = Color(0.96, 0.86, 0.84, 1.0)
+				badge_bg = UITheme.BTN_CORAL
+			var g_val: int = int(rec.get("savings_growth", 0))
+			var g_sign := "+" if g_val >= 0 else "-"
+			sub_str = str(int(rec.get("score", 0))) + "/4  •  " + g_sign + "₱" + UITheme.format_num(abs(g_val))
+		elif m_idx == StatManager.current_month:
+			bg = UITheme.PAPER_STICKY
+			grade_str = "..."
+		m_card.add_theme_stylebox_override("panel", UITheme.make_card_style(bg, UITheme.INK_BORDER, 8, 2, 3, 10.0, 6.0))
+		var m_vb := VBoxContainer.new()
+		m_vb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		m_vb.add_theme_constant_override("separation", 3)
+		m_card.add_child(m_vb)
+		var top_hb := HBoxContainer.new()
+		m_vb.add_child(top_hb)
+		var m_lbl := Label.new()
+		m_lbl.text = short_m
+		m_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UITheme.apply_type(m_lbl, UITheme.TYPE_BODY, UITheme.FONT_HEADING)
+		m_lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
+		top_hb.add_child(m_lbl)
+		top_hb.add_child(_make_badge_pill(grade_str, badge_bg, UITheme.INK_DARK))
+		var sub_l := Label.new()
+		sub_l.text = sub_str
+		UITheme.apply_type(sub_l, UITheme.TYPE_CAPTION, UITheme.FONT_BODY)
+		sub_l.add_theme_color_override("font_color", UITheme.INK_MUTED)
+		m_vb.add_child(sub_l)
+		_grades_months_grid.add_child(m_card)
 
 func _make_kpi_tile(icon_tex: Texture2D, title_txt: String, value_txt: String, val_color: Color, bg_color: Color) -> PanelContainer:
 	var tile := PanelContainer.new()
@@ -661,12 +877,12 @@ func _make_kpi_tile(icon_tex: Texture2D, title_txt: String, value_txt: String, v
 	hb.add_child(vb)
 	var t := Label.new()
 	t.text = title_txt
-	t.add_theme_font_size_override("font_size", 10)
+	UITheme.apply_type(t, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
 	t.add_theme_color_override("font_color", UITheme.INK_MUTED)
 	vb.add_child(t)
 	var v := Label.new()
 	v.text = value_txt
-	v.add_theme_font_size_override("font_size", 13)
+	UITheme.apply_type(v, UITheme.TYPE_BODY, UITheme.FONT_BOLD)
 	v.add_theme_color_override("font_color", val_color)
 	vb.add_child(v)
 	return tile
@@ -730,7 +946,7 @@ func _make_ledger_row_card(e: Dictionary) -> PanelContainer:
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_lbl.clip_text = true
 	title_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	title_lbl.add_theme_font_size_override("font_size", 13)
+	UITheme.apply_type(title_lbl, UITheme.TYPE_BODY, UITheme.FONT_UI)
 	title_lbl.add_theme_color_override("font_color", UITheme.INK_DARK)
 	title_hb.add_child(title_lbl)
 	
@@ -738,7 +954,7 @@ func _make_ledger_row_card(e: Dictionary) -> PanelContainer:
 	var date_short := str(gd.get("month_name", "")).left(3) + " " + str(gd.get("day", 1)) + " • " + str(gd.get("weekday", ""))
 	var date_lbl := Label.new()
 	date_lbl.text = date_short
-	date_lbl.add_theme_font_size_override("font_size", 11)
+	UITheme.apply_type(date_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_BODY)
 	date_lbl.add_theme_color_override("font_color", UITheme.INK_MUTED)
 	title_hb.add_child(date_lbl)
 	
@@ -747,18 +963,18 @@ func _make_ledger_row_card(e: Dictionary) -> PanelContainer:
 	chips_hb.add_theme_constant_override("separation", 5)
 	mid_vb.add_child(chips_hb)
 	
-	var type_badge_txt := "DECISION" if et == "decision" else ("BADGE" if et == "achievement" else ("MILESTONE" if et == "milestone" else cat.to_upper()))
+	var type_badge_txt := "Decision" if et == "decision" else ("Badge" if et == "achievement" else ("Milestone" if et == "milestone" else cat))
 	var type_bg := UITheme.BTN_GOLD if (et == "decision" or et == "achievement") else UITheme.PAPER_WARM
 	chips_hb.add_child(_make_badge_pill(type_badge_txt, type_bg))
 	
 	var deltas: Dictionary = e.get("deltas", {})
 	var chip_defs := [
 		["savings", "Ipon", true, false],
-		["credit_balance", "CC", true, true],
-		["debt_balance", "Debt", true, true],
+		["credit_balance", "Card", true, true],
+		["debt_balance", "Utang", true, true],
 		["happy", "Happy", false, false],
 		["social", "Social", false, false],
-		["credit_score", "CS", false, false]
+		["credit_score", "Credit", false, false]
 	]
 	var chip_count := 0
 	for cd in chip_defs:
@@ -780,7 +996,7 @@ func _make_ledger_row_card(e: Dictionary) -> PanelContainer:
 		sum_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		sum_lbl.clip_text = true
 		sum_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		sum_lbl.add_theme_font_size_override("font_size", 11)
+		UITheme.apply_type(sum_lbl, UITheme.TYPE_CAPTION, UITheme.FONT_BODY)
 		sum_lbl.add_theme_color_override("font_color", UITheme.INK_MUTED)
 		chips_hb.add_child(sum_lbl)
 	
@@ -793,7 +1009,7 @@ func _make_ledger_row_card(e: Dictionary) -> PanelContainer:
 	if cash_d != 0:
 		var amt_txt := ("+₱" if cash_d > 0 else "-₱") + UITheme.format_num(abs(cash_d))
 		var amt_pill := _make_badge_pill(amt_txt, Color(0.82, 0.94, 0.80, 1.0) if cash_d > 0 else Color(0.98, 0.82, 0.78, 1.0), UITheme.TEXT_SUCCESS if cash_d > 0 else UITheme.TEXT_DANGER)
-		amt_pill.add_theme_font_size_override("font_size", 13)
+		UITheme.apply_type(amt_pill, UITheme.TYPE_BODY, UITheme.FONT_UI)
 		amt_pill.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		right_vb.add_child(amt_pill)
 	
@@ -807,8 +1023,10 @@ func _make_ledger_row_card(e: Dictionary) -> PanelContainer:
 		d_rtf.fit_content = true
 		d_rtf.scroll_active = false
 		d_rtf.add_theme_color_override("default_color", UITheme.INK_DARK)
-		d_rtf.add_theme_font_size_override("normal_font_size", 11)
-		d_rtf.add_theme_font_size_override("bold_font_size", 11)
+		d_rtf.add_theme_font_override("normal_font", UITheme.FONT_BODY)
+		d_rtf.add_theme_font_override("bold_font", UITheme.FONT_BOLD)
+		d_rtf.add_theme_font_size_override("normal_font_size", UITheme.TYPE_CAPTION)
+		d_rtf.add_theme_font_size_override("bold_font_size", UITheme.TYPE_CAPTION)
 		var alts: Array = tf.get("alternatives", [])
 		var d_txt := "[b]Pinili:[/b] " + str(tf.get("chosen_option", ""))
 		if str(tf.get("opportunity_cost_note", "")) != "":
@@ -820,13 +1038,15 @@ func _make_ledger_row_card(e: Dictionary) -> PanelContainer:
 		outer_vb.add_child(drawer)
 		
 		var toggle_btn := Button.new()
-		toggle_btn.text = "Tradeoff v"
-		toggle_btn.custom_minimum_size = Vector2(84, 22)
-		toggle_btn.add_theme_font_size_override("font_size", 10)
-		UITheme.style_Button(toggle_btn, UITheme.PAPER_KRAFT, 5, 2, 6.0, 2.0)
+		toggle_btn.text = "Tradeoff"
+		toggle_btn.custom_minimum_size = Vector2(96, 26)
+		UITheme.apply_type(toggle_btn, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
+		UITheme.style_Button(toggle_btn, UITheme.PAPER_KRAFT, 5, 2, 8.0, 2.0)
+		UITheme.set_button_icon(toggle_btn, UITheme.ICON_CHEVRON_DOWN, true)
 		toggle_btn.pressed.connect(func():
 			drawer.visible = not drawer.visible
-			toggle_btn.text = "Hide ^" if drawer.visible else "Tradeoff v"
+			toggle_btn.text = "Itago" if drawer.visible else "Tradeoff"
+			UITheme.set_button_icon(toggle_btn, UITheme.ICON_CHEVRON_UP if drawer.visible else UITheme.ICON_CHEVRON_DOWN, true)
 		)
 		right_vb.add_child(toggle_btn)
 		
@@ -836,11 +1056,11 @@ func _refresh_ledger_cards() -> void:
 	var stats := LedgerManager.get_analytics_summary()
 	if _kpi_grid:
 		_clear_children(_kpi_grid)
-		_kpi_grid.add_child(_make_kpi_tile(ICON_CASH, "INFLOW", "+₱" + UITheme.format_num(int(stats["total_inflow"])), UITheme.TEXT_SUCCESS, Color(0.88, 0.96, 0.86, 1.0)))
-		_kpi_grid.add_child(_make_kpi_tile(ICON_LOAN, "OUTFLOW", "-₱" + UITheme.format_num(int(stats["total_outflow"])), UITheme.TEXT_DANGER, Color(0.99, 0.89, 0.86, 1.0)))
+		_kpi_grid.add_child(_make_kpi_tile(ICON_CASH, "Inflow", "+₱" + UITheme.format_num(int(stats["total_inflow"])), UITheme.TEXT_SUCCESS, Color(0.88, 0.96, 0.86, 1.0)))
+		_kpi_grid.add_child(_make_kpi_tile(ICON_LOAN, "Outflow", "-₱" + UITheme.format_num(int(stats["total_outflow"])), UITheme.TEXT_DANGER, Color(0.99, 0.89, 0.86, 1.0)))
 		var nw: int = int(stats["net_worth"])
-		_kpi_grid.add_child(_make_kpi_tile(ICON_BANK, "NET WORTH", ("₱" if nw >= 0 else "-₱") + UITheme.format_num(abs(nw)), UITheme.TEXT_SUCCESS if nw >= 0 else UITheme.TEXT_DANGER, UITheme.PAPER_KRAFT))
-		_kpi_grid.add_child(_make_kpi_tile(ICON_SCORE, "DECISIONS", str(stats["decisions_count"]) + " Choices", UITheme.INK_DARK, UITheme.PAPER_CREAM))
+		_kpi_grid.add_child(_make_kpi_tile(ICON_BANK, "Net Worth", ("₱" if nw >= 0 else "-₱") + UITheme.format_num(abs(nw)), UITheme.TEXT_SUCCESS if nw >= 0 else UITheme.TEXT_DANGER, UITheme.PAPER_KRAFT))
+		_kpi_grid.add_child(_make_kpi_tile(ICON_SCORE, "Decisions", str(stats["decisions_count"]) + " Choices", UITheme.INK_DARK, UITheme.PAPER_CREAM))
 		
 	if _cashflow_bar:
 		var inf: float = float(max(0, int(stats["total_inflow"])))
@@ -849,7 +1069,7 @@ func _refresh_ledger_cards() -> void:
 		var ratio: float = 50.0 if tot_flow <= 0.0 else clamp((inf / tot_flow) * 100.0, 0.0, 100.0)
 		_cashflow_bar.value = ratio
 		if _cashflow_bar_lbl:
-			_cashflow_bar_lbl.text = "CASH FLOW RATIO: " + str(int(round(ratio))) + "% INFLOW  •  SAVINGS RATE: " + str(stats["savings_rate_pct"]) + "%"
+			_cashflow_bar_lbl.text = "Cash Flow: " + str(int(round(ratio))) + "% Inflow  •  Savings Rate: " + str(stats["savings_rate_pct"]) + "%"
 			
 	if not _ledger_list:
 		return
@@ -874,9 +1094,10 @@ func _refresh_ledger_cards() -> void:
 		var more_btn := Button.new()
 		more_btn.text = "Load Older Records (" + str(start_idx) + " more)"
 		more_btn.custom_minimum_size = Vector2(0, 34)
-		more_btn.add_theme_font_size_override("font_size", 12)
+		UITheme.apply_type(more_btn, UITheme.TYPE_BODY, UITheme.FONT_UI)
 		UITheme.style_Button(more_btn, UITheme.PAPER_CREAM, 6, 3, 10.0, 4.0)
 		more_btn.pressed.connect(func():
+			AudioManager.play_sfx("click")
 			_ledger_card_limit += 45
 			_refresh_ledger_cards()
 		)
@@ -896,7 +1117,7 @@ func _refresh_achievements_grid() -> void:
 		_ach_progress_bar.value = float(unlocked_cnt)
 		var bl := _ach_progress_bar.get_node_or_null("BarLabel") as Label
 		if bl:
-			bl.text = "BADGES UNLOCKED: " + str(unlocked_cnt) + " / " + str(catalog.size())
+			bl.text = "Badges Unlocked: " + str(unlocked_cnt) + " / " + str(catalog.size())
 			
 	for item in catalog:
 		var is_unlocked: bool = bool(item.get("unlocked", false))
@@ -928,12 +1149,12 @@ func _refresh_achievements_grid() -> void:
 		var title_l := Label.new()
 		title_l.text = str(item["title"])
 		title_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		title_l.add_theme_font_size_override("font_size", 13)
+		UITheme.apply_type(title_l, UITheme.TYPE_BODY, UITheme.FONT_UI)
 		title_l.add_theme_color_override("font_color", UITheme.INK_DARK if is_unlocked else UITheme.INK_MUTED)
 		top_hb.add_child(title_l)
 		
 		top_hb.add_child(_make_badge_pill(
-			str(item.get("unlocked_date_text", "UNLOCKED")) if is_unlocked else "LOCKED",
+			str(item.get("unlocked_date_text", "Unlocked")) if is_unlocked else "Locked",
 			UITheme.BTN_SAGE if is_unlocked else Color(0.84, 0.81, 0.75, 1.0),
 			UITheme.INK_DARK if is_unlocked else UITheme.INK_MUTED
 		))
@@ -941,7 +1162,7 @@ func _refresh_achievements_grid() -> void:
 		var desc_l := Label.new()
 		desc_l.text = str(item["description"])
 		desc_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_l.add_theme_font_size_override("font_size", 11)
+		UITheme.apply_type(desc_l, UITheme.TYPE_CAPTION, UITheme.FONT_BODY)
 		desc_l.add_theme_color_override("font_color", UITheme.INK_DARK if is_unlocked else UITheme.INK_MUTED)
 		vb.add_child(desc_l)
 		
@@ -949,7 +1170,7 @@ func _refresh_achievements_grid() -> void:
 			var les_l := Label.new()
 			les_l.text = "Tip: " + str(item["lesson"])
 			les_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			les_l.add_theme_font_size_override("font_size", 11)
+			UITheme.apply_type(les_l, UITheme.TYPE_CAPTION, UITheme.FONT_UI)
 			les_l.add_theme_color_override("font_color", Color(0.10, 0.29, 0.48, 1.0))
 			vb.add_child(les_l)
 			
@@ -957,6 +1178,10 @@ func _refresh_achievements_grid() -> void:
 
 func _on_download_pressed() -> void:
 	var res := LedgerManager.export_to_device_downloads()
+	if bool(res.get("ok", false)):
+		AudioManager.play_sfx("coin")
+	else:
+		AudioManager.play_sfx("alert")
 	_last_export_folder = str(res.get("folder_path", ""))
 	if _export_bar:
 		_export_bar.visible = true
@@ -967,7 +1192,7 @@ func _on_download_pressed() -> void:
 	if _export_status_lbl:
 		if bool(res.get("ok", false)):
 			_export_status_lbl.add_theme_color_override("font_color", UITheme.TEXT_SUCCESS)
-			_export_status_lbl.text = "Saved to " + str(res.get("folder_label", "Downloads")) + ": " + str(res.get("csv_filename", "")) + " & .json (" + str(res["entry_count"]) + " rows)"
+			_export_status_lbl.text = "Saved to " + str(res.get("folder_label", "Downloads")) + ": " + str(res.get("html_filename", "")) + " & .csv (" + str(res["entry_count"]) + " rows)"
 		else:
 			_export_status_lbl.add_theme_color_override("font_color", UITheme.TEXT_DANGER)
 			_export_status_lbl.text = "Download failed: " + str(res.get("error", "Unknown error"))
@@ -977,7 +1202,7 @@ func _on_save_as_pressed() -> void:
 		return
 	var target := LedgerManager.resolve_device_downloads_dir()
 	_save_dialog.current_dir = str(target["path"])
-	_save_dialog.current_file = LedgerManager._build_friendly_export_stem() + ".csv"
+	_save_dialog.current_file = LedgerManager._build_friendly_export_stem() + ".html"
 	_save_dialog.popup_centered_ratio(0.65)
 
 func _on_save_dialog_file_selected(path: String) -> void:

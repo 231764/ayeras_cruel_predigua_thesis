@@ -1,5 +1,7 @@
 extends Node
 
+const UITheme = preload("res://scripts/ui_theme.gd")
+
 signal on_direct_event_triggered(event_data)
 signal on_indirect_event_triggered(event_data)
 signal on_event_resolved(event_id)
@@ -11,6 +13,7 @@ var event_history: Array = []
 var current_stage = 1
 var is_direct_event_active: bool = false
 var last_evaluated_phase_key: String = ""
+var _event_texture_cache: Dictionary = {}
 
 func _ready() -> void:
 	load_events_from_json("res://data/events.json")
@@ -55,39 +58,40 @@ func trigger_event(event_id: String) -> void:
 	if event_id == "credit_card_statement":
 		var bal = StatManager.credit_balance
 		var min_due = StatManager.get_credit_minimum_due()
-		event["description"] = "Narito na ang iyong monthly Credit Card Statement!\nTotal Balance: PHP " + str(bal) + " | Minimum Due (10%): PHP " + str(min_due) + "\nKung Minimum Due lang ang babayaran mo, papatungan ng 5% compounding interest ang natitirang balanse sa katapusan."
+		event["description"] = "Narito na ang iyong monthly Credit Card Statement!\nTotal Balance: ₱" + UITheme.format_num(bal) + "  |  Minimum Due (10%): ₱" + UITheme.format_num(min_due) + "\nKung Minimum Due lang ang babayaran mo, papatungan ng 3% interest (BSP cap) ang natitirang balanse sa katapusan."
 		if event["options"].size() >= 2:
-			event["options"][0]["choice_text"] = "Bayaran nang Buo (PHP " + str(bal) + " — 0 Interest, +3 Credit Score)"
-			event["options"][1]["choice_text"] = "Bayaran lang ang Minimum Due (PHP " + str(min_due) + " — -2 Credit Score)"
+			event["options"][0]["choice_text"] = "Bayaran nang Buo (₱" + UITheme.format_num(bal) + " — 0 Interest, +3 Credit Score)"
+			event["options"][1]["choice_text"] = "Bayaran lang ang Minimum Due (₱" + UITheme.format_num(min_due) + " — -2 Credit Score)"
 	elif event_id == "interest_applied":
 		var unpaid_base: int = StatManager.credit_balance + StatManager.debt_balance + StatManager.get_total_active_loan_balance()
 		var interest_amt: int = clamp(int(round(float(max(5000, unpaid_base)) * 0.10)), 500, 1500)
-		event["description"] = "Pumatong na ang interest na +PHP " + str(interest_amt) + " sa iyong hindi pa bayad na Credit o Utang (Unpaid Balance: PHP " + str(unpaid_base) + ")! Kahit wala kang bagong binibili, lumalaki ang utang kapag may natitirang balanse."
+		event["description"] = "Pumatong na ang interest na +₱" + UITheme.format_num(interest_amt) + " sa iyong hindi pa bayad na Credit o Utang (Balance: ₱" + UITheme.format_num(unpaid_base) + "). Lumalaki ang utang bawat buwan kapag hindi agad binabayaran."
 		if event["options"].size() >= 2:
 			event["options"][0]["cost"] = interest_amt
-			event["options"][0]["choice_text"] = "Bayaran agad ang Interest sa Cash (PHP " + str(interest_amt) + " — +1 Credit Score)"
+			event["options"][0]["choice_text"] = "Bayaran agad ang Interest sa Cash (₱" + UITheme.format_num(interest_amt) + " — +1 Credit Score)"
 			event["options"][1]["add_interest_to_balance"] = interest_amt
-			event["options"][1]["choice_text"] = "Idagdag sa utang/credit balance (+PHP " + str(interest_amt) + " Obligation, -3 Credit Score)"
+			event["options"][1]["choice_text"] = "Idagdag sa utang/credit balance (+₱" + UITheme.format_num(interest_amt) + " Obligation, -3 Credit Score)"
 	elif event_id == "investment_fluctuation":
 		var low_bal: int = StatManager.low_risk_investment
 		var high_bal: int = StatManager.high_risk_investment
-		var rally_gain: int = int(round(float(low_bal) * 0.05)) + int(round(float(high_bal) * 0.20))
-		var dip_delta: int = int(round(float(low_bal) * 0.03)) + int(round(float(high_bal) * -0.12))
-		var dip_sign: String = "+" if dip_delta >= 0 else ""
-		event["description"] = "Nagbago ang galaw ng merkado ngayong buwan!\nPortfolio mo ngayon — Low-Risk Fund: PHP " + str(low_bal) + " | High-Risk Stock: PHP " + str(high_bal) + "\n• Market Rally Result: +" + str(rally_gain) + " PHP\n• Market Correction Result: " + dip_sign + str(dip_delta) + " PHP"
+		var hold_delta: int = int(round(float(low_bal) * 0.03)) + int(round(float(high_bal) * -0.10))
+		var panic_delta: int = int(round(float(low_bal) * 0.02)) + int(round(float(high_bal) * -0.14))
+		var h_sign: String = "+" if hold_delta >= 0 else "-"
+		var p_sign: String = "+" if panic_delta >= 0 else "-"
+		event["description"] = "Bumaba pansamantala ang merkado ngayong Agosto!\nPortfolio mo: Low-Risk ₱" + UITheme.format_num(low_bal) + "  •  High-Risk ₱" + UITheme.format_num(high_bal) + "\n• Kung mananatiling naka-invest: " + h_sign + "₱" + UITheme.format_num(abs(hold_delta)) + "\n• Kung mag-panic sell ngayon: " + p_sign + "₱" + UITheme.format_num(abs(panic_delta))
 	elif event_id == "debt_collector_pressure":
 		var total_owed: int = StatManager.get_total_debt_and_loans() + StatManager.credit_balance
 		var demand_pay: int = min(5000, max(1000, total_owed))
-		event["description"] = "Tumatawag at naniningil na ang mga pinagkakautangan mo! Kabuuang Utang/Credit Obligations: PHP " + str(total_owed) + ".\nKailangan mong magbayad ng kahit PHP " + str(demand_pay) + " ngayon upang maiwasan ang matinding stress at pagbagsak ng Credit Score!"
+		event["description"] = "Tumatawag na ang pinagkakautangan mo! Kabuuang Utang at Credit: ₱" + UITheme.format_num(total_owed) + ".\nMagbayad ng ₱" + UITheme.format_num(demand_pay) + " ngayon upang maiwasan ang stress at pagbagsak ng Credit Score."
 		if event["options"].size() >= 1:
 			event["options"][0]["pay_debt_collector"] = demand_pay
-			event["options"][0]["choice_text"] = "Bayaran agad ang PHP " + str(demand_pay) + " sa utang/credit (+3 Credit Score)"
+			event["options"][0]["choice_text"] = "Bayaran agad ang ₱" + UITheme.format_num(demand_pay) + " sa utang at credit"
 	elif event_id == "final_goal_opportunity":
 		var g := StatManager.get_current_goal()
 		var rem_goal: int = max(0, StatManager.get_goal_target() - StatManager.savings)
 		var inv_tot: int = StatManager.get_total_investments()
 		var ob_tot: int = StatManager.get_total_debt_and_loans() + StatManager.credit_balance
-		event["description"] = "Huling buwan na ng taon (Disyembre)!\n• Life Goal (\"" + str(g["title"]) + "\"): PHP " + str(StatManager.savings) + " / PHP " + str(g["cost"]) + " (Kulang: PHP " + str(rem_goal) + ")\n• Investments: PHP " + str(inv_tot) + " | Unpaid Debt/Credit: PHP " + str(ob_tot) + "\nI-consolidate na ang iyong pera bago mag-December 31!"
+		event["description"] = "Disyembre na — huling buwan na ng taon!\n• " + str(g["title"]) + ": ₱" + UITheme.format_num(StatManager.savings) + " / ₱" + UITheme.format_num(int(g["cost"])) + " — Kulang: ₱" + UITheme.format_num(rem_goal) + "\n• Investments: ₱" + UITheme.format_num(inv_tot) + "  •  Utang at Credit: ₱" + UITheme.format_num(ob_tot) + "\nI-consolidate na ang pera mo bago mag-December 31!"
 	
 	# If it's an indirect event, add it to active events
 	if not event["is_direct"]:
@@ -100,15 +104,52 @@ func trigger_event(event_id: String) -> void:
 		current_direct_event = event
 		emit_signal("on_direct_event_triggered", event)
 
+func get_event_image_path(event_id: String) -> String:
+	return "res://assets/event_images/" + event_id + ".png"
+
+func get_event_texture(event_id: String) -> Texture2D:
+	if event_id == "":
+		return null
+	if _event_texture_cache.has(event_id):
+		return _event_texture_cache[event_id] as Texture2D
+	var res_path := get_event_image_path(event_id)
+	var tex: Texture2D = null
+	if ResourceLoader.exists(res_path):
+		tex = ResourceLoader.load(res_path) as Texture2D
+	if tex == null:
+		var abs_path: String = ProjectSettings.globalize_path(res_path)
+		if FileAccess.file_exists(abs_path):
+			var img := Image.load_from_file(abs_path)
+			if img and not img.is_empty():
+				tex = ImageTexture.create_from_image(img)
+	if tex != null:
+		_event_texture_cache[event_id] = tex
+	return tex
+
+func get_event_category_meta(event_data: Dictionary) -> Dictionary:
+	var eid := str(event_data.get("id", "")).to_lower()
+	var title_low := str(event_data.get("title", "")).to_lower()
+	if "credit" in eid or "loan" in eid or "debt" in eid or "interest" in eid or "emergency_fund" in eid:
+		return {"label": "Bangko at Credit", "color": UITheme.BTN_BLUE, "icon_path": "res://assets/creditcard.png"}
+	if "health" in eid or "medical" in eid or "hospitalized" in eid or "condition_worsens" in eid or "ospital" in title_low or "operasyon" in title_low:
+		return {"label": "Kalusugan", "color": UITheme.BTN_CORAL, "icon_path": "res://assets/sad40.png"}
+	if "family" in eid or "sibling" in eid or "housing" in eid or "refrigerator" in eid or "social" in eid or "pamilya" in title_low:
+		return {"label": "Pamilya at Bahay", "color": UITheme.BTN_GOLD, "icon_path": "res://assets/social.png"}
+	if "salary" in eid or "job" in eid or "side_income" in eid or "sideline" in eid or "layoff" in eid or "lifestyle_adjustment" in eid:
+		return {"label": "Trabaho at Kita", "color": UITheme.BTN_SAGE, "icon_path": "res://assets/cashonhand.png"}
+	if "invest" in eid or "market" in eid or "final_goal" in eid:
+		return {"label": "Investment at Goal", "color": UITheme.BTN_BLUE, "icon_path": "res://assets/bank.png"}
+	return {"label": "Gastos at Routine", "color": UITheme.PAPER_KRAFT, "icon_path": "res://assets/budget.png"}
+
 func format_option_Preview_bbcode(opt: Dictionary) -> String:
 	var stats_text := ""
 	var cost: int = int(opt.get("cost", 0))
 	var credit_cost: int = int(opt.get("credit_cost", 0))
 	
 	if cost > 0:
-		stats_text += "[color=#a8261f]-" + str(cost) + " PHP[/color] "
+		stats_text += "[color=#a8261f]-₱" + UITheme.format_num(cost) + "[/color] "
 	elif cost < 0:
-		stats_text += "[color=#1c7033]+" + str(abs(cost)) + " PHP[/color] "
+		stats_text += "[color=#1c7033]+₱" + UITheme.format_num(abs(cost)) + "[/color] "
 		
 	if credit_cost > 0:
 		var can_use_cc := StatManager.can_use_credit_card(credit_cost)
@@ -116,17 +157,19 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 			var new_lim: int = max(StatManager.credit_limit, int(opt.get("credit_limit", 20000)))
 			can_use_cc = (StatManager.credit_balance + credit_cost) <= new_lim
 		if can_use_cc:
-			stats_text += "[color=#1a4b7c]+" + str(credit_cost) + " PHP Credit[/color] "
+			stats_text += "[color=#1a4b7c]+₱" + UITheme.format_num(credit_cost) + " Credit[/color] "
 		else:
-			stats_text += "[color=#5c4f45]" + str(credit_cost) + " PHP (No Credit/Limit)[/color] "
+			stats_text += "[color=#5c4f45]₱" + UITheme.format_num(credit_cost) + " (No Credit/Limit)[/color] "
+	if opt.has("debt_change") and int(opt["debt_change"]) > 0:
+		stats_text += "[color=#a8261f]+₱" + UITheme.format_num(int(opt["debt_change"])) + " Utang[/color] "
 			
 	if opt.get("pay_credit_full", false):
-		stats_text += "[color=#a8261f]-" + str(StatManager.credit_balance) + " PHP (Full Bill)[/color] "
+		stats_text += "[color=#a8261f]-₱" + UITheme.format_num(StatManager.credit_balance) + " (Full Bill)[/color] "
 	elif opt.get("pay_credit_minimum", false):
-		stats_text += "[color=#94520d]-" + str(StatManager.get_credit_minimum_due()) + " PHP (Min Due)[/color] "
+		stats_text += "[color=#94520d]-₱" + UITheme.format_num(StatManager.get_credit_minimum_due()) + " (Min Due)[/color] "
 		
 	if opt.has("add_interest_to_balance") and int(opt["add_interest_to_balance"]) > 0:
-		stats_text += "[color=#a8261f]+" + str(int(opt["add_interest_to_balance"])) + " PHP Obligation[/color] "
+		stats_text += "[color=#a8261f]+₱" + UITheme.format_num(int(opt["add_interest_to_balance"])) + " Obligation[/color] "
 		
 	if opt.has("take_loan") and opt["take_loan"] is Dictionary:
 		var ln: Dictionary = opt["take_loan"]
@@ -134,62 +177,66 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 		var r: float = float(ln.get("monthly_rate", 0.20))
 		var t: int = int(ln.get("term_months", 2))
 		var tot_due: int = p + StatManager.calculate_simple_interest(p, r, t)
-		stats_text += "[color=#94520d]+" + str(p) + " PHP Cash (Repay " + str(tot_due) + " PHP)[/color] "
+		stats_text += "[color=#94520d]+₱" + UITheme.format_num(p) + " Cash (Repay ₱" + UITheme.format_num(tot_due) + ")[/color] "
 		
 	if opt.has("invest_low_risk") and int(opt["invest_low_risk"]) > 0:
-		stats_text += "[color=#1a4b7c]Invest " + str(int(opt["invest_low_risk"])) + " PHP (Low-Risk)[/color] "
+		stats_text += "[color=#1a4b7c]Invest ₱" + UITheme.format_num(int(opt["invest_low_risk"])) + " (Low-Risk)[/color] "
 	if opt.has("invest_high_risk") and int(opt["invest_high_risk"]) > 0:
-		stats_text += "[color=#94520d]Invest " + str(int(opt["invest_high_risk"])) + " PHP (High-Risk)[/color] "
+		stats_text += "[color=#94520d]Invest ₱" + UITheme.format_num(int(opt["invest_high_risk"])) + " (High-Risk)[/color] "
 	if opt.has("deposit_to_savings") and int(opt["deposit_to_savings"]) > 0:
-		stats_text += "[color=#1c7033]+" + str(int(opt["deposit_to_savings"])) + " PHP Savings[/color] "
+		stats_text += "[color=#1c7033]+₱" + UITheme.format_num(int(opt["deposit_to_savings"])) + " Savings[/color] "
 	if opt.has("savings_bonus") and int(opt["savings_bonus"]) > 0:
-		stats_text += "[color=#1c7033]+" + str(int(opt["savings_bonus"])) + " PHP Cashback sa Ipon[/color] "
+		stats_text += "[color=#1c7033]+₱" + UITheme.format_num(int(opt["savings_bonus"])) + " Cashback sa Ipon[/color] "
 	if opt.get("set_side_income", false):
-		stats_text += "[color=#1c7033]+5,000 PHP/mo Side Hustle[/color] "
+		stats_text += "[color=#1c7033]+₱5,000/mo Side Hustle[/color] "
 	if opt.has("monthly_family_support_mod") and int(opt["monthly_family_support_mod"]) > 0:
-		stats_text += "[color=#94520d]+" + str(int(opt["monthly_family_support_mod"])) + " PHP/mo Family Bill[/color] "
+		stats_text += "[color=#94520d]+₱" + UITheme.format_num(int(opt["monthly_family_support_mod"])) + "/mo Family Bill[/color] "
 	if opt.has("apply_investment_rates") and opt["apply_investment_rates"] is Dictionary:
 		var rates: Dictionary = opt["apply_investment_rates"]
 		var lr: int = int(round(float(rates.get("low_rate", 0.0)) * 100.0))
 		var hr: int = int(round(float(rates.get("high_rate", 0.0)) * 100.0))
 		var hr_sign: String = "+" if hr >= 0 else ""
 		stats_text += "[color=#1a4b7c]Low-Risk +" + str(lr) + "% / High-Risk " + hr_sign + str(hr) + "%[/color] "
+	if opt.get("liquidate_investments_to_cash", false):
+		stats_text += "[color=#94520d]Withdraw to Cash[/color] "
+	elif opt.get("liquidate_investments_to_savings", false):
+		stats_text += "[color=#1c7033]Lock Gains to Ipon[/color] "
 		
 	if opt.has("set_employment_status"):
 		var emp_st := str(opt["set_employment_status"])
 		if emp_st == "laid_off":
-			stats_text += "[color=#a8261f]Laid Off (PHP 0/mo)[/color] "
+			stats_text += "[color=#a8261f]Laid Off (₱0/mo)[/color] "
 		elif emp_st == "temporary_job":
-			stats_text += "[color=#94520d]Temp Job (PHP 15,000/mo)[/color] "
+			stats_text += "[color=#94520d]Temp Job (₱15,000/mo)[/color] "
 		elif emp_st == "new_stable_job":
-			stats_text += "[color=#1c7033]Stable Job (PHP 30,000/mo)[/color] "
+			stats_text += "[color=#1c7033]Stable Job (₱30,000/mo)[/color] "
 	if opt.has("withdraw_from_savings_for_event") and int(opt["withdraw_from_savings_for_event"]) > 0:
-		stats_text += "[color=#94520d]-" + str(int(opt["withdraw_from_savings_for_event"])) + " PHP from Savings[/color] "
+		stats_text += "[color=#94520d]-₱" + UITheme.format_num(int(opt["withdraw_from_savings_for_event"])) + " from Savings[/color] "
 	if opt.has("pay_debt_collector") and int(opt["pay_debt_collector"]) > 0:
-		stats_text += "[color=#1c7033]-" + str(int(opt["pay_debt_collector"])) + " PHP Debt/Credit[/color] "
+		stats_text += "[color=#1c7033]-₱" + UITheme.format_num(int(opt["pay_debt_collector"])) + " Debt/Credit[/color] "
 	if opt.has("set_monthly_rent") and int(opt["set_monthly_rent"]) > 0:
-		stats_text += "[color=#1a4b7c]Rent = PHP " + str(int(opt["set_monthly_rent"])) + "/mo[/color] "
+		stats_text += "[color=#1a4b7c]Rent = ₱" + UITheme.format_num(int(opt["set_monthly_rent"])) + "/mo[/color] "
 	if opt.has("final_goal_consolidate") and int(opt["final_goal_consolidate"]) > 0:
-		stats_text += "[color=#1c7033]Consolidate + Save PHP " + str(int(opt["final_goal_consolidate"])) + "[/color] "
+		stats_text += "[color=#1c7033]Consolidate + Save ₱" + UITheme.format_num(int(opt["final_goal_consolidate"])) + "[/color] "
 		
 	if opt.has("installment") and opt["installment"] is Dictionary:
 		var inst: Dictionary = opt["installment"]
-		stats_text += "[color=#94520d]PHP " + str(int(inst.get("monthly_cost", 0))) + "/mo x " + str(int(inst.get("months_left", 0))) + " mos[/color] "
+		stats_text += "[color=#94520d]₱" + UITheme.format_num(int(inst.get("monthly_cost", 0))) + "/mo x " + str(int(inst.get("months_left", 0))) + " mos[/color] "
 		
 	if opt.has("extra_utilities") and int(opt["extra_utilities"]) != 0:
 		var eu_val := int(opt["extra_utilities"])
 		if eu_val > 0:
-			stats_text += "[color=#94520d]+" + str(eu_val) + " PHP Bill[/color] "
+			stats_text += "[color=#94520d]+₱" + UITheme.format_num(eu_val) + " Bill[/color] "
 		else:
-			stats_text += "[color=#1c7033]" + str(eu_val) + " PHP Bill Rebate[/color] "
+			stats_text += "[color=#1c7033]-₱" + UITheme.format_num(abs(eu_val)) + " Bill Rebate[/color] "
 	if opt.has("daily_commute_mod") and int(opt["daily_commute_mod"]) != 0:
 		var dc_val := int(opt["daily_commute_mod"])
-		var dc_sign := "+" if dc_val > 0 else ""
-		stats_text += "[color=#94520d]" + dc_sign + str(dc_val) + " PHP/day Commute[/color] "
+		var dc_sign := "-" if dc_val < 0 else "+"
+		stats_text += "[color=#94520d]" + dc_sign + "₱" + UITheme.format_num(abs(dc_val)) + "/day Commute[/color] "
 	if opt.has("daily_food_mod") and int(opt["daily_food_mod"]) != 0:
 		var df_val := int(opt["daily_food_mod"])
-		var df_sign := "+" if df_val > 0 else ""
-		stats_text += "[color=#94520d]" + df_sign + str(df_val) + " PHP/day Food[/color] "
+		var df_sign := "-" if df_val < 0 else "+"
+		stats_text += "[color=#94520d]" + df_sign + "₱" + UITheme.format_num(abs(df_val)) + "/day Food[/color] "
 		
 	var happy_val: int = int(opt.get("happy_change", 0))
 	if happy_val != 0:
@@ -209,14 +256,44 @@ func format_option_Preview_bbcode(opt: Dictionary) -> String:
 		var color = "#1c7033" if cs_val > 0 else "#a8261f"
 		stats_text += "[color=" + color + "]" + sign_str + str(cs_val) + " Credit Score[/color] "
 		
+	if not is_option_selectable(opt) and not ("No Credit/Limit" in stats_text):
+		if opt.has("withdraw_from_savings_for_event") and StatManager.savings < int(opt["withdraw_from_savings_for_event"]):
+			stats_text += "[color=#a8261f](Kulang Ipon)[/color] "
+		else:
+			stats_text += "[color=#a8261f](Kulang Cash)[/color] "
+		
 	return stats_text
 
 func is_option_selectable(opt: Dictionary) -> bool:
 	if opt.has("credit_cost") and int(opt["credit_cost"]) > 0:
 		if opt.get("unlock_credit_card", false):
 			var new_lim: int = max(StatManager.credit_limit, int(opt.get("credit_limit", 20000)))
-			return (StatManager.credit_balance + int(opt["credit_cost"])) <= new_lim
-		return StatManager.can_use_credit_card(int(opt["credit_cost"]))
+			if (StatManager.credit_balance + int(opt["credit_cost"])) > new_lim:
+				return false
+		elif not StatManager.can_use_credit_card(int(opt["credit_cost"])):
+			return false
+	var cost_val: int = int(opt.get("cost", 0))
+	if opt.has("deposit_to_savings") and int(opt["deposit_to_savings"]) > 0:
+		if (StatManager.current_balance - cost_val) < int(opt["deposit_to_savings"]):
+			return false
+	if opt.has("invest_low_risk") and int(opt["invest_low_risk"]) > 0:
+		if StatManager.current_balance < int(opt["invest_low_risk"]):
+			return false
+	if opt.has("invest_high_risk") and int(opt["invest_high_risk"]) > 0:
+		if StatManager.current_balance < int(opt["invest_high_risk"]):
+			return false
+	if opt.has("withdraw_from_savings_for_event") and int(opt["withdraw_from_savings_for_event"]) > 0:
+		if StatManager.savings < int(opt["withdraw_from_savings_for_event"]):
+			return false
+	if opt.has("pay_debt_collector") and int(opt["pay_debt_collector"]) > 0:
+		if StatManager.current_balance < int(opt["pay_debt_collector"]):
+			return false
+	if opt.get("pay_credit_full", false):
+		if (StatManager.current_balance + StatManager.get_envelope_amount("Credit Card")) < StatManager.credit_balance:
+			return false
+	if opt.get("pay_credit_minimum", false):
+		if (StatManager.current_balance + StatManager.get_envelope_amount("Credit Card")) < StatManager.get_credit_minimum_due():
+			return false
 	return true
 
 func resolve_event(event_id: String, option_index: int) -> void:
@@ -257,9 +334,11 @@ func resolve_event(event_id: String, option_index: int) -> void:
 		else:
 			StatManager.spend_direct(cost)
 			
-	# 3. Apply Credit Card purchase
+	# 3. Apply Credit Card purchase or Hospital/Emergency Promissory debt
 	if credit_cost > 0:
 		StatManager.charge_credit_card(credit_cost)
+	if chosen_option.has("debt_change") and int(chosen_option["debt_change"]) != 0:
+		StatManager.debt_balance = max(0, StatManager.debt_balance + int(chosen_option["debt_change"]))
 		
 	# 4. Apply Credit Card statement payments
 	if chosen_option.get("pay_credit_full", false):
@@ -311,7 +390,7 @@ func resolve_event(event_id: String, option_index: int) -> void:
 	if chosen_option.has("savings_bonus") and int(chosen_option["savings_bonus"]) > 0:
 		var sb_amt: int = int(chosen_option["savings_bonus"])
 		StatManager.savings += sb_amt
-		StatManager.total_savings_interest_earned += sb_amt
+		StatManager.month_deposited_savings += sb_amt
 		StatManager.sync_savings_envelope()
 		
 	if chosen_option.has("apply_investment_rates") and chosen_option["apply_investment_rates"] is Dictionary:
@@ -320,6 +399,10 @@ func resolve_event(event_id: String, option_index: int) -> void:
 			float(rates.get("low_rate", 0.04)),
 			float(rates.get("high_rate", 0.15))
 		)
+	if chosen_option.get("liquidate_investments_to_cash", false):
+		StatManager.withdraw_investments_to_cash()
+	elif chosen_option.get("liquidate_investments_to_savings", false):
+		StatManager.withdraw_investments_to_savings()
 		
 	if chosen_option.has("monthly_family_support_mod"):
 		StatManager.monthly_family_support += int(chosen_option["monthly_family_support_mod"])
@@ -347,7 +430,7 @@ func resolve_event(event_id: String, option_index: int) -> void:
 			var d_pay: int = min(StatManager.debt_balance, pay_rem)
 			StatManager.debt_balance -= d_pay
 			pay_rem -= d_pay
-		if StatManager.active_loans.size() > 0 and pay_rem > 0:
+		while StatManager.active_loans.size() > 0 and pay_rem > 0:
 			var l_rem: int = int(StatManager.active_loans[0].get("remaining_balance", 0))
 			var l_pay: int = min(l_rem, pay_rem)
 			StatManager.active_loans[0]["remaining_balance"] = l_rem - l_pay
@@ -453,6 +536,8 @@ func resolve_event(event_id: String, option_index: int) -> void:
 		opp_parts.append(("Gained +PHP " + str(net_cash_impact)) if net_cash_impact > 0 else ("Spent -PHP " + str(abs(net_cash_impact))))
 	if credit_cost > 0:
 		opp_parts.append("Charged +PHP " + str(credit_cost) + " Credit")
+	if chosen_option.has("debt_change") and int(chosen_option["debt_change"]) > 0:
+		opp_parts.append("+PHP " + str(int(chosen_option["debt_change"])) + " Utang")
 	if happy_delta != 0:
 		opp_parts.append((("+" if happy_delta > 0 else "") + str(happy_delta) + " Happy"))
 	if social_delta != 0:
@@ -495,7 +580,27 @@ func resolve_event(event_id: String, option_index: int) -> void:
 		"social_change": social_delta,
 		"credit_score_change": cs_delta
 	})
-		
+	
+	# Surface an immediate financial literacy micro-lesson on Baldo's desk card
+	if chosen_option.get("pay_credit_full", false):
+		StatManager.set_baldo_lesson("Credit Card", "Paid full! Umiwas ka sa 3% monthly interest (BSP cap) at tumaas ang Credit Score mo.")
+	elif chosen_option.get("pay_credit_minimum", false):
+		StatManager.set_baldo_lesson("Credit Trap", "Minimum payment only leaves the remaining balance earning 3%/mo interest.")
+	elif chosen_option.has("take_loan"):
+		StatManager.set_baldo_lesson("Loans (I = P*r*t)", "Instant cash carries simple interest -- mag-tabi agad para sa monthly due.")
+	elif int(chosen_option.get("invest_high_risk", 0)) > 0:
+		StatManager.set_baldo_lesson("High-Risk Investing", "Stocks swing -12% to +22%. Safe lang ito kung kumpleto ang Emergency Cash.")
+	elif int(chosen_option.get("invest_low_risk", 0)) > 0:
+		StatManager.set_baldo_lesson("Mutual Funds", "Steady +1.5% to +2.5%/mo beats Digital Bank savings while keeping risk low.")
+	elif int(chosen_option.get("deposit_to_savings", 0)) > 0 or int(chosen_option.get("savings_bonus", 0)) > 0:
+		StatManager.set_baldo_lesson("Compound Ipon", "Digital Bank Ipon earns 0.5%/mo (6% p.a.) automatically -- patuloy lang!")
+	elif cost >= 1500:
+		StatManager.set_baldo_lesson("Tradeoff Check", "Malaking ₱" + UITheme.format_num(cost) + " gastos -- Need ba ito o Want, at kumusta ang Goal?")
+	elif cost < 0:
+		StatManager.set_baldo_lesson("Pay Yourself First", "Extra ₱" + UITheme.format_num(abs(cost)) + " cash! Mag-tabi ng 20%+ sa Ipon bago magastos.")
+	StatManager.check_goal_milestones()
+	StatManager.check_monthly_mission_completion()
+	
 	emit_signal("on_event_resolved", event_id)
 	print("Event Resolved: ", event_id, " | Option: ", choice_text)
 	
@@ -562,7 +667,10 @@ func evaluate_daily_events() -> void:
 	# STAGE 3: INTEREST AND FINANCIAL RISK (May - June)
 	elif month == "May":
 		if day == 4 and phase == 0:
-			trigger_event("interest_applied")
+			if (StatManager.credit_balance + StatManager.debt_balance + StatManager.get_total_active_loan_balance()) > 0:
+				trigger_event("interest_applied")
+			else:
+				StatManager.set_baldo_lesson("Debt-Free Win", "Walang pumatong na interest ngayong Mayo dahil ₱0 ang utang at credit balance mo!")
 		elif day == 12 and phase == 1:
 			trigger_event("sibling_hospitalized")
 		elif day == 18 and phase == 1:
@@ -581,7 +689,8 @@ func evaluate_daily_events() -> void:
 		elif day == 12 and phase == 0:
 			trigger_event("inflation_hits_essentials")
 		elif day == 22 and phase == 1:
-			trigger_event("credit_limit_increased")
+			if StatManager.has_credit_card:
+				trigger_event("credit_limit_increased")
 		elif day == 25 and phase == 1:
 			if StatManager.has_credit_card and StatManager.credit_balance > 0:
 				trigger_event("credit_card_statement")

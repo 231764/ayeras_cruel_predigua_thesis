@@ -1,6 +1,33 @@
 extends Node
 
+const UITheme = preload("res://scripts/ui_theme.gd")
+
 signal on_stats_changed
+signal on_mission_completed(mission: Dictionary)
+signal on_goal_milestone_reached(percent: int, reward_happy: int)
+
+const MONTHLY_MISSIONS := [
+	{"month": 0, "title": "Unang Sweldo, Unang Ipon", "desc": "Mag-ipon ng ₱3,000 ngayong buwan", "type": "month_deposit", "target": 3000, "reward_cash": 500, "reward_cs": 2, "reward_happy": 3},
+	{"month": 1, "title": "Disiplinadong Budgeter", "desc": "Makabuo ng 1-week Envelope Streak", "type": "streak", "target": 1, "reward_cash": 400, "reward_cs": 1, "reward_happy": 4},
+	{"month": 2, "title": "Walang Sablay sa Bills", "desc": "Pondohan 100% ang Upa at Bills Envelopes", "type": "bills_ready", "target": 1, "reward_cash": 500, "reward_cs": 2, "reward_happy": 3},
+	{"month": 3, "title": "Compound Snowball", "desc": "Umabot sa ₱10,000 na Ipon sa Bangko", "type": "savings_total", "target": 10000, "reward_cash": 600, "reward_cs": 1, "reward_happy": 4},
+	{"month": 4, "title": "Smart Credit Standing", "desc": "Panatilihing 75+ ang Credit Score", "type": "credit_score", "target": 75, "reward_cash": 500, "reward_cs": 2, "reward_happy": 3},
+	{"month": 5, "title": "Emergency Buffer", "desc": "Umabot sa ₱18,000 na Ipon bago ang krisis", "type": "savings_total", "target": 18000, "reward_cash": 750, "reward_cs": 2, "reward_happy": 4},
+	{"month": 6, "title": "Palaguin ang Pera", "desc": "Mag-invest ng ₱3,000+ o umabot sa ₱22,000 Ipon", "type": "invest_or_save", "target": 3000, "reward_cash": 600, "reward_cs": 1, "reward_happy": 4},
+	{"month": 7, "title": "Balanced Breadwinner", "desc": "Panatilihing 65+ ang Happiness at Social", "type": "wellbeing", "target": 65, "reward_cash": 500, "reward_cs": 1, "reward_happy": 5},
+	{"month": 8, "title": "Matatag sa Krisis", "desc": "Manatiling Zero Overdue Debt at ₱25,000+ Ipon", "type": "zero_debt_savings", "target": 25000, "reward_cash": 800, "reward_cs": 2, "reward_happy": 4},
+	{"month": 9, "title": "Back on Track", "desc": "Mag-ipon ng ₱4,000 ngayong buwan", "type": "month_deposit", "target": 4000, "reward_cash": 750, "reward_cs": 2, "reward_happy": 4},
+	{"month": 10, "title": "Malapit na sa Pangarap", "desc": "Umabot sa 75% ng iyong Life Goal", "type": "goal_pct", "target": 75, "reward_cash": 1000, "reward_cs": 2, "reward_happy": 5},
+	{"month": 11, "title": "Tunay na Paldo Finish", "desc": "Umabot sa 100% ng Life Goal at Zero Debt", "type": "goal_pct", "target": 100, "reward_cash": 1000, "reward_cs": 3, "reward_happy": 6}
+]
+
+var month_start_savings: int = 0
+var month_deposited_savings: int = 0
+var completed_monthly_missions: Dictionary = {}
+var reached_goal_milestones: Array = []
+var monthly_grades_history: Array = []
+var last_baldo_lesson: String = ""
+var last_baldo_lesson_topic: String = ""
 
 var happy := 70 # starting happiness value (0-100 scale, >=50 is Normal)
 var social := 70 # starting sociability/relationship value (0-100 scale, >=50 is Normal)
@@ -13,7 +40,7 @@ var debt_balance := 0 # starting unpaid debt value
 # Credit Card System (GDD Sections 4.3, 4.4, 8.2)
 var has_credit_card: bool = false
 var credit_limit: int = 0
-var credit_monthly_interest_rate: float = 0.05 # 5% monthly compounding interest on unpaid credit balance
+var credit_monthly_interest_rate: float = 0.03 # 3% monthly compounding interest (BSP cap)
 var total_credit_interest_incurred: int = 0
 
 # Preload goal icons
@@ -52,7 +79,8 @@ var life_goals := [
 		"title": "Graduation Fund ng Kapatid",
 		"description": "Maipon ang pang-matrikula at graduation fees ng nakababatang kapatid.",
 		"cost": 40000,
-		"difficulty": "Balanced (Recommended)",
+		"difficulty": "Balanced",
+		"recommended": true,
 		"icon": GOAL_KAPATID
 	},
 	{
@@ -61,6 +89,7 @@ var life_goals := [
 		"description": "Makapagpatayo ng sari-sari store o food cart para sa pamilya.",
 		"cost": 60000,
 		"difficulty": "Challenging",
+		"recommended": false,
 		"icon": GOAL_BUSINESS
 	},
 	{
@@ -68,15 +97,17 @@ var life_goals := [
 		"title": "Pagpapaayos ng Bahay sa Probinsya",
 		"description": "Maipa-renovate ang bubong at bahay ng pamilya sa probinsya.",
 		"cost": 80000,
-		"difficulty": "Hard (Paldo Master)",
+		"difficulty": "Hardcore",
+		"recommended": false,
 		"icon": GOAL_HOUSE
 	}
 ]
 var selected_goal_index: int = 0
 var has_selected_goal: bool = false
+var initial_day_started: bool = false
 
-# Savings Compounding Interest (GDD Section 4.4)
-var savings_monthly_interest_rate: float = 0.02 # 2% monthly compounding interest
+# Savings Compounding Interest (0.5%/mo = ~6% p.a. PH Digital Bank rate)
+var savings_monthly_interest_rate: float = 0.005 # 0.5% monthly compounding interest
 var total_savings_interest_earned: int = 0
 
 # Base Economy Parameters (Rebalanced so entry-level breadwinner can save & survive)
@@ -104,7 +135,7 @@ var envelopes := [
 	{"category": "Rent", "display_name": "Upa\n(Rent)", "amount": 0},
 	{"category": "Utilities", "display_name": "Kuryente/Tubig\n(Utilities)", "amount": 0},
 	{"category": "Credit Card", "display_name": "Credit Card\n(Pambayad sa Bill)", "amount": 0},
-	{"category": "Savings", "display_name": "Ipon / Bangko\n(Savings +2%/mo)", "amount": 0}
+	{"category": "Savings", "display_name": "Ipon / Bangko\n(Digital Bank 6%/yr)", "amount": 0}
 ]
 
 var days_at_zero_happiness: int = 0
@@ -148,6 +179,15 @@ func get_weekday_name(month_idx: int, day_num: int, short_form: bool = false) ->
 	var idx: int = get_weekday_index(month_idx, day_num)
 	return str(WEEKDAY_SHORT[idx] if short_form else WEEKDAY_FULL[idx])
 
+func is_weekend_day(month_idx: int = -1, day_num: int = -1) -> bool:
+	var m: int = current_month if month_idx < 0 else month_idx
+	var d: int = current_day if day_num < 0 else day_num
+	var wk: int = get_weekday_index(m, d)
+	return wk == 0 or wk == 6
+
+func is_commute_day() -> bool:
+	return employment_status != "laid_off" and not is_weekend_day()
+
 
 # Weekly Tracking & Delta Snapshots (GDD Section 3.2)
 var weekly_income: int = 0
@@ -189,6 +229,7 @@ func reset_for_new_run() -> void:
 	phone_upgraded = false
 	selected_goal_index = 0
 	has_selected_goal = false
+	initial_day_started = false
 	total_savings_interest_earned = 0
 	
 	employment_status = "regular"
@@ -220,6 +261,14 @@ func reset_for_new_run() -> void:
 	weekly_envelope_covered_days = 0
 	weekly_total_routine_days = 0
 	envelope_discipline_streak = 0
+	
+	month_start_savings = 0
+	month_deposited_savings = 0
+	completed_monthly_missions.clear()
+	reached_goal_milestones.clear()
+	monthly_grades_history.clear()
+	last_baldo_lesson = ""
+	last_baldo_lesson_topic = ""
 	
 	EventManager.reset_events()
 	PlannerManager.reset_planner()
@@ -339,7 +388,7 @@ func get_installments_summary_text() -> String:
 		return "None"
 	var parts: Array[String] = []
 	for inst in active_installments:
-		parts.append(str(inst["name"]) + " (PHP " + str(inst["monthly_cost"]) + "/mo, " + str(inst["months_left"]) + " mos left)")
+		parts.append(str(inst["name"]) + " — ₱" + UITheme.format_num(int(inst["monthly_cost"])) + "/mo, " + str(inst["months_left"]) + " mos left")
 	return ", ".join(parts)
 
 # --- SIMPLE INTEREST LOANS & LENDING PLATFORM (GDD Sections 4.3, 4.4, 8.3) ---
@@ -507,7 +556,8 @@ func get_loans_summary_text() -> String:
 		return "None"
 	var parts: Array[String] = []
 	for loan in active_loans:
-		parts.append(str(loan["name"]) + " (Remaining: PHP " + str(loan["remaining_balance"]) + ", Due: PHP " + str(min(int(loan["remaining_balance"]), int(loan["monthly_payment"]))) + "/mo, Maturity: " + str(loan["maturity_month"]) + ")")
+		var due_mo: int = min(int(loan["remaining_balance"]), int(loan["monthly_payment"]))
+		parts.append(str(loan["name"]) + " — ₱" + UITheme.format_num(int(loan["remaining_balance"])) + " balance, ₱" + UITheme.format_num(due_mo) + "/mo")
 	return "; ".join(parts)
 
 # --- INVESTMENTS SYSTEM (GDD Section 8.4) ---
@@ -524,15 +574,16 @@ func invest_low_risk(amount: int, force_event: bool = false) -> bool:
 		low_risk_investment += amount
 		total_investment_principal += amount
 		on_stats_changed.emit()
+		check_monthly_mission_completion()
 		if not LedgerManager.is_in_composite():
 			LedgerManager.record_decision(
 				"Investment",
 				"phone_invest",
 				"Invested in Low-Risk Mutual Fund",
-				"Allocated PHP " + str(amount) + " into Low-Risk Fund (+3% to +5%/mo steady).",
-				"Low-Risk Mutual Fund (PHP " + str(amount) + ")",
-				["High-Risk Stock (-15% to +25%)", "Keep liquid cash / deposit to Savings (+2%/mo)"],
-				"Chose steady low-volatility growth (+3–5%/mo) over high-risk stock upside or immediate cash liquidity.",
+				"Allocated ₱" + UITheme.format_num(amount) + " into Low-Risk Fund (+1.5% to +2.5%/mo steady).",
+				"Low-Risk Mutual Fund (₱" + UITheme.format_num(amount) + ")",
+				["High-Risk Stock (-12% to +22%)", "Keep liquid cash / Digital Bank (6%/yr)"],
+				"Chose steady low-volatility growth (+1.5–2.5%/mo) over high-risk stock upside or immediate cash liquidity.",
 				-amount,
 				LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
 				{"tier": "low_risk", "amount": amount}
@@ -556,25 +607,28 @@ func invest_high_risk(amount: int, force_event: bool = false) -> bool:
 		high_risk_investment += amount
 		total_investment_principal += amount
 		on_stats_changed.emit()
+		check_monthly_mission_completion()
 		if not LedgerManager.is_in_composite():
 			LedgerManager.record_decision(
 				"Investment",
 				"phone_invest",
 				"Invested in High-Risk Stock",
-				"Allocated PHP " + str(amount) + " into High-Risk Stock (-15% to +25% volatility).",
-				"High-Risk Stock (PHP " + str(amount) + ")",
-				["Low-Risk Mutual Fund (+3% to +5%/mo)", "Keep liquid cash / deposit to Savings (+2%/mo)"],
-				"Accepted potential -15% downside volatility in exchange for up to +25% return potential.",
+				"Allocated ₱" + UITheme.format_num(amount) + " into High-Risk Stock (-12% to +22% volatility).",
+				"High-Risk Stock (₱" + UITheme.format_num(amount) + ")",
+				["Low-Risk Mutual Fund (+1.5% to +2.5%/mo)", "Keep liquid cash / Digital Bank (6%/yr)"],
+				"Accepted potential -12% downside volatility in exchange for up to +22% return potential.",
 				-amount,
 				LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
 				{"tier": "high_risk", "amount": amount}
 			)
+		check_monthly_mission_completion()
 		return true
 	elif force_event:
 		spend_direct(amount)
 		high_risk_investment += amount
 		total_investment_principal += amount
 		on_stats_changed.emit()
+		check_monthly_mission_completion()
 		return true
 	return false
 
@@ -624,6 +678,8 @@ func withdraw_investments_to_savings() -> int:
 	high_risk_investment = 0
 	sync_savings_envelope()
 	on_stats_changed.emit()
+	check_goal_milestones()
+	check_monthly_mission_completion()
 	if not LedgerManager.is_in_composite():
 		LedgerManager.record_transaction(
 			"Investment",
@@ -647,6 +703,7 @@ func deposit_savings(amount: int) -> bool:
 		var before := LedgerManager.capture_state_snapshot()
 		current_balance -= amount
 		savings += amount
+		month_deposited_savings += amount
 		sync_savings_envelope()
 		on_stats_changed.emit()
 		if not LedgerManager.is_in_composite():
@@ -655,11 +712,13 @@ func deposit_savings(amount: int) -> bool:
 				"Savings",
 				"savings_transfer",
 				"Deposited to Bank Savings (Ipon)",
-				"Transferred PHP " + str(amount) + " from Pocket Cash into Bank Savings (+2%/mo compounding).",
+				"Transferred ₱" + UITheme.format_num(amount) + " from Pocket Cash into Digital Bank Savings (0.5%/mo, 6% p.a.).",
 				0,
 				LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
 				{"direction": "deposit", "amount": amount}
 			)
+		check_goal_milestones()
+		check_monthly_mission_completion()
 		return true
 	return false
 
@@ -692,6 +751,8 @@ func apply_monthly_savings_interest() -> int:
 	total_savings_interest_earned += interest_earned
 	sync_savings_envelope()
 	on_stats_changed.emit()
+	check_goal_milestones()
+	check_monthly_mission_completion()
 	return interest_earned
 
 func modify_happy(amount: int) -> void:
@@ -741,7 +802,7 @@ func get_envelope_recommended_target(category_name: String) -> int:
 		"Food":
 			return get_daily_food_cost() * 15
 		"Transportation":
-			return get_daily_commute_cost() * 15
+			return 0 if employment_status == "laid_off" else (get_daily_commute_cost() * 11)
 		"Entertainment":
 			return 1000
 		"Credit Card":
@@ -834,11 +895,12 @@ func auto_budget_paycheck() -> Dictionary:
 	total_allocated += _top_up_envelope_up_to("Rent", rent_goal, 500)
 	total_allocated += _top_up_envelope_up_to("Utilities", util_goal, 500)
 	
-	# 2. Fund 15 days of Food & Transportation runway (or 7 days if cash is tight)
+	# 2. Fund 15 days of Food and workday Transportation runway
 	var food_15d := get_daily_food_cost() * 15
-	var trans_15d := get_daily_commute_cost() * 15
+	var trans_work := 0 if employment_status == "laid_off" else (get_daily_commute_cost() * 11)
 	total_allocated += _top_up_envelope_up_to("Food", food_15d, 1000)
-	total_allocated += _top_up_envelope_up_to("Transportation", trans_15d, 800)
+	if trans_work > 0:
+		total_allocated += _top_up_envelope_up_to("Transportation", trans_work, 800)
 	
 	# 3. If Credit Card has balance, set aside funds in Credit Card envelope
 	if credit_balance > 0:
@@ -851,7 +913,7 @@ func auto_budget_paycheck() -> Dictionary:
 	total_allocated += _top_up_envelope_up_to("Rent", monthly_rent, 2500)
 	total_allocated += _top_up_envelope_up_to("Utilities", total_util_due, 2500)
 	
-	# 6. Deposit surplus into Savings (Ipon +2%/mo) while keeping a PHP 2,000 pocket cash buffer
+	# 6. Deposit surplus into Savings (Ipon 0.5%/mo = 6%/yr) while keeping a PHP 2,000 pocket cash buffer
 	var saved_amt := 0
 	if current_balance > 2500 and savings < get_goal_target():
 		var save_amt: int = min(2500, current_balance - 2000)
@@ -877,6 +939,8 @@ func auto_budget_paycheck() -> Dictionary:
 			LedgerManager.compute_deltas(before, LedgerManager.capture_state_snapshot()),
 			{"total_allocated": total_allocated, "savings_added": saved_amt}
 		)
+	check_goal_milestones()
+	check_monthly_mission_completion()
 	return {"total_allocated": total_allocated}
 
 func perform_weekend_activity(activity_id: String) -> Dictionary:
@@ -898,7 +962,7 @@ func perform_weekend_activity(activity_id: String) -> Dictionary:
 			modify_happy(6)
 			result["title"] = "Pahinga at Self-Care sa Bahay"
 			result["happy_delta"] = 6
-			result["summary_text"] = "Nagpahinga ka sa bahay ngayong weekend (PHP 0, +6 Happy)!"
+			result["summary_text"] = "Nagpahinga ka sa bahay ngayong weekend (₱0, +6 Happy)."
 		"barkada":
 			var covered := (libangan_before >= 400)
 			spend_from_category("Entertainment", 400)
@@ -912,7 +976,7 @@ func perform_weekend_activity(activity_id: String) -> Dictionary:
 			result["happy_delta"] = h_gain
 			result["social_delta"] = s_gain
 			var src_tag := "mula sa Libangan Envelope" if covered else "mula sa Pocket Cash"
-			result["summary_text"] = "Nag-bonding ka kasama ang barkada (-PHP 400 " + src_tag + ", +" + str(h_gain) + " Happy, +" + str(s_gain) + " Social)!"
+			result["summary_text"] = "Nag-bonding ka kasama ang barkada (-₱400 " + src_tag + ", +" + str(h_gain) + " Happy, +" + str(s_gain) + " Social)."
 		"family":
 			var covered := (libangan_before >= 600)
 			spend_from_category("Entertainment", 600)
@@ -929,8 +993,8 @@ func perform_weekend_activity(activity_id: String) -> Dictionary:
 			result["happy_delta"] = h_gain
 			result["social_delta"] = s_gain
 			result["credit_score_delta"] = cs_gain
-			var src_tag := "mula sa Libangan Envelope (+1 CS Bonus!)" if covered else "mula sa Pocket Cash"
-			result["summary_text"] = "Nakipag-bonding ka sa pamilya (-PHP 600 " + src_tag + ", +" + str(h_gain) + " Happy, +" + str(s_gain) + " Social)!"
+			var src_tag := "mula sa Libangan Envelope (+1 CS Bonus)" if covered else "mula sa Pocket Cash"
+			result["summary_text"] = "Nakipag-bonding ka sa pamilya (-₱600 " + src_tag + ", +" + str(h_gain) + " Happy, +" + str(s_gain) + " Social)."
 		"raket":
 			spend_direct(-1200)
 			modify_happy(-5)
@@ -939,7 +1003,7 @@ func perform_weekend_activity(activity_id: String) -> Dictionary:
 			result["cost"] = -1200
 			result["happy_delta"] = -5
 			result["social_delta"] = -3
-			result["summary_text"] = "Kumayod ka sa Weekend Sideline (+PHP 1,200 Cash, -5 Happy, -3 Social)!"
+			result["summary_text"] = "Kumayod ka sa Weekend Sideline (+₱1,200 Cash, -5 Happy, -3 Social)."
 		_:
 			LedgerManager.end_composite()
 			return result
@@ -1049,7 +1113,7 @@ func snapshot_weekly_summary(week_num: int) -> Dictionary:
 		envelope_discipline_streak += 1
 		modify_happy(2)
 		modify_credit_score(1)
-		PlannerManager.record_event(current_month, current_day, "[Disiplinadong Budgeter Streak: " + str(envelope_discipline_streak) + "w] (+2 Happy, +1 Credit Score)")
+		PlannerManager.record_event(current_month, current_day, "Disiplinadong Budgeter Streak (" + str(envelope_discipline_streak) + " linggo): +2 Happy, +1 Credit Score")
 	elif tot_days > 0:
 		envelope_discipline_streak = 0
 		
@@ -1093,7 +1157,180 @@ func snapshot_weekly_summary(week_num: int) -> Dictionary:
 		{"week_num": week_num, "discipline_bonus": discipline_bonus, "streak": envelope_discipline_streak}
 	)
 	LedgerManager.autosave_ledger()
+	check_monthly_mission_completion()
 	return summary_data
+
+func set_baldo_lesson(topic: String, lesson: String) -> void:
+	last_baldo_lesson_topic = topic
+	last_baldo_lesson = lesson
+	on_stats_changed.emit()
+
+func get_active_monthly_mission() -> Dictionary:
+	var m_idx: int = clamp(current_month, 0, MONTHLY_MISSIONS.size() - 1)
+	var base_m: Dictionary = (MONTHLY_MISSIONS[m_idx] as Dictionary).duplicate(true)
+	var m_type: String = str(base_m.get("type", "savings_total"))
+	var target_val: int = max(1, int(base_m.get("target", 1)))
+	var cur_val: int = 0
+	var is_met: bool = false
+	match m_type:
+		"month_deposit":
+			cur_val = month_deposited_savings
+			is_met = (cur_val >= target_val)
+		"streak":
+			cur_val = envelope_discipline_streak
+			is_met = (cur_val >= target_val)
+		"bills_ready":
+			var rent_ok := (get_envelope_amount("Rent") >= monthly_rent)
+			var total_u := monthly_utilities + extra_utilities_this_month + get_total_monthly_installments() + monthly_family_support
+			var util_ok := (get_envelope_amount("Utilities") >= total_u)
+			cur_val = 1 if (rent_ok and util_ok) else 0
+			is_met = (cur_val >= 1)
+		"savings_total":
+			cur_val = savings
+			is_met = (cur_val >= target_val)
+		"credit_score":
+			cur_val = credit_score
+			is_met = (cur_val >= target_val)
+		"invest_or_save":
+			cur_val = get_total_investments()
+			is_met = (cur_val >= target_val or savings >= 22000)
+		"wellbeing":
+			cur_val = min(happy, social)
+			is_met = (cur_val >= target_val)
+		"zero_debt_savings":
+			cur_val = savings
+			is_met = (debt_balance == 0 and savings >= target_val)
+		"goal_pct":
+			cur_val = get_goal_progress_percent()
+			is_met = (cur_val >= target_val) and (m_idx != 11 or (get_total_debt_and_loans() + credit_balance) == 0)
+		_:
+			cur_val = savings
+			is_met = (cur_val >= target_val)
+	var already_done: bool = bool(completed_monthly_missions.get(str(m_idx), false))
+	var pct: int = 100 if (already_done or is_met) else int(clamp(round(float(cur_val) / float(target_val) * 100.0), 0.0, 99.0))
+	base_m["current_val"] = cur_val
+	base_m["target_val"] = target_val
+	base_m["pct"] = pct
+	base_m["is_met_now"] = is_met
+	base_m["completed"] = already_done
+	return base_m
+
+func check_monthly_mission_completion() -> void:
+	var m_idx: int = clamp(current_month, 0, MONTHLY_MISSIONS.size() - 1)
+	var key := str(m_idx)
+	if bool(completed_monthly_missions.get(key, false)):
+		return
+	var mission := get_active_monthly_mission()
+	if not bool(mission.get("is_met_now", false)):
+		return
+	completed_monthly_missions[key] = true
+	var r_cash: int = int(mission.get("reward_cash", 0))
+	var r_cs: int = int(mission.get("reward_cs", 0))
+	var r_happy: int = int(mission.get("reward_happy", 0))
+	if r_cash > 0:
+		current_balance += r_cash
+		weekly_income += r_cash
+	if r_cs > 0:
+		credit_score = clamp(credit_score + r_cs, 0, 100)
+	if r_happy > 0:
+		happy = clamp(happy + r_happy, 0, 100)
+	LedgerManager.record_milestone(
+		"Mission",
+		"stat_system",
+		"Monthly Mission Complete: " + str(mission.get("title", "")),
+		str(mission.get("desc", "")) + " — Bonus: +₱" + str(r_cash) + ", +" + str(r_cs) + " Credit, +" + str(r_happy) + " Happy.",
+		r_cash,
+		{"credit_score": r_cs, "happy": r_happy},
+		{"month": m_idx, "mission_title": str(mission.get("title", ""))}
+	)
+	set_baldo_lesson("Mission Complete", "Galing par! Tapos na ang Monthly Mission ('" + str(mission.get("title", "")) + "')! May +₱" + str(r_cash) + " bonus cash ka!")
+	mission["completed"] = true
+	on_mission_completed.emit(mission)
+	on_stats_changed.emit()
+
+func check_goal_milestones() -> void:
+	var pct := get_goal_progress_percent()
+	for threshold in [25, 50, 75, 100]:
+		if pct >= threshold and not (threshold in reached_goal_milestones):
+			reached_goal_milestones.append(threshold)
+			var happy_bonus: int = 3 if threshold < 100 else 6
+			happy = clamp(happy + happy_bonus, 0, 100)
+			LedgerManager.record_milestone(
+				"Goal",
+				"stat_system",
+				"Life Goal " + str(threshold) + "% Reached!",
+				"Umabot na sa " + str(threshold) + "% ang Ipon mo para sa Life Goal (+" + str(happy_bonus) + " Happy)!",
+				0,
+				{"happy": happy_bonus},
+				{"milestone_pct": threshold}
+			)
+			on_goal_milestone_reached.emit(threshold, happy_bonus)
+
+func evaluate_monthly_grade(auto_paid_bills: bool, had_interest_penalty: bool, target_month_idx: int = -1) -> Dictionary:
+	var c_bills: bool = auto_paid_bills
+	var c_savings: bool = (savings - month_start_savings) >= 2000 or month_deposited_savings >= 2000
+	var c_debt: bool = (not had_interest_penalty) and debt_balance == 0
+	var c_stats: bool = (happy >= 55 and social >= 55 and credit_score >= 70)
+	var score: int = (1 if c_bills else 0) + (1 if c_savings else 0) + (1 if c_debt else 0) + (1 if c_stats else 0)
+	var grade := "S" if score >= 4 else ("A" if score == 3 else ("B" if score == 2 else "C"))
+	var grade_lbl := "Paldo Master" if grade == "S" else ("Magaling" if grade == "A" else ("Ayos Lang" if grade == "B" else "Kailangan ng Budget Focus"))
+	var m_idx: int = clamp(target_month_idx if target_month_idx >= 0 else current_month, 0, year.size() - 1)
+	var m_name := str(year[m_idx]["month"])
+	var growth: int = savings - month_start_savings
+	var record := {
+		"month_idx": m_idx,
+		"month": m_name,
+		"grade": grade,
+		"score": score,
+		"label": grade_lbl,
+		"savings_growth": growth,
+		"criteria": {"bills": c_bills, "savings": c_savings, "debt": c_debt, "stats": c_stats}
+	}
+	var replaced := false
+	for i in range(monthly_grades_history.size()):
+		if monthly_grades_history[i] is Dictionary and int(monthly_grades_history[i].get("month_idx", -1)) == m_idx:
+			monthly_grades_history[i] = record
+			replaced = true
+			break
+	if not replaced:
+		monthly_grades_history.append(record)
+	month_start_savings = savings
+	month_deposited_savings = 0
+	return {"month_idx": m_idx, "month": m_name, "grade": grade, "score": score, "label": grade_lbl, "savings_growth": growth, "criteria": record["criteria"]}
+
+func get_monthly_grade_rubric_status() -> Array[Dictionary]:
+	var total_u := monthly_utilities + extra_utilities_this_month + get_total_monthly_installments() + monthly_family_support
+	var bills_met := (get_envelope_amount("Rent") >= monthly_rent) and (get_envelope_amount("Utilities") >= total_u)
+	var sav_met := ((savings - month_start_savings) >= 2000 or month_deposited_savings >= 2000)
+	var debt_met := (debt_balance == 0 and credit_balance == 0)
+	var stats_met := (happy >= 55 and social >= 55 and credit_score >= 70)
+	var res: Array[Dictionary] = [
+		{"title": "Auto-Paid ang Upa at Bills", "detail": "Pondohan 100% ang Upa at Bills envelopes", "met": bills_met},
+		{"title": "Naka-ipon ng ₱2,000+ ngayong buwan", "detail": "Maghulog o magpalago ng ₱2,000+ sa Ipon", "met": sav_met},
+		{"title": "Walang Overdue Debt at Penalty", "detail": "Panatilihing ₱0 ang Overdue Debt at Credit", "met": debt_met},
+		{"title": "Balanseng Stats at Credit", "detail": "Happy 55+, Social 55+, Credit Score 70+", "met": stats_met}
+	]
+	return res
+
+func get_average_grade_text() -> String:
+	if monthly_grades_history.is_empty():
+		return "—"
+	var total_score: float = 0.0
+	var count: int = 0
+	for item in monthly_grades_history:
+		if item is Dictionary:
+			total_score += float(item.get("score", 0))
+			count += 1
+	if count <= 0:
+		return "—"
+	var avg := total_score / float(count)
+	if avg >= 3.5:
+		return "S"
+	elif avg >= 2.5:
+		return "A"
+	elif avg >= 1.5:
+		return "B"
+	return "C"
 
 func get_stage_info() -> Dictionary:
 	match current_month:
@@ -1125,13 +1362,63 @@ func set_employment_status(status: String) -> void:
 func get_employment_display_text() -> String:
 	match employment_status:
 		"laid_off":
-			return "Laid Off / Unemployed (PHP 0/mo Regular Salary)"
+			return "Laid Off • ₱0/buwan"
 		"temporary_job":
-			return "Temporary Job (PHP 15,000/mo)"
+			return "Temporary Job • ₱15,000/buwan"
 		"new_stable_job":
-			return "New Stable Job (PHP 30,000/mo)"
+			return "Stable Job • ₱30,000/buwan"
 		_:
-			return "Regular Job (PHP 25,000/mo)"
+			return "Regular Job • ₱25,000/buwan"
+
+func calculate_13th_month_pay() -> int:
+	match employment_status:
+		"regular":
+			return 12500
+		"new_stable_job":
+			return 10000
+		"temporary_job":
+			return 6000
+		_:
+			return 0
+
+func get_current_market_mood() -> Dictionary:
+	match current_month:
+		0, 1, 2, 3, 4:
+			return {
+				"label": "Steady Market",
+				"hint": "Katamtamang galaw — maganda ang Low-Risk Mutual Fund (+1.8%/mo).",
+				"color": UITheme.BTN_BLUE,
+				"hex": "#1a4b7c",
+				"low_rate": 0.018,
+				"high_rate": 0.06
+			}
+		5, 6:
+			return {
+				"label": "Mid-Year Bull",
+				"hint": "Malakas ang market momentum — pabor sa High-Risk Stocks.",
+				"color": UITheme.BTN_SAGE,
+				"hex": "#1c7033",
+				"low_rate": 0.022,
+				"high_rate": 0.14
+			}
+		7, 8:
+			return {
+				"label": "Volatile Dip",
+				"hint": "Maalon ang merkado ngayong quarter — ligtas sa Low-Risk o Cash buffer.",
+				"color": UITheme.BTN_CORAL,
+				"hex": "#a8261f",
+				"low_rate": 0.015,
+				"high_rate": -0.10
+			}
+		_:
+			return {
+				"label": "Year-End Rally",
+				"hint": "Masigla ang ber-months market bago matapos ang taon!",
+				"color": UITheme.BTN_GOLD,
+				"hex": "#94520d",
+				"low_rate": 0.025,
+				"high_rate": 0.18
+			}
 
 func evaluate_year_end() -> Dictionary:
 	var goal := get_current_goal()
@@ -1161,23 +1448,23 @@ func evaluate_year_end() -> Dictionary:
 	
 	if is_full_paldo:
 		ending_id = "full_paldo"
-		ending_title = "TUNAY NA PALDO! (Full Breadwinner Mastery Victory)"
-		ending_summary = "Nakamit mo ang iyong 1-Year Life Goal (\"" + str(goal["title"]) + "\"), nanatiling 100% debt-free, mataas ang Credit Score, at napangalagaan ang iyong Happiness at Relationships sa gitna ng layoff at mga krisis!"
+		ending_title = "TUNAY NA PALDO!"
+		ending_summary = "Nakamit mo ang iyong 1-Year Life Goal para sa " + str(goal["title"]) + ", nanatiling debt-free, mataas ang Credit Score, at napangalagaan ang Happiness at Relationships sa gitna ng layoff at mga krisis."
 		baldo_verdict = "Omsim par, ISA KANG ALAMAT! Kahit dumaan sa layoff, inflation, at hospital emergencies, na-balance mo ang Cash Envelopes, Ipon, at mental health mo. Tunay na PALDO!"
 	elif goal_reached:
 		ending_id = "pyrrhic_goal"
-		ending_title = "NATUPAD ANG GOAL PERO MAY KAPALIT (Partial Victory)"
-		ending_summary = "Naabot mo ang target na PHP " + str(target) + " sa Ipon para sa \"" + str(goal["title"]) + "\", ngunit may naiwang utang/credit balance, bumaba ang Credit Score, o na-kompromiso ang iyong Happiness/Social."
-		baldo_verdict = "Congrats at naipon mo yung pang-\"" + str(goal["title"]) + "\" par! Pero tandaan: ang tunay na pag-paldo ay hindi lang malaking ipon—dapat debt-free rin at hindi nasasakripisyo ang sarili at pamilya."
+		ending_title = "NATUPAD ANG GOAL PERO MAY KAPALIT"
+		ending_summary = "Naabot mo ang target na ₱" + UITheme.format_num(target) + " para sa " + str(goal["title"]) + ", ngunit may naiwang utang o bumaba ang iyong Credit Score, Happiness, o Social standing."
+		baldo_verdict = "Congrats at naipon mo yung pang-\"" + str(goal["title"]) + "\" par! Pero tandaan: ang tunay na pag-paldo ay hindi lang malaking ipon — dapat debt-free rin at hindi nasasakripisyo ang sarili at pamilya."
 	elif debt_free and wellbeing_maintained:
 		ending_id = "debt_free_survivor"
-		ending_title = "MATATAG NA BREADWINNER (Debt-Free Survivor Ending)"
-		ending_summary = "Nalampasan mo ang buong taon nang walang utang, maganda ang well-being, at nakabangon mula sa layoff, ngunit kinapos pa ang iyong Ipon (PHP " + str(savings) + " / PHP " + str(target) + ") para sa \"" + str(goal["title"]) + "\"."
+		ending_title = "MATATAG NA BREADWINNER"
+		ending_summary = "Nalampasan mo ang buong taon nang walang utang, maayos ang well-being, at nakabangon mula sa layoff, ngunit kinapos ang Ipon sa ₱" + UITheme.format_num(savings) + " kumpara sa target na ₱" + UITheme.format_num(target) + "."
 		baldo_verdict = "Proud pa rin ako sa'yo lods! Hindi biro ang ma-layoff at ma-ospital ang kapatid, pero tinapos mo ang taon nang walang utang at buo ang loob. Konting ipon at investment pa, papaldo ka na!"
 	else:
 		ending_id = "financial_struggle"
-		ending_title = "KINAPOS SA TAONG ITO (Financial Struggle Ending)"
-		ending_summary = "Natapos ang taon na kinapos sa Life Goal (PHP " + str(savings) + " / PHP " + str(target) + ") at may mabigat pang obligasyon o pagod na kalusugan/relasyon. Mahalagang aral ito sa pag-budget at paghahanda ng Emergency Fund."
+		ending_title = "KINAPOS SA TAONG ITO"
+		ending_summary = "Natapos ang taon sa ₱" + UITheme.format_num(savings) + " mula sa target na ₱" + UITheme.format_num(target) + " na Ipon habang may mabigat pang obligasyon o pagod na well-being. Mahalagang aral ito sa pag-budget at paghahanda ng Emergency Fund."
 		baldo_verdict = "Hinga nang malalim par! Mabigat talaga ang unang taon bilang breadwinner lalo na kung sabay-sabay ang utang at emergency. Bawi tayo next run: unahin ang Emergency Fund at iwas sa minimum payment trap!"
 		
 	var eval_result := {
@@ -1226,7 +1513,7 @@ func get_live_summary_for_ai() -> String:
 	var goal = get_current_goal()
 	var goal_rem = max(0, get_goal_target() - savings)
 	var food_mode = "Magluto sa bahay (PHP " + str(get_daily_food_cost()) + "/day)" if daily_food_choice == 0 else "Mag-order / Eat Out (PHP " + str(get_daily_food_cost()) + "/day)"
-	var commute_mode = "Jeep/Bus Public Commute (PHP " + str(get_daily_commute_cost()) + "/day)" if daily_commute_choice == 0 else "Angkas/Joyride Mototaxi (PHP " + str(get_daily_commute_cost()) + "/day)"
+	var commute_mode = "Public Transit (PHP " + str(get_daily_commute_cost()) + "/day)" if daily_commute_choice == 0 else "Mototaxi (PHP " + str(get_daily_commute_cost()) + "/day)"
 	
 	var env_lines: Array[String] = []
 	for env in envelopes:
@@ -1241,7 +1528,7 @@ func get_live_summary_for_ai() -> String:
 	
 	var cc_status = "Not Unlocked / Declined"
 	if has_credit_card:
-		cc_status = "Unlocked (Balance: PHP " + str(credit_balance) + " / Limit: PHP " + str(credit_limit) + ", Available Credit: PHP " + str(get_available_credit()) + ", Min Due: PHP " + str(get_credit_minimum_due()) + ", 5%/mo compounding interest on unpaid balance)"
+		cc_status = "Unlocked (Balance: PHP " + str(credit_balance) + " / Limit: PHP " + str(credit_limit) + ", Available Credit: PHP " + str(get_available_credit()) + ", Min Due: PHP " + str(get_credit_minimum_due()) + ", 3%/mo compounding interest on unpaid balance)"
 	
 	var summary = "=== LIVE PLAYER GAME STATE (StatManager) ===\n"
 	summary += "- Date & Time: " + month_name + " " + str(current_day) + " (" + phase_names[current_phase] + "), " + str(days_in_month - current_day) + " days left in month\n"
@@ -1249,12 +1536,12 @@ func get_live_summary_for_ai() -> String:
 	summary += "- Employment Status: " + get_employment_display_text() + "\n"
 	summary += "- Chosen 1-Year Life Goal: \"" + str(goal["title"]) + "\" — Target Cost: PHP " + str(goal["cost"]) + " | Progress: PHP " + str(savings) + " / PHP " + str(goal["cost"]) + " (" + str(get_goal_progress_percent()) + "%, Need PHP " + str(goal_rem) + " more)\n"
 	summary += "- Available Cash (Current Balance): PHP " + str(current_balance) + "\n"
-	summary += "- Savings (Ipon in Bank, earns 2% monthly compounding interest): PHP " + str(savings) + " (Total Compounding Interest Earned So Far: PHP " + str(total_savings_interest_earned) + ")\n"
+	summary += "- Savings (Ipon in Digital Bank, earns 0.5% monthly / 6% p.a. compounding interest): PHP " + str(savings) + " (Total Compounding Interest Earned So Far: PHP " + str(total_savings_interest_earned) + ")\n"
 	summary += "- Unpaid Overdue Debt Balance: PHP " + str(debt_balance) + " (5% monthly interest penalty if unpaid; Total Debt + Loans > PHP 50,000 = Game Over)\n"
 	summary += "- Active Simple Interest Loans (Lending Platform / 5-6): " + get_loans_summary_text() + " (Total Loan Balance: PHP " + str(get_total_active_loan_balance()) + ")\n"
 	summary += "- Credit Card Status: " + cc_status + " | Credit Score: " + str(credit_score) + "/100 (Need >=70 for Good standing)\n"
 	summary += "- Active Monthly Installments: " + get_installments_summary_text() + "\n"
-	summary += "- Investments Portfolio: Low-Risk Fund = PHP " + str(low_risk_investment) + " (+4%/mo steady) | High-Risk Stock = PHP " + str(high_risk_investment) + " (volatile) | Total Investment P&L = PHP " + str(total_investment_gains) + "\n"
+	summary += "- Investments Portfolio: Low-Risk Fund = PHP " + str(low_risk_investment) + " (+1.5% to +2.5%/mo steady) | High-Risk Stock = PHP " + str(high_risk_investment) + " (volatile) | Total Investment P&L = PHP " + str(total_investment_gains) + "\n"
 	summary += "- Side Hustle / Freelance Status: " + ("Active (+PHP 5,000/mo, -3 Happy & -2 Social/week)" if has_side_income else "None") + " | Regular Family Support Obligation: PHP " + str(monthly_family_support) + "/mo\n"
 	if health_issue_delayed:
 		summary += "  [HEALTH WARNING: Player delayed medical treatment in Stage 3—at risk of severe health complication!]\n"

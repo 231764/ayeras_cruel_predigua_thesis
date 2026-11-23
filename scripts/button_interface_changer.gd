@@ -7,11 +7,18 @@ extends TextureButton
 func _ready() -> void:
 	if button and not button.pressed.is_connected(_button_pressed):
 		button.pressed.connect(_button_pressed)
+	if button and not button.mouse_entered.is_connected(_on_hover):
+		button.mouse_entered.connect(_on_hover)
+
+func _on_hover() -> void:
+	if button and not button.disabled:
+		AudioManager.play_sfx("hover")
 
 func _button_pressed() -> void:
 	if back_button.visible:
 		return
 		
+	AudioManager.play_sfx("tool_open")
 	print("You pressed " + button.name)
 	interface.visible = true
 	interface.modulate = Color(1, 1, 1, 0.0)

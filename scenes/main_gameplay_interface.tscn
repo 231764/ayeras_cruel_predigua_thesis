@@ -96,10 +96,10 @@ offset_right = 216.0
 offset_bottom = 170.0
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
 text = "Hawak na Cash
-PHP 5,000"
+₱5,000"
 
 [node name="Icon" type="TextureRect" parent="CB Label" unique_id=2014212662]
 layout_mode = 0
@@ -119,10 +119,10 @@ offset_right = 216.0
 offset_bottom = 252.0
 theme_override_colors/font_color = Color(0.11, 0.36, 0.2, 1)
 theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
 text = "Ipon sa Bangko
-PHP 0"
+₱0"
 
 [node name="Icon" type="TextureRect" parent="Savings Label" unique_id=253356462]
 layout_mode = 0
@@ -142,10 +142,10 @@ offset_right = 216.0
 offset_bottom = 334.0
 theme_override_colors/font_color = Color(0.48, 0.26, 0.06, 1)
 theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
 text = "Credit Balance
-PHP 0"
+₱0"
 
 [node name="Icon" type="TextureRect" parent="CrB Label" unique_id=172025542]
 layout_mode = 0
@@ -165,10 +165,10 @@ offset_right = 216.0
 offset_bottom = 416.0
 theme_override_colors/font_color = Color(0.58, 0.14, 0.12, 1)
 theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
 text = "Utang / Loans
-PHP 0"
+₱0"
 
 [node name="Icon" type="TextureRect" parent="Debt Label" unique_id=1796424826]
 layout_mode = 0
@@ -188,7 +188,7 @@ offset_right = 216.0
 offset_bottom = 498.0
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_constants/outline_size = 0
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_stat_pill")
 text = "Credit Score
 70 / 100"
@@ -389,9 +389,9 @@ offset_top = 14.0
 offset_right = 214.0
 offset_bottom = 56.0
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_back_btn")
-text = "< Bumalik sa Desk"
+text = "Bumalik sa Desk"
 script = ExtResource("2_4dx5e")
 
 [node name="EventPanel" parent="." unique_id=1131891414 instance=ExtResource("20_eventpanel")]

@@ -29,9 +29,9 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 content_margin_left = 14.0
-content_margin_top = 10.0
+content_margin_top = 8.0
 content_margin_right = 14.0
-content_margin_bottom = 10.0
+content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_bg"]
 bg_color = Color(0.9, 0.87, 0.8, 1)
@@ -77,10 +77,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -380.0
-offset_top = -260.0
-offset_right = 380.0
-offset_bottom = 260.0
+offset_left = -415.0
+offset_top = -278.0
+offset_right = 415.0
+offset_bottom = 278.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal_panel")
@@ -90,25 +90,27 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 20.0
-offset_right = -24.0
-offset_bottom = -20.0
+offset_left = 22.0
+offset_top = 16.0
+offset_right = -22.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
 text = "Piliin ang Iyong 1-Year Life Goal"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="SubtitleLabel" type="RichTextLabel" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_desc_bubble")
 bbcode_enabled = true
 text = "Goal details here"
@@ -116,11 +118,12 @@ fit_content = true
 
 [node name="GoalProgressBar" type="ProgressBar" parent="Backdrop/Panel/VBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(0, 26)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_prog_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_prog_fill")
 max_value = 40000.0
+show_percentage = false
 
 [node name="OptionsContainer" type="VBoxContainer" parent="Backdrop/Panel/VBoxContainer"]
 layout_mode = 2
@@ -141,22 +144,28 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="Dep500" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow"]
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Mag-ipon +PHP 500"
+theme_override_font_sizes/font_size = 14
+text = "Mag-ipon +₱500"
+autowrap_mode = 3
 
 [node name="Dep1000" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow"]
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Mag-ipon +PHP 1,000"
+theme_override_font_sizes/font_size = 14
+text = "Mag-ipon +₱1,000"
+autowrap_mode = 3
 
 [node name="Dep2500" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow"]
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Mag-ipon +PHP 2,500"
+theme_override_font_sizes/font_size = 14
+text = "Mag-ipon +₱2,500"
+autowrap_mode = 3
 
 [node name="QuickWithdrawRow" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer/SavingsControls"]
 layout_mode = 2
@@ -164,16 +173,20 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="With500" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickWithdrawRow"]
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Kumuha -PHP 500"
+theme_override_font_sizes/font_size = 14
+text = "Kumuha -₱500"
+autowrap_mode = 3
 
 [node name="With1000" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/QuickWithdrawRow"]
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Kumuha -PHP 1,000"
+theme_override_font_sizes/font_size = 14
+text = "Kumuha -₱1,000"
+autowrap_mode = 3
 
 [node name="CustomRow" type="HBoxContainer" parent="Backdrop/Panel/VBoxContainer/SavingsControls"]
 layout_mode = 2
@@ -181,27 +194,33 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="AmountInput" type="LineEdit" parent="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow"]
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "I-type ang halaga (PHP)..."
+theme_override_font_sizes/font_size = 14
+placeholder_text = "I-type ang halaga (₱)..."
 
 [node name="CustomDepositBtn" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow"]
-custom_minimum_size = Vector2(160, 38)
+custom_minimum_size = Vector2(150, 40)
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "Maghulog sa Ipon"
+autowrap_mode = 3
 
 [node name="CustomWithdrawBtn" type="Button" parent="Backdrop/Panel/VBoxContainer/SavingsControls/CustomRow"]
-custom_minimum_size = Vector2(160, 38)
+custom_minimum_size = Vector2(150, 40)
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "Hugutin sa Ipon"
+autowrap_mode = 3
 
 [node name="CloseButton" type="Button" parent="Backdrop/Panel/VBoxContainer"]
 visible = false
 custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "< Bumalik sa Desk"
+text = "Bumalik sa Desk"
+autowrap_mode = 3
 
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow/Dep500" to="." method="_on_quick_deposit" binds= [500]]
 [connection signal="pressed" from="Backdrop/Panel/VBoxContainer/SavingsControls/QuickDepositRow/Dep1000" to="." method="_on_quick_deposit" binds= [1000]]

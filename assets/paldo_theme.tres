@@ -1,0 +1,40 @@
+[gd_resource type="Theme" load_steps=5 format=3]
+
+[ext_resource type="FontVariation" path="res://assets/fonts/font_body.tres" id="1_body"]
+[ext_resource type="FontVariation" path="res://assets/fonts/font_ui.tres" id="2_ui"]
+[ext_resource type="FontVariation" path="res://assets/fonts/font_bold.tres" id="3_bold"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.99, 0.95, 0.78, 0.99)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 4
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.06, 0.05, 0.04, 0.28)
+shadow_size = 3
+shadow_offset = Vector2(2, 3)
+
+[resource]
+default_font = ExtResource("2_ui")
+default_font_size = 14
+Button/colors/font_color = Color(0.13, 0.11, 0.1, 1)
+Label/colors/font_color = Color(0.13, 0.11, 0.1, 1)
+RichTextLabel/colors/default_color = Color(0.13, 0.11, 0.1, 1)
+RichTextLabel/font_sizes/bold_font_size = 14
+RichTextLabel/font_sizes/normal_font_size = 14
+RichTextLabel/fonts/bold_font = ExtResource("3_bold")
+RichTextLabel/fonts/italics_font = ExtResource("1_body")
+RichTextLabel/fonts/normal_font = ExtResource("1_body")
+TooltipLabel/colors/font_color = Color(0.13, 0.11, 0.1, 1)
+TooltipLabel/font_sizes/font_size = 14
+TooltipLabel/fonts/font = ExtResource("2_ui")
+TooltipPanel/styles/panel = SubResource("StyleBoxFlat_tooltip")

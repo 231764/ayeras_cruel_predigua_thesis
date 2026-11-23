@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Paldo"
-run/main_scene="uid://b11qqo1nag86y"
+run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -25,3 +25,8 @@ EventManager="*res://scripts/event_manager.gd"
 StatManager="*res://scripts/stat_manager.gd"
 PlannerManager="*res://scripts/planner_manager.gd"
 LedgerManager="*res://scripts/ledger_manager.gd"
+AudioManager="*res://scripts/audio_manager.gd"
+
+[gui]
+
+theme/custom="res://assets/paldo_theme.tres"

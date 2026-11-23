@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://c_weekly_summary"]
+[gd_scene load_steps=6 format=3 uid="uid://c_weekly_summary"]
 
 [ext_resource type="Script" path="res://scripts/weekly_summary.gd" id="1_wkly"]
 
@@ -29,9 +29,9 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 content_margin_left = 12.0
-content_margin_top = 8.0
+content_margin_top = 7.0
 content_margin_right = 12.0
-content_margin_bottom = 8.0
+content_margin_bottom = 7.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_details_bubble"]
 bg_color = Color(0.92, 0.89, 0.81, 0.98)
@@ -45,9 +45,21 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 content_margin_left = 14.0
-content_margin_top = 10.0
+content_margin_top = 8.0
 content_margin_right = 14.0
-content_margin_bottom = 10.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_bg"]
+bg_color = Color(0.89, 0.85, 0.77, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.15, 0.13, 0.12, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
 
 [node name="WeeklySummaryCanvas" type="CanvasLayer"]
 layer = 100
@@ -68,10 +80,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -385.0
-offset_top = -285.0
-offset_right = 385.0
-offset_bottom = 285.0
+offset_left = -420.0
+offset_top = -292.0
+offset_right = 420.0
+offset_bottom = 292.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal_panel")
@@ -81,14 +93,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 16.0
-offset_right = -24.0
-offset_bottom = -16.0
+offset_left = 22.0
+offset_top = 14.0
+offset_right = -22.0
+offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
-alignment = 1
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
@@ -96,6 +107,7 @@ theme_override_colors/font_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_font_sizes/font_size = 20
 text = "KATAPUSAN NG LINGGO — WEEKLY SUMMARY"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="StatsPanel" type="PanelContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
@@ -103,7 +115,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_stats_row")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer/StatsPanel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 alignment = 1
 
 [node name="IncomeLabel" type="Label" parent="Panel/VBoxContainer/StatsPanel/HBoxContainer"]
@@ -111,16 +123,18 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.11, 0.44, 0.2, 1)
 theme_override_font_sizes/font_size = 14
-text = "Pumasok: + PHP 0"
+text = "Pumasok: +PHP 0"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="ExpensesLabel" type="Label" parent="Panel/VBoxContainer/StatsPanel/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.66, 0.15, 0.12, 1)
 theme_override_font_sizes/font_size = 14
-text = "Nagastos: - PHP 0"
+text = "Nagastos: -PHP 0"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="NetLabel" type="Label" parent="Panel/VBoxContainer/StatsPanel/HBoxContainer"]
 layout_mode = 2
@@ -129,12 +143,44 @@ theme_override_colors/font_color = Color(0.58, 0.32, 0.05, 1)
 theme_override_font_sizes/font_size = 14
 text = "Natira: PHP 0"
 horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="GoalProgressRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="GoalIconRect" type="TextureRect" parent="Panel/VBoxContainer/GoalProgressRow"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GoalBarVBox" type="VBoxContainer" parent="Panel/VBoxContainer/GoalProgressRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="GoalTitleLabel" type="Label" parent="Panel/VBoxContainer/GoalProgressRow/GoalBarVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.16, 0.13, 0.11, 1)
+theme_override_font_sizes/font_size = 14
+text = "Life Goal Progress"
+autowrap_mode = 3
+
+[node name="GoalProgressBar" type="ProgressBar" parent="Panel/VBoxContainer/GoalProgressRow/GoalBarVBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_prog_bg")
+max_value = 100.0
+show_percentage = false
 
 [node name="DetailsRTF" type="RichTextLabel" parent="Panel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_colors/default_color = Color(0.13, 0.11, 0.1, 1)
 theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_details_bubble")
 bbcode_enabled = true
 text = "Weekly savings, debt, and stat deltas..."
@@ -143,46 +189,55 @@ text = "Weekly savings, debt, and stat deltas..."
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.15, 0.13, 1)
 theme_override_font_sizes/font_size = 14
-text = "Weekend Activity (Libangan Envelope: PHP 0) — Pumili ng Isa:"
+text = "Weekend Activity  •  Libangan Envelope: ₱0  —  Pumili ng Isa:"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="WeekendRow1" type="HBoxContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 alignment = 1
 
 [node name="RestButton" type="Button" parent="Panel/VBoxContainer/WeekendRow1"]
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
-text = "Pahinga sa Bahay (PHP 0 | +6 Happy)"
+text = "Pahinga sa Bahay
+₱0  •  +6 Happy"
+autowrap_mode = 3
 
 [node name="BarkadaButton" type="Button" parent="Panel/VBoxContainer/WeekendRow1"]
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
-text = "Labas w/ Barkada (PHP 400 Libangan | +7 Happy, +9 Social)"
+text = "Labas w/ Barkada
+-₱400 Libangan  •  +7 Happy, +9 Social"
+autowrap_mode = 3
 
 [node name="WeekendRow2" type="HBoxContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 alignment = 1
 
 [node name="FamilyButton" type="Button" parent="Panel/VBoxContainer/WeekendRow2"]
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
-text = "Bonding sa Pamilya (PHP 600 Libangan | +5 Happy, +12 Social)"
+text = "Bonding sa Pamilya
+-₱600 Libangan  •  +5 Happy, +12 Social"
+autowrap_mode = 3
 
 [node name="RaketButton" type="Button" parent="Panel/VBoxContainer/WeekendRow2"]
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
-text = "Weekend Sideline (+PHP 1,200 Cash | -5 Happy, -3 Social)"
+text = "Weekend Sideline
++₱1,200 Cash  •  -5 Happy, -3 Social"
+autowrap_mode = 3
 
 [node name="ActionRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
@@ -195,6 +250,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
 text = "Mag-Budget (Envelopes)"
+autowrap_mode = 3
 
 [node name="PlannerPlanButton" type="Button" parent="Panel/VBoxContainer/ActionRow"]
 custom_minimum_size = Vector2(0, 38)
@@ -202,12 +258,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
 text = "Mag-Plano (Planner)"
+autowrap_mode = 3
 
 [node name="ContinueButton" type="Button" parent="Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Tuloy sa Susunod na Linggo >>"
+theme_override_font_sizes/font_size = 16
+text = "Tuloy sa Susunod na Linggo"
+autowrap_mode = 3
 
 [connection signal="pressed" from="Panel/VBoxContainer/WeekendRow1/RestButton" to="." method="_on_weekend_rest_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/WeekendRow1/BarkadaButton" to="." method="_on_weekend_barkada_pressed"]

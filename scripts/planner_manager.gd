@@ -1,5 +1,7 @@
 extends Node
 
+const UITheme = preload("res://scripts/ui_theme.gd")
+
 var entries = [] # Array of player note dictionaries: {"Month": int, "Day": int, "Text": String}
 var recorded_events = [] # Array of event log dictionaries: {"Month": int, "Day": int, "Text": String}
 
@@ -68,7 +70,7 @@ func get_upcoming_milestones(month: int, day: int) -> String:
 		lines.append("• [color=#8b4513][b]Credit Card Statement Billing Date[/b][/color]")
 	if day == last_day:
 		var tot_util: int = StatManager.monthly_utilities + StatManager.extra_utilities_this_month + StatManager.get_total_monthly_installments() + StatManager.monthly_family_support
-		lines.append("• [color=#8b1e1e][b]Katapusan Bills Due:[/b] Upa (PHP " + str(StatManager.monthly_rent) + ") + Utilities/Installments (PHP " + str(tot_util) + ") + 2% Savings Interest[/color]")
+		lines.append("• [color=#8b1e1e][b]Katapusan Bills Due:[/b] Upa (₱" + UITheme.format_num(StatManager.monthly_rent) + ") + Utilities/Installments (₱" + UITheme.format_num(tot_util) + ") + Digital Bank 0.5%/mo Interest[/color]")
 	return "\n".join(lines)
 
 func reset_planner() -> void:
